@@ -1,7 +1,7 @@
 import Image from "next/image";
 import {useState, useEffect} from 'react'
-import {PerformanceChart} from './components'
-import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon} from "@heroicons/react/24/solid"
+import {PerformanceChart, AgentHeader, Sidebar} from './components'
+import { ArrowRightStartOnRectangleIcon} from "@heroicons/react/24/solid"
 
 
 export default function Home() {
@@ -11,15 +11,14 @@ export default function Home() {
       <header className="grid grid-cols-12 w-full h-12 shadow-sm shadow-primary">
         <div className="col-span-3" ></div>
         <div className="flex flex-row col-span-8 space-x-4 items-center">
-          <span className="font-bold">Agente - 3650 </span>
-          <ClockIcon className="h-10" />
-          <div>13:16</div>
-          <PlayPauseIcon className="h-10"/>
+          <AgentHeader />
         </div>
         <ArrowRightStartOnRectangleIcon className="col-span-1 h-10"/>
       </header>
       <main className="grid grid-cols-12">
-        <Sidebar />
+        <div className="col-span-4 bg-primary">
+          <Sidebar />
+        </div>
         <div className="col-span-8 grid grid-rows-12 w-full">
           <div className="row-span-3">
             <DailyPanel />
@@ -66,9 +65,6 @@ const MonthlyPanel = () => {
           <span className="font-bold">4</span>
         </div>
       </div>
-      
-      
-
     </div>
   )
 }
@@ -117,22 +113,4 @@ const DailyPanel = () => {
   )
 }
 
-const Sidebar = () => {
-  return(
-    <div className="col-span-4 h-screen text-black bg-primary space-y-2 px-2 py-2">
-      <Company />
-      <Company />          
-    </div>
-  )
-}
 
-const Company = () => {
-  return(
-    <div className="flex flex-row align-center h- space-x-2 ">
-      <div className="flex border border-black bg-red-500 h-6 w-1/12 rounded justify-center align-center">!!</div>
-      <div className="flex border border-black rounded bg-white w-8/12 justify-center bg-white px-2 py-1 ">ACEM PRIME</div>
-      <div className="flex border border-black bg-red-500 h-6 w-1/12 rounded justify-center align-center">5</div>
-      <div className="flex border border-black bg-green-500 h-6 w-1/12 rounded justify-center align-center">+</div>
-    </div>
-  )
-}

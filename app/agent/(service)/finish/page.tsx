@@ -1,6 +1,5 @@
-import {Input, Tooltip, Divider, Snippet} from "@nextui-org/react"
-import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
-import { RadioInput } from "../components";
+import {Input, Snippet} from "@nextui-org/react"
+import { ChevronLeftIcon} from "@heroicons/react/24/solid"
 
 export default function Procedure() {
   

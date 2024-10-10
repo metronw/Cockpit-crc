@@ -1,6 +1,6 @@
 import {IssueSelector} from "../components"
-import {Input, Tooltip, Divider} from "@nextui-org/react"
-import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
+import {Input} from "@nextui-org/react"
+import {ChevronRightIcon} from "@heroicons/react/24/solid"
 
 export default function Triage() {
 

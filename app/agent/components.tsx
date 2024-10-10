@@ -1,10 +1,9 @@
 'use client'
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Accordion, AccordionItem} from "@nextui-org/react"
 import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/solid"
 import Link from "next/link"
 import  {useRouter} from "next/navigation"
-import {useState, FC} from 'react'
 
 
 
@@ -83,7 +82,7 @@ export const Sidebar = () => {
             <Client name='+ Novo Atendimento'/>
             {
               ...el.clients.map(item => 
-                <Client name={item.name} timer={item.time}/>
+                <Client name={item.name} timer={item.time} key={item.name}/>
               )
             }
           </AccordionItem>

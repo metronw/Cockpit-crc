@@ -1,6 +1,4 @@
-import Image from "next/image";
-import {PerformanceChart, AgentHeader, Sidebar} from './components'
-import { ArrowRightStartOnRectangleIcon} from "@heroicons/react/24/solid"
+import {PerformanceChart} from './components'
 
 
 export default function Home() {

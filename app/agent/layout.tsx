@@ -1,5 +1,4 @@
 import { AgentHeader, Sidebar} from './components'
-import { ArrowRightStartOnRectangleIcon} from "@heroicons/react/24/solid"
 
 export default function AgentLayout({
   children,

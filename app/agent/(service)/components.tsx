@@ -1,13 +1,11 @@
 "use client"
 
-import { useState, useMemo } from "react";
-import { Card, CardBody, Autocomplete, AutocompleteItem, Button, Input, RadioGroup, Radio } from "@nextui-org/react";
+import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio } from "@nextui-org/react";
 import Link  from 'next/link'
 
 export const ServiceNavBar = () => {
-  const [route, setRoute] = useState('')
 
-  let tabs = [
+  const tabs = [
     {
       id: "triage",
       label: "Triagem",
@@ -23,7 +21,7 @@ export const ServiceNavBar = () => {
   return(
     <div className='flex flex-row space-x-4 text-lg justify-center bg-zinc-400 py-1  mb-2 '>
       {tabs.map(el => 
-        <Link href={'/agent/'+el.id}>
+        <Link href={'/agent/'+el.id} key={el.id}>
           <Card className=" hover:border hover:border-2 hover:bg-primary border-zinc-700">
             <CardBody><p className="text-primary hover:text-white">{el.label + '  >> '} </p></CardBody>
           </Card>

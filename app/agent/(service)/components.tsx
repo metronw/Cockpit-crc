@@ -2,6 +2,32 @@
 
 import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio } from "@nextui-org/react";
 import Link  from 'next/link'
+import { ITicket, useTicketContext } from "@/app/providers"
+import {useState, useEffect} from 'react'
+import {Input} from "@nextui-org/react"
+
+export const TextInput = ({id, fieldName}: {id: number, fieldName: 'name' | 'phone' | 'cpf' | 'address'}) => {
+
+  const {ticketContext, updateContext} = useTicketContext()
+  const ticket = ticketContext.tickets.find(el => el.id == id)
+  const [value, setValue] = useState<string>(ticket ? ticket[fieldName] : '')
+  
+  useEffect(()=>{
+    const ticket = ticketContext.tickets.find(el => el.id == id)
+    setValue(ticket ? ticket[fieldName] : '')
+
+  }, [ticketContext])
+
+  useEffect(()=>{
+    const newContext = {...ticketContext, tickets: ticketContext.tickets.map(el => el.id == id ? {...el, [fieldName]: value} : el)}
+    updateContext(newContext)
+  }, [value])
+  
+  return(
+    <Input type="text" label={fieldName} color={'primary'}  className={'w-80 h-11 ml-4 border border-primary rounded-medium'} value={value} onValueChange={setValue}/>
+  )
+}
+
 
 export const ServiceNavBar = () => {
 
@@ -31,15 +57,35 @@ export const ServiceNavBar = () => {
   )
 }
 
-export const IssueSelector = ({items=[], placeholder=""}: {items:{id: string, label:string}[], placeholder:string}) => {
+export const IssueSelector = ({id, fieldName, placeholder}: {id: number, fieldName: 'issue' | 'status', placeholder: string }) => {
+
+  const items = [{id: 'sem conect', label:"Sem conexão"}, {id: 'break', label: 'Quebra'}]
+  const {ticketContext, updateContext} = useTicketContext()
+  const ticket = ticketContext.tickets.find(el => el.id == id)
+  const [value, setValue] = useState<string>(ticket ? ticket[fieldName] : '')
+  
+  useEffect(()=>{
+    const ticket = ticketContext.tickets.find(el => el.id == id)
+    setValue(ticket ? ticket[fieldName] : '')
+
+  }, [ticketContext])
+
+  useEffect(()=>{
+    const newContext = {...ticketContext, tickets: ticketContext.tickets.map(el => el.id == id ? {...el, [fieldName]: value} : el)}
+    updateContext(newContext)
+  }, [value])
+
   return (
     <Autocomplete
       variant={'bordered'}
+      aria-label={placeholder}
       isRequired
       label=""
       defaultItems={items}
       placeholder={placeholder}
       defaultSelectedKey=""
+      onSelectionChange={setValue}
+      selectedKey={value}
       className="flex h-11 max-w-xs my-1"
       classNames={{
         popoverContent: 'bg-zinc-500 border-primary border rounded-medium',

@@ -1,8 +1,9 @@
 import {Input} from "@nextui-org/react"
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
-import { RadioInput } from "../components";
+import { RadioInput } from "../../components";
+import { Link } from "@nextui-org/react";
 
-export default function Procedure() {
+export default function Procedure({params: {id}}: {params: {id: number}}) {
   
   return (
     <div className="flex flex-col pt-3 mx-4 h-full">        
@@ -19,8 +20,10 @@ export default function Procedure() {
         </div>
 
       <div className="flex flex-row justify-center ">
-        <Input type="button" label="Voltar" color={'primary'} className={'w-40'} startContent={<ChevronLeftIcon width='40' />}/>        
-        <Input type="button" label="Próximo" color={'primary'} className={'w-40'} startContent={<ChevronRightIcon width='40' />} />
+      <Link href={'/agent/triage/'+id} className="w-40"><ChevronLeftIcon width='40' /> Anterior  </Link>
+      <Link href={'/agent/procedure/'+id} className="w-40">  Próximo <ChevronRightIcon width='40' /></Link>
+        {/* <Input type="button" label="Voltar" color={'primary'} className={'w-40'} startContent={<ChevronLeftIcon width='40' />}/>        
+        <Input type="button" label="Próximo" color={'primary'} className={'w-40'} startContent={<ChevronRightIcon width='40' />} /> */}
       </div>
     </div>
   );

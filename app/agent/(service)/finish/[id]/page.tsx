@@ -1,7 +1,7 @@
 import {Input, Snippet} from "@nextui-org/react"
 import { ChevronLeftIcon} from "@heroicons/react/24/solid"
 
-export default function Procedure() {
+export default function Procedure({params: {id}}: {params: {id: number}}) {
   
   return (
     <div className="flex flex-col pt-3 h-full">    

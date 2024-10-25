@@ -9,7 +9,7 @@ export default function ServiceLayout({
 }>) {
   return (
     <div className='flex flex-col grow h-full'>
-      <ServiceNavBar/>
+      {/* <ServiceNavBar/> */}
       <div className='col-span-8 bg-white flex flex-row p-2 space-x-4 justify-center'>
         <Card className="border border-primary">
           <CardBody><p className="text-primary">ACEM PRIME</p></CardBody>

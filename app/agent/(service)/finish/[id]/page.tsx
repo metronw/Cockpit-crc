@@ -1,7 +1,9 @@
 import {Input, Snippet} from "@nextui-org/react"
 import { ChevronLeftIcon} from "@heroicons/react/24/solid"
+import { Link } from "@nextui-org/react";
+import { FinishButton, TicketSummary } from "../../components";
 
-export default function Procedure({params: {id}}: {params: {id: number}}) {
+export default function Finishing({params: {id}}: {params: {id: number}}) {
   
   return (
     <div className="flex flex-col pt-3 h-full">    
@@ -23,26 +25,13 @@ export default function Procedure({params: {id}}: {params: {id: number}}) {
 
         </div>
         <div className="col-span-5 h-full">
-          <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
-            <p>Nome de Assinante:</p>
-            <p>Tipo de atendimento: </p>
-            <p>Nome do solicitante: </p>
-            <p>Endereço:</p>
-            <p>Problema alegado</p>
-            <p>Procedimentos Realizados</p>
-            <p>Data/Horário</p>
-            <p>Melhor horário para retorno</p>
-            <p>Telefone</p>
-            <p>Protocolo</p>
-            <p>Protocolo Chat</p>
-            <p>Atendente</p>
-          </Snippet>
+          <TicketSummary id={id}/>
         </div>
         
       </div>    
       <div className="flex flex-row justify-center ">
-        <Input type="button" label="Voltar" color={'primary'} className={'w-40'} startContent={<ChevronLeftIcon width='40' />}/>        
-        {/* <Input type="button" label="Concluir" color={'primary'} className={'w-40'} startContent={<ChevronRightIcon width='40' />} /> */}
+        <Link href={'/agent/procedure/'+id} className="w-40"><ChevronLeftIcon width='40' /> Anterior  </Link>
+        <FinishButton />
       </div>
     </div>
   );

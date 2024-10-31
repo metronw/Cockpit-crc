@@ -13,16 +13,21 @@ datasource db {
 
 model Ticket {
   id          Int      @id @default(autoincrement())
-  client_name String  
-  type        Int
+  client_name String?  
+  type        Int?
   company_id  Int
+  status      String
+  user_id     Int
   createdAt   DateTime @default(now())
 }
 
 model User {
   id        Int      @id @default(autoincrement())
-  name      String
+  name      String?
+  email     String  @unique
+  metro_id  Int
   role      Int?
+  password  String
   createdAt DateTime @default(now())
 }
 

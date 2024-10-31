@@ -1,7 +1,7 @@
-import {PerformanceChart} from './components'
+import {PerformanceChart} from '../components'
 
 
-export default function Home() {
+export default function Home({id}: {id: number}) {
   
   return (      
     <div className="flex flex-col space-y-4">

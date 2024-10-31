@@ -1,10 +1,12 @@
 'use client'
+
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Accordion, AccordionItem} from "@nextui-org/react"
 import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/solid"
 import Link from "next/link"
 import  {redirect, useRouter} from "next/navigation"
 import {ICompany, ITicket, useTicketContext} from '@/app/providers'
+import {createTicket} from '@/app/actions/api'
 
 
 
@@ -68,7 +70,9 @@ export const AgentHeader = () => {
 
 export const Sidebar = () => {
 
-  let {ticketContext:{tickets, companies}} = useTicketContext()
+  const router = useRouter();
+  let {ticketContext, updateContext} = useTicketContext()
+  let {tickets, companies} = ticketContext
 
   interface ICompanyList extends ICompany {
     tickets: Array<ITicket>
@@ -80,12 +84,21 @@ export const Sidebar = () => {
     comp?.tickets.push(el)
   })
 
-  const newTicket = (id:number) => {
-    redirect('/agent/triage/')    
+  const newTicket = async () => {
+    const response = await createTicket({company_id: 1})
+    if(response){
+      const ticket= JSON.parse(response)
+      
+      const newTickets = [...tickets, ticket]
+
+      await updateContext({...ticketContext, tickets: newTickets})
+
+      router.push('/agent/triage/'+ticket.id)
+    }
   }
 
   const redirectToTicket = (id:number) => {
-    redirect('/agent/triage/'+id)
+    router.push('/agent/triage/'+id)
   }
 
   return(
@@ -95,10 +108,10 @@ export const Sidebar = () => {
         ticketsList.length > 0 ?
         ticketsList.map(el=> 
           <AccordionItem key={el.name} aria-label={'Accordion ' + el.name} startContent={<CompanyComponent label={el.name} mass={el.mass} count={el.tickets.length}/>}>
-            <Client name='+ Novo Atendimento' onClick={() => newTicket(el.id)}/>
+            <Client name='+ Novo Atendimento' onClick={() => newTicket()}/>
             {
               el.tickets?.map(item => 
-                <Client name={item.name} timer={item.time} key={item.name} onClick={() => redirectToTicket(item.id)}/>
+                <Client name={'#'+item.id} timer={'0:00'} key={item.id} onClick={() => redirectToTicket(item.id)}/>
               )
             }
           </AccordionItem>
@@ -122,14 +135,15 @@ const CompanyComponent = ({label, mass, count}:{label:string, mass:boolean, coun
 }
 
 const Client = ({name, timer='', onClick}:{name:string, timer?:string, onClick: () => void}) => {
+  
   return(
-    <Link href="/agent/triage">
-      <div className="flex flex-row align-center rounded space-x-2 shadow-sm shadow-zinc-400 pt-1 mx-2 hover:bg-zinc-400">
+    // <Link href="/agent/triage">
+      <Button className="flex flex-row align-center rounded space-x-2 shadow-sm shadow-zinc-400 pt-1 mx-2 hover:bg-zinc-400" onClick={onClick}>
         <div className="flex  w-2/12 justify-center  py-1 "></div>
         <div className="flex rounded w-8/12 justify-center py-1  text-sm">{name}</div>
         <div className="flex rounded text-sm px-2">{timer}</div>
-      </div>
-    </Link>
+      </Button>
+    // </Link>
   )
 }
 

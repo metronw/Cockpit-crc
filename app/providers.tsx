@@ -3,6 +3,7 @@
 import {NextUIProvider} from '@nextui-org/react'
 import {ThemeProvider as NextThemesProvider} from "next-themes";
 import { createContext, useContext, useState, useEffect } from 'react';
+import {getCompaniesList} from '@/app/actions/api'
 
 const emptyData= {tickets: [], companies:[]}
 
@@ -17,6 +18,7 @@ export interface ITicket {
   address: string;
   issue: string;
   status: string;
+  user_id: number;
   company_id: number;
   time: string;
 }
@@ -39,39 +41,38 @@ export interface ITicketContext {
 
 
 export function TicketProvider({children}: { children: React.ReactNode }) {
-  // const [ticketContext, setTicketContext] = useState<ILocalData>({
-  //   tickets:[
-  //     {id: 1, name: 'José Alves', time: '1:57', company_id:1}
-  //   ],
-  //   companies: [
-  //     {id: 1, name: 'ACEM PRIME', mass: true },
-  //     {id: 2, name: 'INFORMAT', mass: false },
-  //     {id: 3, name: 'MUVNET', mass: false },
-  //     {id: 4, name: 'BRPHONIA', mass: false },
-  //   ]
-  // });
+  const data = {
+    tickets:[],
+    companies: [
+      {id: 1, name: 'ACEM PRIME', mass: true },
+      {id: 2, name: 'INFORMAT', mass: false },
+      {id: 3, name: 'MUVNET', mass: false },
+      {id: 4, name: 'BRPHONIA', mass: false },
+    ]
+  };
 
-  const savedData = JSON.parse(localStorage.getItem('tickets') ?? '')
 
-  const [ticketContext, setTicketContext] = useState<ILocalData>(savedData);
+
+  const [ticketContext, setTicketContext] = useState<ILocalData>(JSON.parse(localStorage.getItem('tickets')));
 
   useEffect(() => {
+
     const savedTickets = localStorage.getItem('tickets');
     if (savedTickets) {
       setTicketContext(JSON.parse(savedTickets));
     }
 
-    // return () => {
-    //   localStorage.setItem('tickets', JSON.stringify(ticketContext));
-    // }
-  }, []);
-
-  
-  useEffect(() => {
-    if (ticketContext && JSON.stringify(ticketContext) != JSON.stringify(emptyData)) {
+    return () => {
       localStorage.setItem('tickets', JSON.stringify(ticketContext));
     }
-  }, [ticketContext]);
+  }, []);
+
+  useEffect(() => {
+    if (ticketContext) {
+      localStorage.setItem('tickets', JSON.stringify(ticketContext));
+    }
+  }, [ticketContext]); 
+  
 
   const updateContext = (newContext: ILocalData) => setTicketContext(newContext)
 

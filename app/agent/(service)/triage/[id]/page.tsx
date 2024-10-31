@@ -2,8 +2,8 @@ import {IssueSelector} from "../../components"
 import {Input} from "@nextui-org/react"
 import {ChevronRightIcon} from "@heroicons/react/24/solid"
 import { TextInput } from "../../components";
-import { redirect } from "next/navigation";
 import { Link } from "@nextui-org/react";
+import {getCrcTicketTypes} from '@/app/actions/api';
 
 export default function Triage({params: {id}}: {params: {id: number}}) {
   
@@ -13,11 +13,11 @@ export default function Triage({params: {id}}: {params: {id: number}}) {
       <div className="flex gap-1 flex-col">
         <div className="flex flex row pr-4">
           <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{`{Provedor}, {Saudação}. Meu nome é {agent.name}, em que posso ajudá-lo?`}</span>
-          <TextInput id={id} fieldName={'name'}/>
+          <TextInput id={id} fieldName={'client_name'}/>
         </div>
         <div className="flex flex row pr-4 space-x-4">
           <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">{`Como posso ajudá-lo?`}</span>
-          <IssueSelector id={id} fieldName={'issue'} placeholder={'Selecione o seu problema'}/>
+          <IssueSelector id={id} fieldName={'issue'} placeholder={'Selecione o seu problema'} dataSource={getCrcTicketTypes}/>
         </div>
         <span className="bg-purple-700 text-white rounded content-center px-2 py-1 my-2 ">Certo, vou só conferir alguns dados para confirmar o seu cadastro. </span>
       </div>

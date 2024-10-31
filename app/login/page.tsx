@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link"
+import { LoginForm } from "./components";
 
 export default function Login() {
   return (
@@ -14,13 +15,7 @@ export default function Login() {
           priority
         />
 
-        <div className="flex flex-col">
-          <input className="m-2 p-2 rounded" type="text" placeholder="Email"></input>
-          <input className="m-2 p-2 rounded" type="text" placeholder="Senha"></input>
-          <Link className="m-2 p-2 rounded bg-white text-black justify-center flex" href="/agent" >Entrar</Link>
-          <button className="m-2 p-2 rounded bg-black " >Entrar com Microsoft</button>
-        </div>
-        
+        <LoginForm />
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
         

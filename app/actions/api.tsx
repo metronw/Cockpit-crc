@@ -1,6 +1,5 @@
 'use server'
 
-import { redirect } from "next/navigation"
 import { cookies } from 'next/headers'
 import connection from '@/app/lib/db';
 import prisma from '@/app/lib/localDb'

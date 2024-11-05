@@ -5,10 +5,9 @@ import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDis
 import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/solid"
 import Link from "next/link"
 import  {redirect, useRouter} from "next/navigation"
-import {ICompany, ITicket, useTicketContext} from '@/app/providers'
+import {ICompany, ITicket, useTicketContext} from '@/app/agent/providers'
 import {createTicket} from '@/app/actions/api'
-
-
+import { useState, useEffect } from 'react';
 
 export const PerformanceChart = () => {
   const data = [{name: 'Dia 1', uv: 400, pv: 2400, amt: 2400}, {name: 'Dia 2', uv: 200, pv: 3000, amt: 2400}, {name: 'Dia 3', uv: 700, pv: 3000, amt: 2400}];
@@ -23,8 +22,10 @@ export const PerformanceChart = () => {
 }
 
 export const AgentHeader = () => {
+
   const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  
   return (
     <div className='grid grid-cols-12'>
       <div className='col-span-3 pl-4'>
@@ -68,29 +69,33 @@ export const AgentHeader = () => {
   )
 }
 
-export const Sidebar = () => {
+export const Sidebar = () => { 
 
   const router = useRouter();
   let {ticketContext, updateContext} = useTicketContext()
   let {tickets, companies} = ticketContext
-
+  const [ticketList, setTicketList] = useState<Array<ICompanyList>>([]) 
+  
   interface ICompanyList extends ICompany {
     tickets: Array<ITicket>
   }
+  
+  useEffect(()=>{
+    const list = companies.map<ICompanyList>(el => ({...el, tickets: []}) )
 
-  const ticketsList = companies.map<ICompanyList>(el => ({...el, tickets: []}) )
-  tickets.forEach(el => {
-    let comp = ticketsList.find(item => item.id == el.company_id)
-    comp?.tickets.push(el)
-  })
+    tickets.forEach(el => {
+      let comp = list.find(item => item.id == el.company_id)
+      comp?.tickets.push(el)
+    })
+
+    setTicketList(list)
+  }, [ticketContext])
 
   const newTicket = async () => {
     const response = await createTicket({company_id: 1})
     if(response){
       const ticket= JSON.parse(response)
-      
       const newTickets = [...tickets, ticket]
-
       await updateContext({...ticketContext, tickets: newTickets})
 
       router.push('/agent/triage/'+ticket.id)
@@ -104,9 +109,8 @@ export const Sidebar = () => {
   return(
     <div className="bg-primary px-2 py-2 text-primary overflow-auto">
       <Accordion isCompact showDivider selectionMode='multiple' itemClasses={{base: 'bg-zinc-100 my-1'}} >
-      {
-        ticketsList.length > 0 ?
-        ticketsList.map(el=> 
+        {
+        ticketList.map(el=> 
           <AccordionItem key={el.name} aria-label={'Accordion ' + el.name} startContent={<CompanyComponent label={el.name} mass={el.mass} count={el.tickets.length}/>}>
             <Client name='+ Novo Atendimento' onClick={() => newTicket()}/>
             {
@@ -115,10 +119,7 @@ export const Sidebar = () => {
               )
             }
           </AccordionItem>
-        )
-        : []
-      }
-
+        )}
       </Accordion>
     </div>
   )

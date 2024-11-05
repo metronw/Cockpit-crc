@@ -1,6 +1,6 @@
 import {Input, Snippet} from "@nextui-org/react"
 import { ChevronLeftIcon} from "@heroicons/react/24/solid"
-import { Link } from "@nextui-org/react";
+import Link from "next/link";
 import { FinishButton, TicketSummary } from "../../components";
 
 export default function Finishing({params: {id}}: {params: {id: number}}) {

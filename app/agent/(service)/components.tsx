@@ -2,23 +2,26 @@
 
 import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet } from "@nextui-org/react";
 import Link  from 'next/link'
-import { ITicket, useTicketContext } from "@/app/providers"
+import { ITicket, useTicketContext } from "@/app/agent/providers"
 import {useState, useEffect} from 'react'
 import {Input} from "@nextui-org/react"
 import {createMetroTicket} from '@/app/actions/api'
 
-export const TextInput = ({id, fieldName}: {id: number, fieldName: 'client_name' | 'phone' | 'cpf' | 'address'}) => {
+
+export const TextInput = ({id, fieldName, label}: {id: number, fieldName: 'client_name' | 'phone' | 'cpf' | 'address', label: string}) => {
 
   const {ticketContext, updateContext} = useTicketContext()
-  const ticket = ticketContext.tickets.find(el => el.id == id)
-  const [value, setValue] = useState<string>(ticket ? ticket[fieldName] : '')
-  const [debouncedValue, setDebouncedValue] = useState<string>(ticket ? ticket[fieldName] : '')
-  
+  const [value, setValue] = useState<string>('')
+  const [debouncedValue, setDebouncedValue] = useState<string>('')
+
   useEffect(()=>{
     const ticket = ticketContext.tickets.find(el => el.id == id)
-    setValue(ticket ? ticket[fieldName] : '')
+    if(ticket){
+      setValue(ticket[fieldName] ?? '')
+      setDebouncedValue(ticket[fieldName] ?? '')
+    }
 
-  }, [ticketContext])
+  }, [JSON.stringify(ticketContext)])
 
   useEffect(()=>{
     const handler = setTimeout(() => {
@@ -37,7 +40,7 @@ export const TextInput = ({id, fieldName}: {id: number, fieldName: 'client_name'
   return(    
     <Input
       type="text" 
-      label={fieldName} 
+      label={label} 
       color={'primary'}  
       className={'w-80 h-11 ml-4 border border-primary rounded-medium'}
       value={value}
@@ -84,7 +87,6 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: num
   const [value, setValue] = useState<string>(ticket ? ticket[fieldName] : '')
 
   useEffect(()=>{
-    console.log(ticket)
     dataSource().then((data:string) => {
       setItems(JSON.parse(data))
     })
@@ -99,7 +101,6 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: num
 
   useEffect(()=>{
     const newContext = {...ticketContext, tickets: ticketContext.tickets.map(el => el.id == id ? {...el, [fieldName]: value} : el)}
-    console.log(newContext)
     updateContext(newContext)
   }, [value])
 
@@ -112,6 +113,7 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: num
       defaultItems={items}
       placeholder={placeholder}
       defaultSelectedKey=""
+      // @ts-ignore
       onSelectionChange={setValue}
       selectedKey={value}
       className="flex h-11 max-w-xs my-1"
@@ -120,7 +122,7 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: num
         base: 'flex shrink border-primary border rounded-medium'
       }}
     >
-      {items.map((item) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+      {items.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
     </Autocomplete>
   );
 } 
@@ -202,8 +204,6 @@ export const TicketSummary = ({id}: {id:number}) => {
 
   const {ticketContext, updateContext} = useTicketContext()
   const ticket = ticketContext.tickets.find(el => el.id == id)
-
-  console.log(ticket)
 
   return(
     <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>

@@ -1,7 +1,8 @@
 import {Input} from "@nextui-org/react"
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
 import { RadioInput, InfoModal } from "../../components";
-import { Link } from "@nextui-org/react";
+import Link from "next/link";
+
 
 export default function Procedure({params: {id}}: {params: {id: number}}) {
   

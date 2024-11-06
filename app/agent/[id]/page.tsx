@@ -2,7 +2,7 @@ import {PerformanceChart} from '../components'
 
 
 export default function Home({id}: {id: number}) {
-  
+  console.log(id)
   return (      
     <div className="flex flex-col space-y-4">
       <div className="">

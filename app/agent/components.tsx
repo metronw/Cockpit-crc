@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Accordion, AccordionItem} from "@nextui-org/react"
 import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/solid"
 import Link from "next/link"
-import  {redirect, useRouter} from "next/navigation"
+import  { useRouter} from "next/navigation"
 import {ICompany, ITicket, useTicketContext} from '@/app/agent/providers'
 import {createTicket} from '@/app/actions/api'
 import { useState, useEffect } from 'react';
@@ -71,32 +71,33 @@ export const AgentHeader = () => {
 
 export const Sidebar = () => { 
 
-  const router = useRouter();
-  let {ticketContext, updateContext} = useTicketContext()
-  let {tickets, companies} = ticketContext
-  const [ticketList, setTicketList] = useState<Array<ICompanyList>>([]) 
-  
   interface ICompanyList extends ICompany {
     tickets: Array<ITicket>
   }
+  const router = useRouter();
+  const {ticketContext, setTicketContext, isMounted} = useTicketContext()
+  const {tickets, companies} = ticketContext
+  const [ticketList, setTicketList] = useState<Array<ICompanyList>>([]) 
   
+
+
   useEffect(()=>{
     const list = companies.map<ICompanyList>(el => ({...el, tickets: []}) )
 
     tickets.forEach(el => {
-      let comp = list.find(item => item.id == el.company_id)
+      const comp = list.find(item => item.id == el.company_id)
       comp?.tickets.push(el)
     })
 
     setTicketList(list)
-  }, [ticketContext])
+  }, [isMounted])
 
-  const newTicket = async () => {
-    const response = await createTicket({company_id: 1})
+  const newTicket = async (company: ICompanyList) => {
+    const response = await createTicket({company_id: company.id})
     if(response){
       const ticket= JSON.parse(response)
       const newTickets = [...tickets, ticket]
-      await updateContext({...ticketContext, tickets: newTickets})
+      await setTicketContext({...ticketContext, tickets: newTickets})
 
       router.push('/agent/triage/'+ticket.id)
     }
@@ -112,7 +113,7 @@ export const Sidebar = () => {
         {
         ticketList.map(el=> 
           <AccordionItem key={el.name} aria-label={'Accordion ' + el.name} startContent={<CompanyComponent label={el.name} mass={el.mass} count={el.tickets.length}/>}>
-            <Client name='+ Novo Atendimento' onClick={() => newTicket()}/>
+            <Client name='+ Novo Atendimento' onClick={() => newTicket(el)}/>
             {
               el.tickets?.map(item => 
                 <Client name={'#'+item.id} timer={'0:00'} key={item.id} onClick={() => redirectToTicket(item.id)}/>

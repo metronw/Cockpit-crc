@@ -5,7 +5,7 @@ import { TextInput } from "../../components";
 import Link from "next/link";
 import {getCrcTicketTypes} from '@/app/actions/api';
 
-export default function Triage({params: {id}}: {params: {id: number}}) {
+export default function Triage({params: {id}}: {params: {id: string}}) {
   
   return (
     <form className="flex flex-col flex-stretch px-4 pt-3 mt-8 h-full grow justify-around">        

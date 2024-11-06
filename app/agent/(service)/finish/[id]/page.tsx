@@ -1,4 +1,3 @@
-import {Input, Snippet} from "@nextui-org/react"
 import { ChevronLeftIcon} from "@heroicons/react/24/solid"
 import Link from "next/link";
 import { FinishButton, TicketSummary } from "../../components";
@@ -25,7 +24,7 @@ export default function Finishing({params: {id}}: {params: {id: number}}) {
 
         </div>
         <div className="col-span-5 h-full">
-          <TicketSummary id={id}/>
+          <TicketSummary />
         </div>
         
       </div>    

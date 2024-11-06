@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers'
 import connection from '@/app/lib/db';
 import prisma from '@/app/lib/localDb'
+import { ICompany } from '../agent/providers';
 
 
 export async function getCrcTicketTypes() {
@@ -13,12 +14,12 @@ export async function getCrcTicketTypes() {
   return JSON.stringify(rows);
 }
 
-async function getApiCredentials(){
-  return {
-    token: '5b7efd3d9402cc18ces9g4l1',
-    password:'123456'
-  }
-}  
+// async function getApiCredentials(){
+//   return {
+//     token: '5b7efd3d9402cc18ces9g4l1',
+//     password:'123456'
+//   }
+// }  
 
 export async function createTicket({company_id}:{company_id:number}){
   const cookieStore = await cookies()
@@ -36,7 +37,7 @@ export async function createTicket({company_id}:{company_id:number}){
 export const getOpenTickets = async () => {
   const filteredTickets = await prisma.ticket.findMany({
     where: {
-      user_id: 1,
+      user_id: 2,
     },
   });
 
@@ -60,6 +61,14 @@ export async function getCompaniesList(){
   //   ->get();
 
 }
+
+
+export async function getTicketContext(){
+  const companies = JSON.parse(await getCompaniesList())
+  const filteredComp =  companies.filter((el:ICompany) => el.id == 220 || el.id == 193 || el.id == 274)
+  const tickets = JSON.parse(await getOpenTickets())
+  return JSON.stringify({companies: filteredComp, tickets})
+} 
 
 export async function createMetroTicket(){
   const [rows] = await connection.query('INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by ) VALUES (220, 4, "teste", 2, 0, 92, 424 )')

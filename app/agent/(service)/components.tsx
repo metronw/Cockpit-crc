@@ -2,26 +2,31 @@
 
 import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet } from "@nextui-org/react";
 import Link  from 'next/link'
-import { ITicket, useTicketContext } from "@/app/agent/providers"
+import { ITicketContext, useTicketContext } from "@/app/agent/providers"
 import {useState, useEffect} from 'react'
 import {Input} from "@nextui-org/react"
 import {createMetroTicket} from '@/app/actions/api'
+import { usePathname } from 'next/navigation'
 
 
-export const TextInput = ({id, fieldName, label}: {id: number, fieldName: 'client_name' | 'phone' | 'cpf' | 'address', label: string}) => {
+export const TextInput = ({id, fieldName, label}: {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address', label: string}) => {
 
-  const {ticketContext, updateContext} = useTicketContext()
+  const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
   const [value, setValue] = useState<string>('')
   const [debouncedValue, setDebouncedValue] = useState<string>('')
+  const [isCtxLoaded, setIsCtxLoaded] = useState<boolean>(false)
 
   useEffect(()=>{
-    const ticket = ticketContext.tickets.find(el => el.id == id)
-    if(ticket){
-      setValue(ticket[fieldName] ?? '')
-      setDebouncedValue(ticket[fieldName] ?? '')
+    if(!isCtxLoaded && isMounted){
+      const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
+      const initialValue = ticket ? ticket[fieldName] : ''
+      
+      setValue(initialValue ?? '')
+      setDebouncedValue(initialValue ?? '')
+      setIsCtxLoaded(true)
     }
-
-  }, [JSON.stringify(ticketContext)])
+    
+  }, [ticketContext.tickets, fieldName,id, isCtxLoaded, isMounted])
 
   useEffect(()=>{
     const handler = setTimeout(() => {
@@ -33,9 +38,14 @@ export const TextInput = ({id, fieldName, label}: {id: number, fieldName: 'clien
   }, [value])
 
   useEffect(()=>{
-    const newContext = {...ticketContext, tickets: ticketContext.tickets.map(el => el.id == id ? {...el, [fieldName]: debouncedValue} : el)}
-    updateContext(newContext)
-  }, [debouncedValue])
+    setTicketContext((prevContext) => { 
+      const updatedTickets = prevContext.tickets.map((el) =>
+        el.id === parseInt(id) ? { ...el, [fieldName]: debouncedValue } : el
+      );
+      return {...prevContext, tickets: updatedTickets} 
+    });
+    
+  }, [debouncedValue, id, fieldName])
   
   return(    
     <Input
@@ -46,6 +56,61 @@ export const TextInput = ({id, fieldName, label}: {id: number, fieldName: 'clien
       value={value}
       onValueChange={setValue}
     />
+  )
+}
+
+function parsePageInfo(path:string, ticketCtx:ITicketContext){
+  const pathName = path.split('/')
+  const ticketId = parseInt(pathName[pathName.length -1])
+
+  const ticket = ticketCtx.ticketContext.tickets.find(el => el.id == ticketId)
+  const company = ticketCtx.ticketContext.companies.find(el => el.id == ticket?.company_id)
+
+  return({company, ticket})
+}
+
+export const StagePanel = () => {
+  const pathName = usePathname().split('/')
+  const stageId = pathName[pathName.length -2]
+
+  let stageName = ''
+  switch(stageId){
+    case 'triage':
+      stageName = 'Triagem'
+      break
+    case 'procedure':
+      stageName = 'Procedimento'
+      break
+    case 'finish':
+      stageName = 'Finalização'
+    break
+   }
+
+   const ticketCtx = useTicketContext()
+   const path = usePathname()
+   const {company} = parsePageInfo(path, ticketCtx)  
+
+  return(
+    <div className='col-span-8 bg-white flex flex-row p-2 space-x-4 justify-center'>
+        <Card className="border border-primary">
+          <CardBody><p className="text-primary">{company?.fantasy_name ?? ''}</p></CardBody>
+        </Card>
+        <Card className="border border-primary">
+          <CardBody><p className="text-primary">Atendimento Telefônico</p></CardBody>
+        </Card>
+        <Card className="border border-primary">
+          <CardBody>
+            <p className="text-center text-primary">Etapa do atendimento:</p> 
+            <p className="font-bold text-primary text-center">{stageName.toUpperCase()}</p>
+            </CardBody>
+        </Card>
+        <Card className="border border-primary">
+          <CardBody>
+            <p className="text-primary text-center">Interação na etapa</p>
+            <p className="text-primary text-center">1:48</p>
+          </CardBody>
+        </Card>
+      </div>
   )
 }
 
@@ -78,30 +143,34 @@ export const ServiceNavBar = () => {
   )
 }
 
-export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: number, fieldName: 'issue' | 'status', placeholder: string, dataSource: any }) => {
+export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: string, fieldName: 'issue' | 'status', placeholder: string, dataSource:  () => Promise<string> }) => {
 
-  // const items = [{id: 'sem conect', label:"Sem conexão"}, {id: 'break', label: 'Quebra'}]
   const [items, setItems ] = useState([])
-  const {ticketContext, updateContext} = useTicketContext()
-  const ticket = ticketContext.tickets.find(el => el.id == id)
-  const [value, setValue] = useState<string>(ticket ? ticket[fieldName] : '')
+  const {ticketContext, setTicketContext, isMounted} = useTicketContext()
+  const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
+  const [value, setValue] = useState<string>(ticket ? ticket[fieldName] ?? '' : '')
+  const [isCtxLoaded, setIsCtxLoaded] = useState<boolean>(false)
 
   useEffect(()=>{
     dataSource().then((data:string) => {
       setItems(JSON.parse(data))
     })
+  }, [dataSource])
+    
+  useEffect(()=>{
+    if(isMounted && !isCtxLoaded){
+      const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
+      if(ticket){
+        setIsCtxLoaded(true)
+        setValue((prevState) => prevState == ticket[fieldName] ? prevState : ticket[fieldName] )
+      }
+    }
+  }, [items, fieldName, id, isMounted, isCtxLoaded, ticketContext.tickets])
 
-  }, [])
   
-  useEffect(()=>{
-    const ticket = ticketContext.tickets.find(el => el.id == id)
-    setValue(ticket ? ticket[fieldName] : '')
-
-  }, [ticketContext])
-
-  useEffect(()=>{
-    const newContext = {...ticketContext, tickets: ticketContext.tickets.map(el => el.id == id ? {...el, [fieldName]: value} : el)}
-    updateContext(newContext)
+  useEffect(()=>{    
+    const newContext = {...ticketContext, tickets: ticketContext.tickets.map(el => el.id == parseInt(id) ? {...el, [fieldName]: value} : el)}
+    setTicketContext(newContext)
   }, [value])
 
   return (
@@ -113,7 +182,7 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: num
       defaultItems={items}
       placeholder={placeholder}
       defaultSelectedKey=""
-      // @ts-ignore
+      // @ts-expect-error: library has wrong type
       onSelectionChange={setValue}
       selectedKey={value}
       className="flex h-11 max-w-xs my-1"
@@ -127,7 +196,7 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: num
   );
 } 
 
-export const RadioInput = ({isInteractive=false, procedure, Modal }: {isInteractive?: boolean, procedure: string, Modal: any}) => {
+export const RadioInput = ({isInteractive=false, procedure, Modal }: {isInteractive?: boolean, procedure: string, Modal: React.ReactElement}) => {
 
   const [response, setResponse] = useState('')
   return(
@@ -147,7 +216,7 @@ export const RadioInput = ({isInteractive=false, procedure, Modal }: {isInteract
 export const InfoModal = ({title}:{title:string}) => {
 
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
-  const [scrollBehavior, setScrollBehavior] = useState<"inside" | "normal" | "outside" | undefined >("inside");
+  const [scrollBehavior] = useState<"inside" | "normal" | "outside" | undefined >("inside");
 
   return(
     <div className="flex flex-col gap-2">
@@ -200,25 +269,26 @@ export const FinishButton = () => {
   )
 }
 
-export const TicketSummary = ({id}: {id:number}) => {
+export const TicketSummary = () => {
 
-  const {ticketContext, updateContext} = useTicketContext()
-  const ticket = ticketContext.tickets.find(el => el.id == id)
-
+  const ticketCtx = useTicketContext()
+   const path = usePathname()
+   const {company, ticket} = parsePageInfo(path, ticketCtx)
+  
   return(
     <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
-      <p>Nome de Assinante:</p>
-      <p>Tipo de atendimento: </p>
-      <p>Nome do solicitante: </p>
-      <p>Endereço:</p>
-      <p>Problema alegado</p>
+      <p>Nome de Assinante: {company?.fantasy_name}</p>
+      <p>Tipo de atendimento: telefônico </p>
+      <p>Nome do solicitante: {ticket?.client_name}</p>
+      <p>Endereço: {ticket?.address}</p>
+      <p>Problema alegado: </p>
       <p>Procedimentos Realizados</p>
-      <p>Data/Horário</p>
-      <p>Melhor horário para retorno</p>
-      <p>Telefone</p>
+      <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
+      <p>Melhor horário para retorno:</p>
+      <p>Telefone: {ticket?.phone}</p>
       <p>Protocolo</p>
       <p>Protocolo Chat</p>
-      <p>Atendente</p>
+      <p>Atendente:</p>
     </Snippet>
   )
 }

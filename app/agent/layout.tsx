@@ -1,15 +1,17 @@
 import { AgentHeader, Sidebar} from './components'
 import { TicketProvider } from './providers';
-import Link from 'next/link';
+import {use} from 'react'
+import {getTicketContext} from '@/app/actions/api'
 
 export default function AgentLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const iniContext = use(getTicketContext())
 
   return (
-    <TicketProvider>
+    <TicketProvider iniContext={iniContext}>
       <div className='flex flex-col h-screen'>
         <header className="w-full py-3 border-b-2 border-black bg-primary">
             <AgentHeader />        

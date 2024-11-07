@@ -8,7 +8,7 @@ import {Input} from "@nextui-org/react"
 import {createMetroTicket} from '@/app/actions/api'
 import { usePathname, useRouter } from 'next/navigation'
 
-export const TextInput = ({id, fieldName, label}: {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string}) => {
+export const TextInput = ({id, fieldName, label, isRequired=false}: {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string, isRequired?: boolean}) => {
 
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
   const [value, setValue] = useState<string>('')
@@ -54,6 +54,7 @@ export const TextInput = ({id, fieldName, label}: {id: string, fieldName: 'clien
       className={'w-80 h-11 ml-4 border border-primary rounded-medium'}
       value={value}
       onValueChange={setValue}
+      isRequired= {isRequired}
     />
   )
 }
@@ -92,7 +93,7 @@ export const StagePanel = () => {
   return(
     <div className='col-span-8 bg-white flex flex-row p-2 space-x-4 justify-center'>
         <Card className="border border-primary">
-          <CardBody><p className="text-primary">{company?.fantasy_name ?? ''}</p><p className="text-primary">#{ticket?.id ?? ''}</p></CardBody>
+          <CardBody><p className="text-primary">{company?.fantasy_name ?? ''}</p><p className="text-primary text-center font-bold">Ticket #{ticket?.id ?? ''}</p></CardBody>
         </Card>
         <Card className="border border-primary">
           <CardBody><p className="text-primary">Atendimento Telefônico</p></CardBody>
@@ -142,7 +143,7 @@ export const ServiceNavBar = () => {
   )
 }
 
-export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: string, fieldName: 'type' | 'status', placeholder: string, dataSource:  () => Promise<string> }) => {
+export const IssueSelector = ({id, fieldName, placeholder, dataSource, isRequired}: {id: string, fieldName: 'type' | 'status', placeholder: string, dataSource:  () => Promise<string>, isRequired: boolean }) => {
 
   const [items, setItems ] = useState([])
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()
@@ -176,7 +177,7 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: str
     <Autocomplete
       variant={'bordered'}
       aria-label={placeholder}
-      isRequired
+      isRequired={isRequired}
       label=""
       defaultItems={items}
       placeholder={placeholder}

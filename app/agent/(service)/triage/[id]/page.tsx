@@ -4,20 +4,24 @@ import {ChevronRightIcon} from "@heroicons/react/24/solid"
 import { TextInput } from "../../components";
 import Link from "next/link";
 import {getCrcTicketTypes} from '@/app/actions/api';
+import { cookies } from "next/headers";
 
 export default function Triage({params: {id}}: {params: {id: string}}) {
   
+  const cookieStore = cookies()
+  const user = JSON.parse(cookieStore.get('logged_user')?.value ?? '')
+
   return (
     <form className="flex flex-col flex-stretch px-4 pt-3 mt-8 h-full grow justify-around">        
     
       <div className="flex gap-1 flex-col">
         <div className="flex flex row pr-4">
-          <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{`{Provedor}, {Saudação}. Meu nome é {agent.name}, em que posso ajudá-lo?`}</span>
-          <TextInput id={id} fieldName={'client_name'} label={'Nome do cliente'}/>
+          <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{` Bom dia. Meu nome é ${user.name}, em que posso ajudá-lo?`}</span>
+          <TextInput id={id} fieldName={'client_name'} label={'Nome do cliente'} />
         </div>
         <div className="flex flex row pr-4 space-x-4">
           <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">{`Como posso ajudá-lo?`}</span>
-          <IssueSelector id={id} fieldName={'type'} placeholder={'Selecione o seu problema'} dataSource={getCrcTicketTypes}/>
+          <IssueSelector id={id} fieldName={'type'} placeholder={'Selecione o seu problema'} dataSource={getCrcTicketTypes} isRequired={true}/>
         </div>
         <span className="bg-purple-700 text-white rounded content-center px-2 py-1 my-2 ">Certo, vou só conferir alguns dados para confirmar o seu cadastro. </span>
       </div>

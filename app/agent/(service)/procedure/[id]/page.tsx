@@ -14,7 +14,7 @@ export default function Procedure({params: {id}}: {params: {id: string}}) {
           <div className="col-span-6 h-full">
             {/* <RadioInput procedure={'Exemplo de procedimento'} /> */}
             <RadioInput isInteractive={true} procedure={'O modem foi reiniciado?'} Modal={<InfoModal title={'Exemplo de Procedimento'} />}/>
-            <TextInput id={id} fieldName={'erp'} label={'Protocolo ERP'}/>
+            <TextInput id={id} fieldName={'erp'} label={'Protocolo ERP'} isRequired={true}/>
             <TextInput id={id} fieldName={'complement'} label={'Informações complementares'}/>
           </div>
         </div>

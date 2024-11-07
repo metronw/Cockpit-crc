@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FinishButton, TicketSummary } from "../../components";
 import { cookies } from "next/headers";
 
-export default function Finishing({params: {id}}: {params: {id: number}}) {
+export default function Finishing({params: {id}}: {params: {id: string}}) {
 
   const cookieStore = cookies()
   const user  = cookieStore.get('logged_user')

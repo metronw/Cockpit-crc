@@ -28,3 +28,9 @@ export async function loginUser({ email, password }: LoginCredentials) {
   redirect('/agent/'+user.id)
 
 }
+
+export async function logout(){
+  const cookieStore = cookies()
+  cookieStore.delete('logged_user')
+  redirect('/login')
+}

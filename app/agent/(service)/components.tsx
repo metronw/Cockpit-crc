@@ -2,14 +2,13 @@
 
 import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet } from "@nextui-org/react";
 import Link  from 'next/link'
-import { ITicketContext, useTicketContext } from "@/app/agent/providers"
-import {useState, useEffect} from 'react'
+import { ILocalData, useTicketContext } from "@/app/agent/providers"
+import {useState, useEffect, useCallback} from 'react'
 import {Input} from "@nextui-org/react"
 import {createMetroTicket} from '@/app/actions/api'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
-
-export const TextInput = ({id, fieldName, label}: {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address', label: string}) => {
+export const TextInput = ({id, fieldName, label}: {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string}) => {
 
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
   const [value, setValue] = useState<string>('')
@@ -59,12 +58,12 @@ export const TextInput = ({id, fieldName, label}: {id: string, fieldName: 'clien
   )
 }
 
-function parsePageInfo(path:string, ticketCtx:ITicketContext){
+function parsePageInfo(path:string, ticketCtx:ILocalData){
   const pathName = path.split('/')
   const ticketId = parseInt(pathName[pathName.length -1])
 
-  const ticket = ticketCtx.ticketContext.tickets.find(el => el.id == ticketId)
-  const company = ticketCtx.ticketContext.companies.find(el => el.id == ticket?.company_id)
+  const ticket = ticketCtx.tickets.find(el => el.id == ticketId)
+  const company = ticketCtx.companies.find(el => el.id == ticket?.company_id)
 
   return({company, ticket})
 }
@@ -86,14 +85,14 @@ export const StagePanel = () => {
     break
    }
 
-   const ticketCtx = useTicketContext()
+   const {ticketContext} = useTicketContext()
    const path = usePathname()
-   const {company} = parsePageInfo(path, ticketCtx)  
+   const {company, ticket} = parsePageInfo(path, ticketContext)  
 
   return(
     <div className='col-span-8 bg-white flex flex-row p-2 space-x-4 justify-center'>
         <Card className="border border-primary">
-          <CardBody><p className="text-primary">{company?.fantasy_name ?? ''}</p></CardBody>
+          <CardBody><p className="text-primary">{company?.fantasy_name ?? ''}</p><p className="text-primary">#{ticket?.id ?? ''}</p></CardBody>
         </Card>
         <Card className="border border-primary">
           <CardBody><p className="text-primary">Atendimento Telefônico</p></CardBody>
@@ -143,7 +142,7 @@ export const ServiceNavBar = () => {
   )
 }
 
-export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: string, fieldName: 'issue' | 'status', placeholder: string, dataSource:  () => Promise<string> }) => {
+export const IssueSelector = ({id, fieldName, placeholder, dataSource}: {id: string, fieldName: 'type' | 'status', placeholder: string, dataSource:  () => Promise<string> }) => {
 
   const [items, setItems ] = useState([])
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()
@@ -262,18 +261,34 @@ export const InfoModal = ({title}:{title:string}) => {
 
 export const FinishButton = () => {
 
+  const {ticketContext, setTicketContext} = useTicketContext()
+  const path = usePathname()
+  const { ticket } = parsePageInfo(path, ticketContext)
+  const router = useRouter();
+
+  const finishAction = useCallback(async () => {
+    const resp = await createMetroTicket(ticket)
+    console.log(resp)
+    if(resp.status === 200 && ticket){
+      const newCtx = {...ticketContext, tickets: ticketContext.tickets.filter(el=> el.id !== ticket.id) }
+      setTicketContext(newCtx)
+      router.push('/agent/'+ticket.user_id)
+    }
+  }, [])
+
   return(
-    <Button onPress={() => createMetroTicket()}>
+    <Button onPress={finishAction}>
       Finalizar
     </Button>
   )
 }
 
-export const TicketSummary = () => {
-
-  const ticketCtx = useTicketContext()
-   const path = usePathname()
-   const {company, ticket} = parsePageInfo(path, ticketCtx)
+export const TicketSummary = ({userJson}:{userJson:string}) => {
+  
+  const user = JSON.parse(userJson)
+  const {ticketContext} = useTicketContext()
+  const path = usePathname()
+  const {company, ticket} = parsePageInfo(path, ticketContext)
   
   return(
     <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
@@ -286,9 +301,9 @@ export const TicketSummary = () => {
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>
       <p>Telefone: {ticket?.phone}</p>
-      <p>Protocolo</p>
+      <p>Protocolo ERP: {ticket?.erp}</p>
       <p>Protocolo Chat</p>
-      <p>Atendente:</p>
+      <p>Atendente: {user.name} </p>
     </Snippet>
   )
 }

@@ -17,7 +17,7 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
         </div>
         <div className="flex flex row pr-4 space-x-4">
           <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">{`Como posso ajudá-lo?`}</span>
-          <IssueSelector id={id} fieldName={'issue'} placeholder={'Selecione o seu problema'} dataSource={getCrcTicketTypes}/>
+          <IssueSelector id={id} fieldName={'type'} placeholder={'Selecione o seu problema'} dataSource={getCrcTicketTypes}/>
         </div>
         <span className="bg-purple-700 text-white rounded content-center px-2 py-1 my-2 ">Certo, vou só conferir alguns dados para confirmar o seu cadastro. </span>
       </div>

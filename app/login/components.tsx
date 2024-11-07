@@ -16,8 +16,8 @@ export function LoginForm() {
     setError(null);
 
     try {
-      const user = await loginUser({ email, password });
-      console.log('Logged in user:', user); // Handle successful login (e.g., redirect)
+      await loginUser({ email, password });
+      // console.log('Logged in user:', user); // Handle successful login (e.g., redirect)
     } catch (err) {
       const error = err as Error;
       setError(error.message || 'Login failed');

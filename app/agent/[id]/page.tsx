@@ -1,4 +1,9 @@
-import {PerformanceChart} from '../components'
+import dynamic from 'next/dynamic';
+
+const PerformanceChart = dynamic(
+  () => import('../components').then((mod)=> mod.PerformanceChart),
+  { ssr: false }
+)
 
 
 export default function Home({id}: {id: number}) {

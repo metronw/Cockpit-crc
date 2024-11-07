@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers'
 import connection from '@/app/lib/db';
 import prisma from '@/app/lib/localDb'
-import { ICompany } from '../agent/providers';
+import { ICompany, ITicket } from '../agent/providers';
 
 
 export async function getCrcTicketTypes() {
@@ -38,6 +38,7 @@ export const getOpenTickets = async () => {
   const filteredTickets = await prisma.ticket.findMany({
     where: {
       user_id: 2,
+      status: { not: 'closed' }
     },
   });
 
@@ -70,47 +71,36 @@ export async function getTicketContext(){
   return JSON.stringify({companies: filteredComp, tickets})
 } 
 
-export async function createMetroTicket(){
-  const [rows] = await connection.query('INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by ) VALUES (220, 4, "teste", 2, 0, 92, 424 )')
-  return JSON.stringify(rows)
+export async function createMetroTicket(ticketInfo:ITicket | undefined){
+
+  try{
+    if(ticketInfo){
+      const { type, erp, phone, company_id, client_name} = ticketInfo
+
+      if(
+        !!type && !!company_id
+      ){
+        await connection.query(
+          `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone )`+
+          `VALUES (${company_id}, 4, "teste", 2, 0, ${parseInt(type)}, 424, ${isNaN(parseInt(erp)) ? null : parseInt(erp)}, ${isNaN(parseInt(phone)) ? null : parseInt(phone)} )`
+        )
+    
+        await prisma.ticket.update({
+          where: {
+            id: ticketInfo.id,
+          },
+          data: { company_id, status: 'closed', user_id: 424, client_name, type: parseInt(type) },
+        })
+    
+        return {status: 200, message: 'ticket criado com sucesso' }
+
+      }
+      return({status: 400, message: 'dados errados' })
+  
+    }
+    return {status: 400, message: 'Nenhum ticket foi enviado'}
+  }catch(err){
+    const error = err as Error;
+    return {status: 500, message: error.message }
+  }
 }
-
-// export async function login(email: string, password: string){
-
-//   let data = await fetch('https://sys.metronetwork.com.br/login-ldap', {
-//     method:'POST',
-//     headers: {
-//       'Content-Type': 'application/json',
-//     },
-//     body: JSON.stringify({
-//       "email": "guilherme.below@metronetwork.com.br",
-// 	    "password": 88021634      
-//     })
-//   })
-
-//   const cook = data.headers.get('Set-Cookie')
-
-//   const cookieStore = await cookies()
-//   cookieStore.set('metro_gestor_session', cook)
-//   // cookieStore.delete('metro_gestor_session')
-//   // const cooks = cookieStore.getAll()
-
-//   return cook
-//   // redirect('/agent')
-// }
-
-
-
-// export async function getCrcTicketTypes(id:number){
-
-//   const {token} = getApiCredentials()
-
-//   let data = await fetch('https://localhost:8000/getTicketTypes', {
-//     method:'GET',
-//     headers: {
-//       'Content-Type': 'application/json',
-//       }
-//   })
-
-//   console.log(data)
-// }

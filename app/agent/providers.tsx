@@ -23,8 +23,9 @@ export interface ITicket {
   cpf: string;
   phone: string;
   address: string;
-  issue: string;
-  type:number;
+  type:string;
+  erp: string;
+  complement:string;
   status: string;
   user_id: number;
   company_id: number;

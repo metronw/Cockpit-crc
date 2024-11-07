@@ -3,10 +3,10 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Accordion, AccordionItem} from "@nextui-org/react"
 import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/solid"
-import Link from "next/link"
 import  { useRouter} from "next/navigation"
 import {ICompany, ITicket, useTicketContext} from '@/app/agent/providers'
 import {createTicket} from '@/app/actions/api'
+import {logout} from '@/app/actions/login'
 import { useState, useEffect } from 'react';
 
 export const PerformanceChart = () => {
@@ -21,7 +21,7 @@ export const PerformanceChart = () => {
   )
 }
 
-export const AgentHeader = () => {
+export const AgentHeader = ({id}: {id: number}) => {
 
   const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
@@ -29,7 +29,7 @@ export const AgentHeader = () => {
   return (
     <div className='grid grid-cols-12'>
       <div className='col-span-3 pl-4'>
-      <Button isIconOnly color="primary" aria-label="home" onPress={() => router.push('/agent')}>
+      <Button isIconOnly color="primary" aria-label="home" onPress={() => router.push('/agent/'+id)}>
         <HomeIcon />
       </Button>
       </div>
@@ -39,7 +39,9 @@ export const AgentHeader = () => {
         <div>13:16</div>      
         <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary"/></Button>
       </div>
-      <Link href="/login"><ArrowRightStartOnRectangleIcon className="col-span-1 h-10 "/></Link>
+      <Button isIconOnly color="primary" aria-label="logout" onPress={() => logout()}>
+      <ArrowRightStartOnRectangleIcon className="col-span-1 h-10 "/>
+      </Button>
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
@@ -78,9 +80,8 @@ export const Sidebar = () => {
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()
   const {tickets, companies} = ticketContext
   const [ticketList, setTicketList] = useState<Array<ICompanyList>>([]) 
-  
 
-
+  const len = tickets.length
   useEffect(()=>{
     const list = companies.map<ICompanyList>(el => ({...el, tickets: []}) )
 
@@ -90,7 +91,7 @@ export const Sidebar = () => {
     })
 
     setTicketList(list)
-  }, [isMounted])
+  }, [isMounted, len])
 
   const newTicket = async (company: ICompanyList) => {
     const response = await createTicket({company_id: company.id})
@@ -98,7 +99,6 @@ export const Sidebar = () => {
       const ticket= JSON.parse(response)
       const newTickets = [...tickets, ticket]
       await setTicketContext({...ticketContext, tickets: newTickets})
-
       router.push('/agent/triage/'+ticket.id)
     }
   }

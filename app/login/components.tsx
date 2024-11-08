@@ -46,7 +46,7 @@ export function LoginForm() {
           required
         />
       </div>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className='text-red-500'>{error}</p>}
       <Button type="submit" disabled={loading} className="m-2 p-2 rounded bg-white text-black justify-center flex" >
         {loading ? 'Logging in...' : 'Login'}
       </Button>

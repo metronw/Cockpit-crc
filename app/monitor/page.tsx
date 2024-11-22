@@ -1,4 +1,4 @@
-import { InputPicker, RadioInput } from "./components";
+import { InputPicker } from "./components";
 import { getCrcTicketTypes, getCompaniesList } from "@/app/actions/api";
 import {use} from 'react'
 

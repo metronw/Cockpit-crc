@@ -15,7 +15,7 @@ export default function AgentLayout({
   const user = JSON.parse(cookieStore.get('logged_user')?.value ?? '')
 
   return (
-    <MonitorProvider iniContext={JSON.stringify({})}>
+    <MonitorProvider iniContext={iniContext}>
       <div className='flex flex-col h-screen'>
         <header className="w-full py-3 border-b-2 border-black bg-primary">
           <MonitorHeader id={user.id}/>

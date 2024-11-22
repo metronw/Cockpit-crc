@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, DatePicker, Textarea } from "@nextui-org/react";
+import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
-import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/solid"
+import { ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/solid"
 import { logout } from "@/app/actions/login";
 import { toast } from "react-hot-toast";
 import { createProcedure } from "@/app/actions/procedures";
 
-export function Options ({id, fieldName, placeholder, dataSource, isRequired}: {id: string, fieldName: 'type' | 'status', placeholder: string, dataSource:  () => Promise<string>, isRequired: boolean }) {
+export function Options ({ placeholder, dataSource, isRequired}: { placeholder: string, dataSource:  () => Promise<string>, isRequired: boolean }) {
 
   const [value, setValue] = useState(null)
   const [items, setItems] = useState([])
@@ -53,7 +53,7 @@ export function InputPicker({companies, types}:{companies:Array<any>, types: Arr
   const [label, setLabel] = useState('')
   const [modalBody, setModalBody] = useState('')
   const [modalTitle, setModalTitle] = useState('')
-  const [modalMedia, setModalMedia] = useState('')
+  // const [modalMedia, setModalMedia] = useState('')
 
   return (
     <div className="flex flex-col gap-2">
@@ -209,7 +209,7 @@ export function TextInput ({  Modal }: {Modal?: React.ReactElement}) {
         className={'w-80 h-11 border border-primary rounded-medium'}
         onValueChange={setProcedure}
       />
-
+      {Modal}
       <span>Preview</span>
       <div className="border border-primary p-3 rounded">
         <Input 

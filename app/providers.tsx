@@ -1,7 +1,7 @@
 'use client'
 
 import {NextUIProvider} from '@nextui-org/react'
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext} from 'react';
 
 const TicketTypeContext = createContext({ticketTypeContext: [{id:'1', label: 'any'}]});
 export const useTicketTypeContext = () => useContext(TicketTypeContext);

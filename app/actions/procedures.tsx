@@ -1,9 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import connection from '@/app/lib/db';
 import prisma from '@/app/lib/localDb'
-import { ICompany, ITicket } from '../agent/providers';
 
 
 

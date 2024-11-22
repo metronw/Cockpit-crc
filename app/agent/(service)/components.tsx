@@ -304,8 +304,8 @@ export const TicketSummary = ({userJson}:{userJson:string}) => {
 }
 
 
-export const Procedures = ({id}:{id:string}) =>{
-  const {ticketContext, setTicketContext} = useTicketContext()
+export const Procedures = () =>{
+  const {ticketContext} = useTicketContext()
   const [procedures, setProcedures] = useState<Array<any>| null>(null)
 
   const path = usePathname()

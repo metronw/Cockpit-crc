@@ -83,7 +83,7 @@ export const Sidebar = () => {
 
   const len = tickets.length
   useEffect(()=>{
-    const list = companies.map<ICompanyList>(el => ({...el, tickets: []}) )
+    const list = companies.map<ICompanyList>(el => ({...el, tickets: []}))
 
     tickets.forEach(el => {
       const comp = list.find(item => item.id == el.company_id)
@@ -112,7 +112,7 @@ export const Sidebar = () => {
       <Accordion isCompact showDivider selectionMode='multiple' itemClasses={{base: 'bg-zinc-100 my-1'}} >
         {
         ticketList.map(el=> 
-          <AccordionItem key={el.name} aria-label={'Accordion ' + el.name} startContent={<CompanyComponent label={el.name} mass={el.mass} count={el.tickets.length}/>}>
+          <AccordionItem key={el.name} aria-label={'Accordion ' + el.name} startContent={<CompanyComponent label={el.fantasy_name} mass={el.mass} count={el.tickets.length}/>}>
             <Client name='+ Novo Atendimento' onClick={() => newTicket(el)}/>
             {
               el.tickets?.map(item => 

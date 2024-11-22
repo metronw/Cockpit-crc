@@ -1,5 +1,5 @@
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
-import { RadioInput, InfoModal, TextInput } from "../../components";
+import { RadioInput, InfoModal, TextInput, Procedures } from "../../components";
 import Link from "next/link";
 
 
@@ -12,8 +12,9 @@ export default function Procedure({params: {id}}: {params: {id: string}}) {
       </p>      
         <div className=" grid grid-cols-12 h-full">
           <div className="col-span-6 h-full">
-            {/* <RadioInput procedure={'Exemplo de procedimento'} /> */}
-            <RadioInput isInteractive={true} procedure={'O modem foi reiniciado?'} Modal={<InfoModal title={'Exemplo de Procedimento'} />}/>
+            {/* <RadioInput label={'Exemplo de procedimento'} /> */}
+            <RadioInput isInteractive={true} label={'O modem foi reiniciado?'} Modal={<InfoModal title={'Exemplo de Procedimento'} body={'body'} />}/>
+            <Procedures id={id} />
             <TextInput id={id} fieldName={'erp'} label={'Protocolo ERP'} isRequired={true}/>
             <TextInput id={id} fieldName={'complement'} label={'Informações complementares'}/>
           </div>

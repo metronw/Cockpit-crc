@@ -26,8 +26,29 @@ model User {
   name      String?
   email     String  @unique
   metro_id  Int
-  role      Int?
+  role_id      Int?
   password  String
   createdAt DateTime @default(now())
 }
+
+
+model Procedure_item {
+  id      Int      @id @default(autoincrement())
+  label   String
+  speech_suggestion_id Int?
+  input_type  Int  
+  data_source String?
+  company_id  Int?
+  ticket_type_id Int
+  created_by Int
+  modal_title String?
+  modal_body String?
+  modal_media String?
+}
+
+model Speech_suggestion {
+  id      Int      @id @default(autoincrement())
+  text    String
+}
+
 

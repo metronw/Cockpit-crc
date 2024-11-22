@@ -22,10 +22,10 @@ export async function getCrcTicketTypes() {
 // }  
 
 export async function createTicket({company_id}:{company_id:number}){
-  const cookieStore = await cookies()
+  const cookieStore = cookies()
   const user = cookieStore.get('logged_user')
   if(user){
-    const user_id = 2
+    const user_id = JSON.parse(user.value).id
     const ticket = await prisma.ticket.create({
       data: { company_id, status: 'triage', user_id },
     })
@@ -35,14 +35,21 @@ export async function createTicket({company_id}:{company_id:number}){
 } 
 
 export const getOpenTickets = async () => {
-  const filteredTickets = await prisma.ticket.findMany({
-    where: {
-      user_id: 2,
-      status: { not: 'closed' }
-    },
-  });
+  const cookieStore = cookies()
+  const user = cookieStore.get('logged_user')
 
-  return JSON.stringify(filteredTickets)
+  if(user){
+    const parsedUser = JSON.parse(user.value)
+    const filteredTickets = await prisma.ticket.findMany({
+      where: {
+        user_id: parsedUser.id,
+        status: { not: 'closed' }
+      },
+    });
+  
+    return JSON.stringify(filteredTickets)
+  }
+  return '[]'
 }
 
 export async function getCompaniesList(){
@@ -68,6 +75,7 @@ export async function getTicketContext(){
   const companies = JSON.parse(await getCompaniesList())
   const filteredComp =  companies.filter((el:ICompany) => el.id == 220 || el.id == 193 || el.id == 274)
   const tickets = JSON.parse(await getOpenTickets())
+  
   return JSON.stringify({companies: filteredComp, tickets})
 } 
 

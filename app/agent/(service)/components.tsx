@@ -7,6 +7,8 @@ import {useState, useEffect, useCallback} from 'react'
 import {Input} from "@nextui-org/react"
 import {createMetroTicket} from '@/app/actions/api'
 import { usePathname, useRouter } from 'next/navigation'
+import { getProcedures } from "@/app/actions/procedures";
+import { useTicketTypeContext } from "@/app/providers";
 
 export const TextInput = ({id, fieldName, label, isRequired=false}: {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string, isRequired?: boolean}) => {
 
@@ -196,12 +198,12 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource, isRequire
   );
 } 
 
-export const RadioInput = ({isInteractive=false, procedure, Modal }: {isInteractive?: boolean, procedure: string, Modal: React.ReactElement}) => {
+export const RadioInput = ({isInteractive=false, label, Modal }: {isInteractive?: boolean, label: string, Modal: React.ReactElement}) => {
 
   const [response, setResponse] = useState('')
   return(
     <RadioGroup 
-      label={procedure} orientation="horizontal" 
+      label={label} orientation="horizontal" 
       classNames={{label: 'p-1 m-1 rounded ' + (isInteractive ? 'bg-purple-700 text-white' : 'border border-primary text-primary')}}
       value={response}
       onValueChange={setResponse}
@@ -213,7 +215,7 @@ export const RadioInput = ({isInteractive=false, procedure, Modal }: {isInteract
   )
 }
 
-export const InfoModal = ({title}:{title:string}) => {
+export const InfoModal = ({title, body}:{title:string, body:string}) => {
 
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const [scrollBehavior] = useState<"inside" | "normal" | "outside" | undefined >("inside");
@@ -221,7 +223,7 @@ export const InfoModal = ({title}:{title:string}) => {
   return(
     <div className="flex flex-col gap-2">
 
-      <Button onPress={onOpen}>{title}</Button>
+      <Button onPress={onOpen}>{'Instrução'}</Button>
       <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -235,16 +237,7 @@ export const InfoModal = ({title}:{title:string}) => {
                 {title}
               </ModalHeader>
               <ModalBody>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Nullam pulvinar risus non risus hendrerit venenatis.
-                  Pellentesque sit amet hendrerit risus, sed porttitor quam.
-                </p>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Nullam pulvinar risus non risus hendrerit venenatis.
-                  Pellentesque sit amet hendrerit risus, sed porttitor quam.
-                </p>
+                {body}
                 
               </ModalBody>
               <ModalFooter>
@@ -288,6 +281,7 @@ export const TicketSummary = ({userJson}:{userJson:string}) => {
   
   const user = JSON.parse(userJson)
   const {ticketContext} = useTicketContext()
+  const {ticketTypeContext} = useTicketTypeContext()
   const path = usePathname()
   const {company, ticket} = parsePageInfo(path, ticketContext)
   
@@ -297,7 +291,7 @@ export const TicketSummary = ({userJson}:{userJson:string}) => {
       <p>Tipo de atendimento: telefônico </p>
       <p>Nome do solicitante: {ticket?.client_name}</p>
       <p>Endereço: {ticket?.address}</p>
-      <p>Problema alegado: </p>
+      <p>Problema alegado: {ticketTypeContext.find(el => el.id == ticket?.type)?.label} </p>
       <p>Procedimentos Realizados</p>
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>
@@ -306,6 +300,46 @@ export const TicketSummary = ({userJson}:{userJson:string}) => {
       <p>Protocolo Chat</p>
       <p>Atendente: {user.name} </p>
     </Snippet>
+  )
+}
+
+
+export const Procedures = ({id}:{id:string}) =>{
+  const {ticketContext, setTicketContext} = useTicketContext()
+  const [procedures, setProcedures] = useState<Array<any>| null>(null)
+
+  const path = usePathname()
+  const { ticket } = parsePageInfo(path, ticketContext)
+
+  
+  useEffect(() => {
+    if(ticket){
+      getProcedures({company_id:ticket.company_id, ticket_type_id: parseInt(ticket.type)}).then(response =>{
+        const parsed = JSON.parse(response)
+        setProcedures(parsed)
+      })
+    }
+  }, [])
+  return(
+    <div>
+      {
+        procedures ?
+        procedures.map(el => {
+          if(el.input_type == 1){
+            return(
+              <RadioInput key={el.id} isInteractive={true} label={el.label} Modal={<InfoModal title={el.modal_title} body={el.modal_body}/>}/>
+            )
+          }
+          // else if(el.input_type == 1){
+          //   return(
+          //     <TextInput key={el.id}  label={el.label}  id={id} />
+          //   )
+          // }
+        })
+        :
+        null
+      }
+    </div>
   )
 }
 

@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import {Providers} from "./providers"
 import "./globals.css";
+import { Toaster } from 'react-hot-toast';
+import { TicketTypeProvider } from "./providers";
+import { getCrcTicketTypes } from "@/app/actions/api";
+import {use} from 'react'
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -19,17 +23,23 @@ export const metadata: Metadata = {
   description: "",
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const iniContext = use(getCrcTicketTypes())
+
   return (
     // <html lang="en" suppressHydrationWarning>
     <html lang="en" >
       <body className={`${geistSans.variable} ${geistMono.variable} vsc-initialized` }  >
         <Providers>
-          {children}
+          <TicketTypeProvider iniContext={JSON.parse(iniContext) }>
+            {children}
+          </TicketTypeProvider>
+          <Toaster />
         </Providers>
       </body>
     </html>

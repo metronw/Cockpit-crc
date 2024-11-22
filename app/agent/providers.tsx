@@ -31,6 +31,22 @@ export interface ITicket {
   company_id: number;
   time: string;
   createdAt:Date;
+  procedure: Array<IProcedureItemResponse>;
+}
+
+export interface IProcedureItemResponse {
+  response: string | boolean | number | null;
+}
+
+export interface IProcedureItem {
+  id: number;
+  company_id: number;
+  ticket_type_id: number;
+  speech_suggestion: number;
+  modal_body: string;
+  modal_title: string;
+  modal_media: string;
+  
 }
 
 export interface ICompany {

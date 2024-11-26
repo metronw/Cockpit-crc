@@ -31,10 +31,11 @@ export interface ITicket {
   company_id: number;
   time: string;
   createdAt:Date;
-  procedure: Array<IProcedureItemResponse>;
+  procedures: string;
 }
 
 export interface IProcedureItemResponse {
+  id:number;
   response: string | boolean | number | null;
 }
 

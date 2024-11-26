@@ -2,7 +2,7 @@
 
 import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet } from "@nextui-org/react";
 import Link  from 'next/link'
-import { ILocalData, useTicketContext } from "@/app/agent/providers"
+import { ILocalData, IProcedureItem, useTicketContext } from "@/app/agent/providers"
 import {useState, useEffect, useCallback} from 'react'
 import {Input} from "@nextui-org/react"
 import {createMetroTicket} from '@/app/actions/api'
@@ -198,9 +198,36 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource, isRequire
   );
 } 
 
-export const RadioInput = ({isInteractive=false, label, Modal }: {isInteractive?: boolean, label: string, Modal: React.ReactElement}) => {
+export const RadioInput = ({isInteractive=false, label, Modal, id= 0 }: {isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number}) => {
 
+  const {ticketContext, setTicketContext} = useTicketContext()
+  const path = usePathname()
+  const { ticket } = parsePageInfo(path, ticketContext)
   const [response, setResponse] = useState('')
+
+  useEffect(()=>{
+    if(ticket){
+      const procedures = JSON.parse(ticket.procedures)
+      const procedure = procedures.find((el:IProcedureItem) => el.id == id)
+      setResponse(procedure.response)
+    }
+
+  }, [])
+
+  useEffect(() => {
+    if(ticket){
+      let procedures = JSON.parse(ticket.procedures)
+      if(procedures.find((el:IProcedureItem) => el.id == id)){
+        procedures = procedures.map((el:IProcedureItem) => el.id == id ? {...el, response} : el  )
+      }else{
+        procedures.push({id, response, label})
+      }
+      const newTicket = ticketContext.tickets.map(el => el.id == ticket.id ? {...el, procedures: JSON.stringify(procedures)} : el)
+      setTicketContext({...ticketContext, tickets:newTicket})
+    }
+  }, [response])
+
+
   return(
     <RadioGroup 
       label={label} orientation="horizontal" 
@@ -209,8 +236,8 @@ export const RadioInput = ({isInteractive=false, label, Modal }: {isInteractive?
       onValueChange={setResponse}
     >
       {Modal} 
-      <Radio value="Yes" classNames={{ wrapper: 'border-success', control: 'bg-success' }}></Radio>
-      <Radio value="No" classNames={{ wrapper: 'border-danger', control: 'bg-danger'}}></Radio>
+      <Radio value="true" classNames={{ wrapper: 'border-success', control: 'bg-success' }}></Radio>
+      <Radio value="false" classNames={{ wrapper: 'border-danger', control: 'bg-danger'}}></Radio>
     </RadioGroup>
   )
 }
@@ -262,7 +289,6 @@ export const FinishButton = () => {
 
   const finishAction = useCallback(async () => {
     const resp = await createMetroTicket(ticket)
-    console.log(resp)
     if(resp.status === 200 && ticket){
       const newCtx = {...ticketContext, tickets: ticketContext.tickets.filter(el=> el.id !== ticket.id) }
       setTicketContext(newCtx)
@@ -288,11 +314,11 @@ export const TicketSummary = ({userJson}:{userJson:string}) => {
   return(
     <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
       <p>Nome de Assinante: {company?.fantasy_name}</p>
-      <p>Tipo de atendimento: telefônico </p>
+      <p>Tipo de atendimento: </p>
       <p>Nome do solicitante: {ticket?.client_name}</p>
       <p>Endereço: {ticket?.address}</p>
       <p>Problema alegado: {ticketTypeContext.find(el => el.id == ticket?.type)?.label} </p>
-      <p>Procedimentos Realizados</p>
+      <p>Procedimentos Realizados:</p>
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>
       <p>Telefone: {ticket?.phone}</p>
@@ -311,15 +337,16 @@ export const Procedures = () =>{
   const path = usePathname()
   const { ticket } = parsePageInfo(path, ticketContext)
 
-  
   useEffect(() => {
-    if(ticket){
+    if(ticket && !isNaN(parseInt(ticket.type))){
       getProcedures({company_id:ticket.company_id, ticket_type_id: parseInt(ticket.type)}).then(response =>{
         const parsed = JSON.parse(response)
         setProcedures(parsed)
       })
     }
   }, [])
+  
+
   return(
     <div>
       {
@@ -327,7 +354,7 @@ export const Procedures = () =>{
         procedures.map(el => {
           if(el.input_type == 1){
             return(
-              <RadioInput key={el.id} isInteractive={true} label={el.label} Modal={<InfoModal title={el.modal_title} body={el.modal_body}/>}/>
+              <RadioInput key={el.id} isInteractive={true} label={el.label} Modal={<InfoModal title={el.modal_title} body={el.modal_body}/>} id={el.id}/>
             )
           }
           // else if(el.input_type == 1){

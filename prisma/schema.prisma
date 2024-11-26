@@ -18,6 +18,7 @@ model Ticket {
   company_id  Int
   status      String
   user_id     Int
+  procedures  Json?
   createdAt   DateTime @default(now())
 }
 

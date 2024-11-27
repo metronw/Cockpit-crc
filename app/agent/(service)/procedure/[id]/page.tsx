@@ -1,5 +1,5 @@
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
-import { RadioInput, InfoModal, TextInput, Procedures } from "../../components";
+import { TextInput, Procedures } from "../../components";
 import Link from "next/link";
 
 

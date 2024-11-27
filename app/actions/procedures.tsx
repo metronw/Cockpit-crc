@@ -20,7 +20,7 @@ export async function createProcedure({
     const user = JSON.parse(token.value)
     try{
       await prisma.procedure_item.create({
-        data: { company_id, ticket_type_id, label, input_type, created_by:user.id, modal_body, modal_title  },
+        data: { company_id, ticket_type_id, label, input_type, created_by:user.id, modal_body, modal_title },
       })
       return {message: 'procedimento criado com sucesso', status: 'success'}
   

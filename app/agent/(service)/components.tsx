@@ -209,7 +209,7 @@ export const RadioInput = ({isInteractive=false, label, Modal, id= 0 }: {isInter
     if(ticket){
       const procedures = JSON.parse(ticket.procedures)
       const procedure = procedures.find((el:IProcedureItem) => el.id == id)
-      setResponse(procedure.response)
+      procedure?.response ? setResponse(procedure.response) : null
     }
 
   }, [])

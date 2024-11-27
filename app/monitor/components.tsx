@@ -4,9 +4,9 @@ import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/solid"
-import { logout } from "@/app/actions/login";
 import { toast } from "react-hot-toast";
 import { createProcedure } from "@/app/actions/procedures";
+import { signOut } from "next-auth/react";
 
 export function Options ({ placeholder, dataSource, isRequired}: { placeholder: string, dataSource:  () => Promise<string>, isRequired: boolean }) {
 
@@ -227,37 +227,6 @@ export function TextInput ({  Modal }: {Modal?: React.ReactElement}) {
 }
 
 
-// export function DateInput ({ isInteractive, Modal }: {isInteractive?: boolean, Modal?: React.ReactElement}) {
-//   const [response, setResponse] = useState(new Date())
-//   const [procedure, setProcedure] = useState('')
-
-  
-//   return(
-//     <div className="flex flex-col gap-2 ">      
-//       <Input 
-//         label={'label'}
-//         type='text' 
-//         value={procedure} 
-//         color={'primary'}  
-//         className={'w-80 h-11 border border-primary rounded-medium'}
-//         onValueChange={setProcedure}
-//       />
-
-//       <span>Preview</span>
-//       <div className="border border-primary p-3 rounded">
-//         <DatePicker 
-//           label={procedure}
-//           type='text' 
-//           value={response} 
-//           color={'primary'}  
-//           className={'w-80 h-11 border border-primary rounded-medium'}
-//           onValueChange={setResponse}
-//         />
-//       </div>
-
-//     </div>
-//   )
-// }
 
 export const EditInfoModal = ({modalTitle, modalBody, className}:
   {modalTitle:[string, Dispatch<SetStateAction<string>>],
@@ -354,7 +323,7 @@ export const MonitorHeader = ({id}: {id: number}) => {
       <div className="flex flex-row col-span-8 space-x-4 items-center ">
         
       </div>
-      <Button isIconOnly color="primary" aria-label="logout" onPress={() => logout()}>
+      <Button isIconOnly color="primary" aria-label="logout" onPress={() => signOut({callbackUrl:'/login'})}>
       <ArrowRightStartOnRectangleIcon className="col-span-1 h-10 "/>
       </Button>
       
@@ -362,3 +331,14 @@ export const MonitorHeader = ({id}: {id: number}) => {
   )
 }
 
+
+export const MonitorSidebar = () =>{
+  const router = useRouter()
+
+  return(
+    <div className="flex flex-col p-2 gap-2">
+      <Button className="" onPress={() => router.push('/monitor')}>Dashboard</Button>
+      <Button className="" onPress={() => router.push('/monitor/scheduler')}>Agenda</Button>
+    </div>
+  )
+}

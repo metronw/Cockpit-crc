@@ -2,7 +2,7 @@ import {use} from 'react'
 import {getTicketContext} from '@/app/actions/api'
 import { cookies } from 'next/headers'
 import { MonitorProvider } from './providers';
-import { MonitorHeader } from './components';
+import { MonitorHeader, MonitorSidebar } from './components';
 
 
 export default function AgentLayout({
@@ -22,6 +22,7 @@ export default function AgentLayout({
         </header>
         <main className='grid grid-cols-12 bg-white font-[family-name:var(--font-geist-sans)] text-primary h-full'>
           <div className='col-span-3 bg-primary border-r-1 border-b-1 border-black'>
+            <MonitorSidebar  />
           </div>
           <div className='col-span-9 bg-white'>
             {children}      

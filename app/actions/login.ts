@@ -29,6 +29,29 @@ export async function loginUser({ email, password }: LoginCredentials) {
 
 }
 
+export async function loginSSO({email, name, metro_id} :{email:string, name?:string, metro_id?: number}){
+  let user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if(!user){
+    const password = bcrypt.hashSync('951Mudar!', 10)
+    user = await prisma.user.create({
+      data: {
+        email,
+        name: name ?? '',
+        password: password, // In a real app, hash the password before storing
+        metro_id: metro_id ?? 312
+      },
+    });
+  }else{
+    const cookieStore = await cookies()
+    cookieStore.set('logged_user', JSON.stringify(user))
+  
+  }
+
+}
+
 export async function logout(){
   const cookieStore = cookies()
   cookieStore.delete('logged_user')

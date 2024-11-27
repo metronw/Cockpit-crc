@@ -27,7 +27,7 @@ export async function createTicket({company_id}:{company_id:number}){
   if(user){
     const user_id = JSON.parse(user.value).id
     const ticket = await prisma.ticket.create({
-      data: { company_id, status: 'triage', user_id },
+      data: { company_id, status: 'triage', user_id, procedures: JSON.stringify([]) },
     })
     return JSON.stringify(ticket)
   }
@@ -72,8 +72,8 @@ export async function getCompaniesList(){
 
 
 export async function getTicketContext(){
-  const companies = JSON.parse(await getCompaniesList())
-  const filteredComp =  companies.filter((el:ICompany) => el.id == 220 || el.id == 193 || el.id == 274)
+  const companies = JSON.parse(await getCompaniesList()) 
+  const filteredComp =  companies.filter((el:ICompany) =>  el.id == 193 )
   const tickets = JSON.parse(await getOpenTickets())
   
   return JSON.stringify({companies: filteredComp, tickets})
@@ -112,3 +112,21 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
     return {status: 500, message: error.message }
   }
 }
+
+export async function getUsers(){
+  const cookieStore = cookies()
+  const user = cookieStore.get('logged_user')
+
+  if(user){
+    const filteredUsers = await prisma.user.findMany({
+    });
+  
+    return JSON.stringify(filteredUsers)
+  }
+  return '[]'
+}
+
+// export async function switchCompany(company, user){
+//   console.log(user)
+//   return company
+// }

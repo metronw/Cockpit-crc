@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { loginUser } from '@/app/actions/login';
 import {Button, Input} from "@nextui-org/react"
+import { signIn } from "next-auth/react";
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -50,7 +51,18 @@ export function LoginForm() {
       <Button type="submit" disabled={loading} className="m-2 p-2 rounded bg-white text-black justify-center flex" >
         {loading ? 'Logging in...' : 'Login'}
       </Button>
-      <Button className="m-2 p-2 rounded bg-black text-white" >Entrar com Microsoft</Button>
+      <SsoButton />
     </form>
+  );
+}
+
+
+
+export default function SsoButton() {
+
+  return (
+    <>
+      <Button className="m-2 p-2 rounded bg-black text-white" onPress={() => signIn("azure-ad", {callbackUrl: "/monitor"})}>Sign In with Microsoft</Button>
+    </>
   );
 }

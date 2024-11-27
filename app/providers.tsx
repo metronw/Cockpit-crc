@@ -2,6 +2,8 @@
 
 import {NextUIProvider} from '@nextui-org/react'
 import { createContext, useContext} from 'react';
+import { SessionProvider } from "next-auth/react";
+
 
 const TicketTypeContext = createContext({ticketTypeContext: [{id:'1', label: 'any'}]});
 export const useTicketTypeContext = () => useContext(TicketTypeContext);
@@ -17,8 +19,10 @@ export function TicketTypeProvider({children, iniContext}: { children: React.Rea
 
 export function Providers({children}: { children: React.ReactNode }) {
   return (
-    <NextUIProvider>
-      {children}
-    </NextUIProvider>
+    <SessionProvider >
+      <NextUIProvider>
+        {children}
+      </NextUIProvider>
+    </SessionProvider>
   )
 }

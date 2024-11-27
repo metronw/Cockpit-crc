@@ -6,8 +6,8 @@ import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon} from
 import  { useRouter} from "next/navigation"
 import {ICompany, ITicket, useTicketContext} from '@/app/agent/providers'
 import {createTicket} from '@/app/actions/api'
-import {logout} from '@/app/actions/login'
 import { useState, useEffect } from 'react';
+import { signOut } from 'next-auth/react';
 
 export const PerformanceChart = () => {
   const data = [{name: 'Dia 1', uv: 400, pv: 2400, amt: 2400}, {name: 'Dia 2', uv: 200, pv: 3000, amt: 2400}, {name: 'Dia 3', uv: 700, pv: 3000, amt: 2400}];
@@ -39,7 +39,7 @@ export const AgentHeader = ({id}: {id: number}) => {
         <div>13:16</div>      
         <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary"/></Button>
       </div>
-      <Button isIconOnly color="primary" aria-label="logout" onPress={() => logout()}>
+      <Button isIconOnly color="primary" aria-label="logout" onPress={() => signOut()}>
       <ArrowRightStartOnRectangleIcon className="col-span-1 h-10 "/>
       </Button>
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>

@@ -6,7 +6,6 @@ export async function POST(request: Request) {
   try {
     const { email, name, password, metro_id } = await request.json();
 
-    console.log(email, name, password, metro_id)
 
     // Basic validation
     if (!email || !password) {

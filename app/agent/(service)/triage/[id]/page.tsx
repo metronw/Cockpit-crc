@@ -4,19 +4,20 @@ import {ChevronRightIcon} from "@heroicons/react/24/solid"
 import { TextInput } from "../../components";
 import Link from "next/link";
 import {getCrcTicketTypes} from '@/app/actions/api';
-import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/lib/authOptions";
+import { use } from "react";
 
 export default function Triage({params: {id}}: {params: {id: string}}) {
   
-  const cookieStore = cookies()
-  const user = JSON.parse(cookieStore.get('logged_user')?.value ?? '')
+  const session = use(getServerSession(authOptions));
 
   return (
     <form className="flex flex-col flex-stretch px-4 pt-3 mt-8 h-full grow justify-around">        
     
       <div className="flex gap-1 flex-col">
         <div className="flex flex row pr-4">
-          <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{` Bom dia. Meu nome é ${user.name}, em que posso ajudá-lo?`}</span>
+          <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{` Bom dia. Meu nome é ${session?.user.name}, em que posso ajudá-lo?`}</span>
           <TextInput id={id} fieldName={'client_name'} label={'Nome do cliente'} />
         </div>
         <div className="flex flex row pr-4 space-x-4">

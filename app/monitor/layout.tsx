@@ -1,8 +1,9 @@
 import {use} from 'react'
 import {getTicketContext} from '@/app/actions/api'
-import { cookies } from 'next/headers'
 import { MonitorProvider } from './providers';
 import { MonitorHeader, MonitorSidebar } from './components';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/lib/authOptions";
 
 
 export default function AgentLayout({
@@ -11,14 +12,13 @@ export default function AgentLayout({
   children: React.ReactNode;
 }) {
   const iniContext = use(getTicketContext())
-  const cookieStore = cookies()
-  const user = JSON.parse(cookieStore.get('logged_user')?.value ?? '')
+  const session = use(getServerSession(authOptions))
 
   return (
     <MonitorProvider iniContext={iniContext}>
       <div className='flex flex-col h-screen'>
         <header className="w-full py-3 border-b-2 border-black bg-primary">
-          <MonitorHeader id={user.id}/>
+          <MonitorHeader id={session?.user.id}/>
         </header>
         <main className='grid grid-cols-12 bg-white font-[family-name:var(--font-geist-sans)] text-primary h-full'>
           <div className='col-span-3 bg-primary border-r-1 border-b-1 border-black'>

@@ -1,6 +1,10 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, Session } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { loginSSO } from "@/app/actions/login";
+import bcrypt from 'bcrypt'; // Assuming passwords are hashed in the database
+import prisma  from '@/app/lib/localDb';
+
 
 // Defining the authOptions with proper types
 export const authOptions: NextAuthOptions = {
@@ -11,38 +15,53 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
       tenantId: process.env.AZURE_AD_TENANT_ID!,
     }),
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "text", placeholder: "pessoa@email.com" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+
+        const { email, password } = credentials || {};
+        
+        const user = await prisma.user.findUnique({
+          where: { email },
+        });
+      
+        if (!user || !bcrypt.compare(password ?? '', user.password)) {
+          throw new Error('Invalid email or password');
+        }
+
+        return { id: user.id, name: user.name ?? '', email: user.email };
+      },
+    }),
   ],
   callbacks: {
     // Handling the JWT callback
     async jwt({ token, user }) {
       // If user is available, add it to the token
       if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-
-        loginSSO({email:user.email ?? '', name: user.name ?? ''})
+        const localUser = await loginSSO({email:user.email ?? '', name: user.name ?? ''})
+        
+        token.id = localUser.id;
+        token.email = localUser.email;
+        token.name = localUser.name;
       }
       return token;
     },
     // Handling session callback
     async session({ session, token }) {
-      
-      // Attach the token properties to the session
-      loginSSO({email:token.email ?? '', name: token.name ?? ''})
-      
-      // session.user.id = token.id;
-      // session.user.email = token.email;
-      // session.user.name = token.name;
-      return session;
+      const newSession: Session = {...session, user: {id:token.id, email:token.email ?? '', name: token.name ?? ''}}
+      return newSession;
     },
   },
   session: {
     strategy: "jwt", // Use JWT for session management
   },
   secret: process.env.NEXTAUTH_SECRET! ?? '0dOzK3k2p+NSShP3OZIElctLLPRs6doJ0Jue14pIHoM=',
-  // pages:{
-  //   signIn: '/monitor',
-  //   signOut: '/login'
-  // }
+  pages:{
+    signIn: '/login',
+    // signOut: '/login'
+  }
 };

@@ -21,7 +21,7 @@ export const PerformanceChart = () => {
   )
 }
 
-export const AgentHeader = ({id}: {id: number}) => {
+export const AgentHeader = ({id}: {id?: number}) => {
 
   const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();

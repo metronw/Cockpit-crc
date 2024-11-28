@@ -3,7 +3,8 @@
 import prisma  from '@/app/lib/localDb';
 import bcrypt from 'bcrypt'; // Assuming passwords are hashed in the database
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../lib/authOptions';
 
 interface LoginCredentials {
   email: string;
@@ -22,10 +23,9 @@ export async function loginUser({ email, password }: LoginCredentials) {
     throw new Error('Invalid email or password');
   }
   
-  const cookieStore = await cookies()
-  cookieStore.set('logged_user', JSON.stringify(user))
+  const session = await getServerSession(authOptions);
 
-  redirect('/agent/'+user.id)
+  redirect('/agent/'+session?.user.id)
 
 }
 
@@ -44,16 +44,11 @@ export async function loginSSO({email, name, metro_id} :{email:string, name?:str
         metro_id: metro_id ?? 312
       },
     });
-  }else{
-    const cookieStore = await cookies()
-    cookieStore.set('logged_user', JSON.stringify(user))
-  
   }
+  return user
 
 }
 
 export async function logout(){
-  const cookieStore = cookies()
-  cookieStore.delete('logged_user')
   redirect('/login')
 }

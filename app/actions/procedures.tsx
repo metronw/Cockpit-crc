@@ -1,9 +1,8 @@
 'use server'
 
-import { cookies } from 'next/headers'
 import prisma from '@/app/lib/localDb'
-
-
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../lib/authOptions';
 
 export async function createProcedure({
   company_id, ticket_type_id, label, input_type, modal_body, modal_title }:{
@@ -14,13 +13,13 @@ export async function createProcedure({
     modal_body:string | null, 
     modal_title: string | null  
   }){
-  const cookieStore = cookies()
-  const token = cookieStore.get('logged_user')
-  if(token && ticket_type_id){
-    const user = JSON.parse(token.value)
+  const session = await getServerSession(authOptions);
+
+  if(session && ticket_type_id){
+    
     try{
       await prisma.procedure_item.create({
-        data: { company_id, ticket_type_id, label, input_type, created_by:user.id, modal_body, modal_title },
+        data: { company_id, ticket_type_id, label, input_type, created_by:session.user.id, modal_body, modal_title },
       })
       return {message: 'procedimento criado com sucesso', status: 'success'}
   

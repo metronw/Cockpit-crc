@@ -1,9 +1,10 @@
 'use server'
 
-import { cookies } from 'next/headers'
 import connection from '@/app/lib/db';
 import prisma from '@/app/lib/localDb'
 import { ICompany, ITicket } from '../agent/providers';
+import { getServerSession } from "next-auth";
+import { authOptions } from '../lib/authOptions';
 
 
 export async function getCrcTicketTypes() {
@@ -22,27 +23,24 @@ export async function getCrcTicketTypes() {
 // }  
 
 export async function createTicket({company_id}:{company_id:number}){
-  const cookieStore = cookies()
-  const user = cookieStore.get('logged_user')
-  if(user){
-    const user_id = JSON.parse(user.value).id
+  const session = await getServerSession(authOptions);
+
+  if(session){
     const ticket = await prisma.ticket.create({
-      data: { company_id, status: 'triage', user_id, procedures: JSON.stringify([]) },
+      data: { company_id, status: 'triage', user_id: session.user.id, procedures: JSON.stringify([]) },
     })
     return JSON.stringify(ticket)
   }
+}
 
-} 
 
 export const getOpenTickets = async () => {
-  const cookieStore = cookies()
-  const user = cookieStore.get('logged_user')
+  const session = await getServerSession(authOptions);
 
-  if(user){
-    const parsedUser = JSON.parse(user.value)
+  if(session){
     const filteredTickets = await prisma.ticket.findMany({
       where: {
-        user_id: parsedUser.id,
+        user_id: session.user.id,
         status: { not: 'closed' }
       },
     });
@@ -114,10 +112,9 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
 }
 
 export async function getUsers(){
-  const cookieStore = cookies()
-  const user = cookieStore.get('logged_user')
+  const session = await getServerSession(authOptions);
 
-  if(user){
+  if(session){
     const filteredUsers = await prisma.user.findMany({
     });
   

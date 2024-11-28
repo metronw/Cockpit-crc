@@ -309,7 +309,7 @@ export const InfoModal = ({title, body, className}:{title:string, body:string, c
   )
 }
 
-export const MonitorHeader = ({id}: {id: number}) => {
+export const MonitorHeader = ({id}: {id?: number}) => {
 
   const router = useRouter()
   

@@ -1,12 +1,8 @@
 import { ChevronLeftIcon} from "@heroicons/react/24/solid"
 import Link from "next/link";
 import { FinishButton, TicketSummary } from "../../components";
-import { cookies } from "next/headers";
 
 export default function Finishing({params: {id}}: {params: {id: string}}) {
-
-  const cookieStore = cookies()
-  const user  = cookieStore.get('logged_user')
   
   return (
     <div className="flex flex-col pt-3 h-full">    
@@ -28,7 +24,7 @@ export default function Finishing({params: {id}}: {params: {id: string}}) {
 
         </div>
         <div className="col-span-5 h-full">
-          <TicketSummary userJson={user?.value ?? ''} />
+          <TicketSummary  />
         </div>
         
       </div>    

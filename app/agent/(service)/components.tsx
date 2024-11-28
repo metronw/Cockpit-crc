@@ -9,6 +9,7 @@ import {createMetroTicket} from '@/app/actions/api'
 import { usePathname, useRouter } from 'next/navigation'
 import { getProcedures } from "@/app/actions/procedures";
 import { useTicketTypeContext } from "@/app/providers";
+import { useSession } from "next-auth/react";
 
 export const TextInput = ({id, fieldName, label, isRequired=false}: {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string, isRequired?: boolean}) => {
 
@@ -303,13 +304,14 @@ export const FinishButton = () => {
   )
 }
 
-export const TicketSummary = ({userJson}:{userJson:string}) => {
+export const TicketSummary = () => {
   
-  const user = JSON.parse(userJson)
   const {ticketContext} = useTicketContext()
   const {ticketTypeContext} = useTicketTypeContext()
   const path = usePathname()
   const {company, ticket} = parsePageInfo(path, ticketContext)
+  const session = useSession()
+  
   
   return(
     <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
@@ -324,7 +326,7 @@ export const TicketSummary = ({userJson}:{userJson:string}) => {
       <p>Telefone: {ticket?.phone}</p>
       <p>Protocolo ERP: {ticket?.erp}</p>
       <p>Protocolo Chat</p>
-      <p>Atendente: {user.name} </p>
+      <p>Atendente: {session?.data?.user.name} </p>
     </Snippet>
   )
 }

@@ -6,7 +6,6 @@ import { ICompany, ITicket } from '../agent/providers';
 import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
 
-
 export async function getCrcTicketTypes() {
   const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id FROM ticket_type '
     +'INNER JOIN ticket_type_product ON ticket_type_product.id_ticket_type=ticket_type.id '
@@ -69,12 +68,19 @@ export async function getCompaniesList(){
 }
 
 
-export async function getTicketContext(){
-  const companies = JSON.parse(await getCompaniesList()) 
-  const filteredComp =  companies.filter((el:ICompany) =>  el.id == 193 )
-  const tickets = JSON.parse(await getOpenTickets())
+
+export async function getTicketContext(user_id: number | undefined){
+  if(user_id){
+    const companies = JSON.parse(await getCompaniesList()) 
   
-  return JSON.stringify({companies: filteredComp, tickets})
+    const userAssignments = await prisma.user_assign.findMany({where:{ user_id }})
+    const filteredComp =  companies.filter((el:ICompany) =>  userAssignments.find(item => item.company_id == el.id) )
+    const tickets = JSON.parse(await getOpenTickets())
+    
+    return JSON.stringify({companies: filteredComp, tickets})
+    
+  }
+  return JSON.stringify({companies: [], tickets:[]})
 } 
 
 export async function createMetroTicket(ticketInfo:ITicket | undefined){
@@ -122,8 +128,3 @@ export async function getUsers(){
   }
   return '[]'
 }
-
-// export async function switchCompany(company, user){
-//   console.log(user)
-//   return company
-// }

@@ -58,6 +58,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt", // Use JWT for session management
+    maxAge: 12 * 60 * 60
   },
   secret: process.env.NEXTAUTH_SECRET! ?? '0dOzK3k2p+NSShP3OZIElctLLPRs6doJ0Jue14pIHoM=',
   pages:{

@@ -10,6 +10,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { getProcedures } from "@/app/actions/procedures";
 import { useTicketTypeContext } from "@/app/providers";
 import { useSession } from "next-auth/react";
+import { toast } from "react-hot-toast";
 
 export const TextInput = ({id, fieldName, label, isRequired=false}: {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string, isRequired?: boolean}) => {
 
@@ -292,8 +293,11 @@ export const FinishButton = () => {
     const resp = await createMetroTicket(ticket)
     if(resp.status === 200 && ticket){
       const newCtx = {...ticketContext, tickets: ticketContext.tickets.filter(el=> el.id !== ticket.id) }
+      toast.success('Ticket criado no gestor com sucesso')
       setTicketContext(newCtx)
       router.push('/agent/'+ticket.user_id)
+    }else{
+      toast.error( resp.message)
     }
   }, [])
 

@@ -10,8 +10,8 @@ export default function AgentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const iniContext = use(getTicketContext())
   const session = use(getServerSession(authOptions));
+  const iniContext = use(getTicketContext(session?.user.id))
 
   return (
     <TicketProvider iniContext={iniContext}>

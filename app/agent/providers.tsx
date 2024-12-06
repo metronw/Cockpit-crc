@@ -84,7 +84,7 @@ function mergeContext(local:ILocalData, server: ILocalData){
     }
   })
   
-  return {tickets: mergedTickets, companies:mergedCompanies}
+  return {tickets: mergedTickets, companies:server.companies}
 }
 
 

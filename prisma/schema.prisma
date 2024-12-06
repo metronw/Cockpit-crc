@@ -30,6 +30,8 @@ model User {
   role_id      Int?
   password  String
   createdAt DateTime @default(now())
+
+  assignments User_assign[]
 }
 
 
@@ -52,4 +54,21 @@ model Speech_suggestion {
   text    String
 }
 
+model Company {
+  id Int @id 
+  threshold_1 Int?
+  threshold_2 Int?
+  fantasy_name String
+}
+
+model User_assign {
+  id Int @id @default(autoincrement())
+  company_id Int
+  user_id Int
+  queue_type Int?
+
+  user User @relation(fields: [user_id], references: [id])
+  @@unique([company_id, user_id, queue_type])
+
+}
 

@@ -5,19 +5,20 @@ import {z} from 'zod'
 import { getCompaniesList } from './api'
 
 export interface IUserAssign {
-  id: number,
-  company_id:number,
-  user:IUser
+  id: number;
+  company_id:number;
+  user_id: number;
+  user:IUser;
   companyName:string
 }
 
 export interface IUser {
-  id:number,
-  name:string,
+  id:number;
+  name:string;
 }
 
-interface company {
-  id:number,
+interface ICompany {
+  id:number;
   fantasy_name:string
 }
 
@@ -37,18 +38,16 @@ export async function assignUser(company_id: number | null, user_id: number | nu
   }
   
 export async function deleteUserAssign(ids: Array<number>){
-
-
-  return await prisma.user_assign.deleteMany({where:{id:{in: ids}}})
-  
+  return await prisma.user_assign.deleteMany({where:{id:{in: ids}}}) 
 }
 
-export async function getUserAssignments(){
+export async function getUserAssignments() : Promise<Array<IUserAssign>> {
   const companies = JSON.parse(await getCompaniesList()) 
   const assigns =  await prisma.user_assign.findMany({include: {user: true }})
 
-  return assigns.map(el => {
-    const comp = companies.find((item:company) => el.company_id == item.id)
+
+  return assigns.map((el) => {
+    const comp = companies.find((item:ICompany) => el.company_id == item.id)
     return {...el, companyName:comp.fantasy_name}
   })
 }

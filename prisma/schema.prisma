@@ -24,7 +24,7 @@ model Ticket {
 
 model User {
   id        Int      @id @default(autoincrement())
-  name      String?
+  name      String
   email     String  @unique
   metro_id  Int
   role_id      Int?

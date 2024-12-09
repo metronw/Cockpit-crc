@@ -6,13 +6,17 @@ import { useState, useEffect } from "react"
 import { IUserAssign, assignUser, deleteUserAssign } from "@/app/actions/userAssign";
 import {toast} from 'react-hot-toast';
 import { upsertCompany } from "@/app/actions/company";
+import { useSchedulerContext } from "./provider";
 
 const queueTypes= [
   {id: '1', name: 'telefônico'},
   {id: '2', name: 'chat'}
 ]
 
-export function Scheduler({companies, users}: {companies: Array<any>, users: Array<any>}){
+export function Scheduler(){
+
+  const {users, assignments, companies, setIsLoadingAssigns} = useSchedulerContext()
+
 
   const [company, setCompany] = useState(null)
   const [user, setUser] = useState(null)
@@ -74,7 +78,10 @@ export function Scheduler({companies, users}: {companies: Array<any>, users: Arr
         <Button  
           className='w-16' 
           onPress={() => assignUser(company ? parseInt(company) : company, user ? parseInt(user) : user, parseInt(queueType))
-            .then(() => toast.success('atribuído com sucesso'))
+            .then(() => {
+              toast.success('atribuído com sucesso')
+              setIsLoadingAssigns(true)
+            })
             .catch(() => toast.error('preencha todos os campos'))} >
             Atribuir
         </Button>
@@ -83,34 +90,40 @@ export function Scheduler({companies, users}: {companies: Array<any>, users: Arr
   )
 }
 
-export function AssignmentTable({assignments}:{assignments: Array<IUserAssign> | null}){
+const assignColumns= [
+  {
+    key: 'companyName',
+    label: 'empresa'
+  },
+  {
+    key: 'queue_type',
+    label: 'Tipo de Fila'
+  },
+  {
+    key: 'userName',
+    label: ' usuário'
+  },
+]
+
+export function AssignmentTable(){
+
+  const { assignments, setIsLoadingAssigns} = useSchedulerContext()
+  const [ready, setReady] = useState<boolean>(false)
 
   const [selectedKeys, setSelectedKeys] = useState(new Set([]));
   const [userFilter, setUserFilter] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
-  const [formattedAssignments, setFormattedAssignments] = useState(assignments?.map(el => ({...el, userName:el.user.name})));
 
+  const [formattedAssignments, setFormattedAssignments] = useState(assignments?.map(el => ({...el, userName:el.user.name})));
   
   useEffect(()=>{
     const newAssign = assignments?.filter(el => el.user.name.toLowerCase().includes(userFilter.toLowerCase()) && el.companyName.toLowerCase().includes(companyFilter.toLowerCase()) )
-    console.log(newAssign)
     setFormattedAssignments(newAssign?.map(el => ({...el, userName:el.user.name})))
-  },[userFilter, companyFilter])
-
-  const columns= [
-    {
-      key: 'companyName',
-      label: 'empresa'
-    },
-    {
-      key: 'queue_type',
-      label: 'Tipo de Fila'
-    },
-    {
-      key: 'userName',
-      label: ' usuário'
-    },
-  ]
+  },[userFilter, companyFilter, assignments])
+ 
+  useEffect(()=>{
+    setReady(true)
+  },[])
 
   return (
     <>
@@ -119,29 +132,36 @@ export function AssignmentTable({assignments}:{assignments: Array<IUserAssign> |
         <Input type='text' label='usuário' placeholder='filtro de usuário' value={userFilter} onValueChange={setUserFilter}></Input>
         <Input type='text' label='empresa' placeholder='filtro de empresa' value={companyFilter} onValueChange={setCompanyFilter}></Input>
       </div>
-        <Table 
-          aria-label="users"
-          selectionMode="multiple"
-          selectedKeys={selectedKeys}
-          // @ts-expect-error: library has wrong type
-          onSelectionChange={setSelectedKeys}
-          classNames={{wrapper:'overflow-auto h-96'}}
-        >
-          <TableHeader columns={columns}>
-            {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
-          </TableHeader>
-          <TableBody items={formattedAssignments}>
-            {(item) => (
-              <TableRow key={item.id}>
-                {(columnKey) => <TableCell key={item.id +columnKey.toString()}>{getKeyValue(item, columnKey)}</TableCell>}
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+      {
+        ready && (
+          <Table 
+            aria-label="users"
+            selectionMode="multiple"
+            selectedKeys={selectedKeys}
+            // @ts-expect-error: library has wrong type
+            onSelectionChange={setSelectedKeys}
+            classNames={{wrapper:'overflow-auto h-96'}}
+          >
+            <TableHeader columns={assignColumns}>
+              {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
+            </TableHeader>
+            <TableBody items={formattedAssignments}>
+              {(item) => (
+                <TableRow key={item.id}>
+                  {(columnKey) => <TableCell key={item.id +columnKey.toString()}>{getKeyValue(item, columnKey)}</TableCell>}
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )
+      }
         <Button  
           className='w-40' 
           onPress={() => deleteUserAssign( Array.from(selectedKeys).map(el => parseInt(el)))
-            .then(() => toast.success('deletado com sucesso'))
+            .then(() => {
+              toast.success('deletado com sucesso')
+              setIsLoadingAssigns(true)
+          })
             .catch(() => toast.error('deu algo de errado'))} >
             Deletar Atribuições
         </Button>

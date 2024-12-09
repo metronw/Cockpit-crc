@@ -16,6 +16,6 @@ export async function upsertCompany({id, fantasy_name}:{id:number | null, fantas
 
 }
 
-export async function getUserAssignments(){
-  return await prisma.user_assign.findMany()
-}
+// export async function getUserAssignments(){
+//   return await prisma.user_assign.findMany()
+// }

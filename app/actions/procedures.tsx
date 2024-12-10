@@ -4,6 +4,16 @@ import prisma from '@/app/lib/localDb'
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../lib/authOptions';
 
+export interface IProcedure {
+  id: number,
+  company_id: number,
+  ticket_type_id: number,
+  label: string,
+  input_type: number,
+  modal_body: string,
+  modal_title: string
+}
+
 export async function createProcedure({
   company_id, ticket_type_id, label, input_type, modal_body, modal_title }:{
     company_id:number | null, 

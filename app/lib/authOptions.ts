@@ -39,7 +39,15 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     // Handling the JWT callback
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
+
+      if (account?.id_token) {
+        // Decode Azure AD token to extract roles
+        const decodedToken = JSON.parse(
+          Buffer.from(account.id_token.split('.')[1], 'base64').toString()
+        );
+        token.roles = decodedToken.roles || [];
+      }
       // If user is available, add it to the token
       if (user) {
         const localUser = await loginSSO({email:user.email ?? '', name: user.name ?? ''})
@@ -52,7 +60,7 @@ export const authOptions: NextAuthOptions = {
     },
     // Handling session callback
     async session({ session, token }) {
-      const newSession: Session = {...session, user: {id:token.id, email:token.email ?? '', name: token.name ?? ''}}
+      const newSession: Session = {...session, user: {id:token.id, email:token.email ?? '', name: token.name ?? '', roles: token.roles ?? []}}
       return newSession;
     },
   },

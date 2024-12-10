@@ -4,11 +4,16 @@ import {NextUIProvider} from '@nextui-org/react'
 import { createContext, useContext} from 'react';
 import { SessionProvider } from "next-auth/react";
 
+export interface ITIcketType {
+  id: number,
+  label: string,
+}
 
-const TicketTypeContext = createContext({ticketTypeContext: [{id:'1', label: 'any'}]});
+
+const TicketTypeContext = createContext({ticketTypeContext: [{id:1, label: 'any'}]});
 export const useTicketTypeContext = () => useContext(TicketTypeContext);
 
-export function TicketTypeProvider({children, iniContext}: { children: React.ReactNode, iniContext:Array<any> }) {
+export function TicketTypeProvider({children, iniContext}: { children: React.ReactNode, iniContext:Array<ITIcketType> }) { 
 
   return (
     <TicketTypeContext.Provider value={{ticketTypeContext: iniContext}}>

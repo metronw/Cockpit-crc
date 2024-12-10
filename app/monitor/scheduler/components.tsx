@@ -3,10 +3,11 @@
 import { Autocomplete, AutocompleteItem, Button, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, getKeyValue, Input } from "@nextui-org/react"
 
 import { useState, useEffect } from "react"
-import { IUserAssign, assignUser, deleteUserAssign } from "@/app/actions/userAssign";
+import { assignUser, deleteUserAssign } from "@/app/actions/userAssign";
 import {toast} from 'react-hot-toast';
 import { upsertCompany } from "@/app/actions/company";
 import { useSchedulerContext } from "./provider";
+import { ICompany } from "@/app/agent/providers";
 
 const queueTypes= [
   {id: '1', name: 'telefônico'},
@@ -15,7 +16,7 @@ const queueTypes= [
 
 export function Scheduler(){
 
-  const {users, assignments, companies, setIsLoadingAssigns} = useSchedulerContext()
+  const {users, companies, setIsLoadingAssigns} = useSchedulerContext()
 
 
   const [company, setCompany] = useState(null)
@@ -169,7 +170,7 @@ export function AssignmentTable(){
   );
 }
 
-export function CompanyConfig({companies}: {companies: Array<any>}){
+export function CompanyConfig({companies}: {companies: Array<ICompany>}){
 
   const [company, setCompany] = useState(null)
   // const [limit1, setLimit1] = useState(null)
@@ -195,7 +196,7 @@ export function CompanyConfig({companies}: {companies: Array<any>}){
       
       <Button  
         className='w-40' 
-        onPress={() => upsertCompany({id: company ? parseInt(company) : company, fantasy_name: companies.find(el => el.id == company).fantasy_name} )
+        onPress={() => upsertCompany({id: company ? parseInt(company) : company, fantasy_name: companies.find(el => el.id == company)?.fantasy_name ?? null} )
           .then(() => toast.success('empresa configurada com sucesso'))
           .catch(() => toast.error('deu algo de errado'))} >
           Atribuir Empresa

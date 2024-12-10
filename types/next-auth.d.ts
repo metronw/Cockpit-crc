@@ -6,6 +6,7 @@ declare module "next-auth" {
       id: number;
       email: string;
       name: string;
+      roles: string[];
     };
   }
 
@@ -20,6 +21,6 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: number; // Custom field for user ID
-    role?: string; // Custom field for user role (optional)
+    roles?: string[]; // Custom field for user role (optional)
   }
 }

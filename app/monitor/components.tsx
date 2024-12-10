@@ -7,6 +7,8 @@ import { ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/sol
 import { toast } from "react-hot-toast";
 import { createProcedure } from "@/app/actions/procedures";
 import { signOut } from "next-auth/react";
+import { ICompany } from "../agent/providers";
+import { ITIcketType } from "../providers";
 
 export function Options ({ placeholder, dataSource, isRequired}: { placeholder: string, dataSource:  () => Promise<string>, isRequired: boolean }) {
 
@@ -44,7 +46,9 @@ export function Options ({ placeholder, dataSource, isRequired}: { placeholder: 
 
 const options = [{id: 1, label: 'bool'}, {id: 2, label:'text'}, /*{id: 3, label:'options'}, */ /*{id:4, label: 'date'}*/ ]
 
-export function InputPicker({companies, types}:{companies:Array<any>, types: Array<any>}){
+
+
+export function InputPicker({companies, types}:{companies:Array<ICompany>, types: Array<ITIcketType>}){
 
   const [value, setValue] = useState(null)
   const [company, setCompany] = useState(null)

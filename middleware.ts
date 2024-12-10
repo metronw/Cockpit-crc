@@ -1,11 +1,37 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+
 import { withAuth } from "next-auth/middleware"
+import { NextResponse, NextRequest } from 'next/server'
 
 export default withAuth(
   // `withAuth` augments your `Request` with the user's token.
   function middleware(req) {
-    // console.log(req.nextauth.token)
+    const token = req.nextauth.token
+    const url = req.nextUrl.clone();
+
+    if(!token){    
+      url.pathname = "/api/auth/signin";  
+      return NextResponse.redirect(url)
+    }
+    
+    if (req.nextUrl.pathname.startsWith("/monitor")) {
+      if (!(token.roles?.includes('2') || token.roles?.includes('3'))) {
+        url.pathname = "/agent/"+token.id; // Redirect to an unauthorized page
+        return NextResponse.redirect(url);
+      }
+    }
+
+    if (req.nextUrl.pathname == "/") {
+      if (!(token.roles?.includes('2') || token.roles?.includes('3'))) {
+        url.pathname = "/agent/"+token.id; // Redirect to an unauthorized page
+      }else{
+        url.pathname = "/monitor"
+      }
+      return NextResponse.redirect(url);
+    }
+
+    // Allow access for users with role 2 or 3 to all pages
+    return NextResponse.next();
+
   },
   {
     callbacks: {
@@ -14,20 +40,8 @@ export default withAuth(
   },
 )
  
-// // This function can be marked `async` if using `await` inside
-// export function middleware(request: NextRequest) {
-//   // const session = use(getServerSession(authOptions));
-//   const token = request.cookies.get('logged_user');
-  
-//   if(token ){
-//     // const user = JSON.parse(token.value)
-//     // return NextResponse.redirect(new URL('/agent/'+user.id, request.url))
-//     return NextResponse.next()
-//   }
-//   return NextResponse.redirect(new URL('/login', request.url))
-// }
- 
 // See "Matching Paths" below to learn more
 export const config = {
-  matcher: '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|login).*)',
+  // matcher: '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|login).*)',
+  matcher: ["/monitor/:path*", "/agent/:path*", "/"],
 }

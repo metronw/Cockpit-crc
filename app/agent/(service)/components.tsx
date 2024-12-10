@@ -7,7 +7,7 @@ import {useState, useEffect, useCallback} from 'react'
 import {Input} from "@nextui-org/react"
 import {createMetroTicket} from '@/app/actions/api'
 import { usePathname, useRouter } from 'next/navigation'
-import { getProcedures } from "@/app/actions/procedures";
+import { IProcedure, getProcedures } from "@/app/actions/procedures";
 import { useTicketTypeContext } from "@/app/providers";
 import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
@@ -323,7 +323,7 @@ export const TicketSummary = () => {
       <p>Tipo de atendimento: </p>
       <p>Nome do solicitante: {ticket?.client_name}</p>
       <p>Endereço: {ticket?.address}</p>
-      <p>Problema alegado: {ticketTypeContext.find(el => el.id == ticket?.type)?.label} </p>
+      <p>Problema alegado: {ticketTypeContext.find(el => el.id == parseInt(ticket?.type ?? ''))?.label} </p>
       <p>Procedimentos Realizados:</p>
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>
@@ -338,7 +338,7 @@ export const TicketSummary = () => {
 
 export const Procedures = () =>{
   const {ticketContext} = useTicketContext()
-  const [procedures, setProcedures] = useState<Array<any>| null>(null)
+  const [procedures, setProcedures] = useState<Array<IProcedure>| null>(null)
 
   const path = usePathname()
   const { ticket } = parsePageInfo(path, ticketContext)

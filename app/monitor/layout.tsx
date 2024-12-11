@@ -18,7 +18,7 @@ export default function AgentLayout({
     <MonitorProvider iniContext={iniContext}>
       <div className='flex flex-col h-screen'>
         <header className="w-full py-3 border-b-2 border-black bg-primary">
-          <MonitorHeader id={session?.user.id}/>
+          <MonitorHeader />
         </header>
         <main className='grid grid-cols-12 bg-white font-[family-name:var(--font-geist-sans)] text-primary h-full'>
           <div className='col-span-3 bg-primary border-r-1 border-b-1 border-black'>

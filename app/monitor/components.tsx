@@ -3,10 +3,10 @@
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
-import { ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/solid"
+import { ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon} from "@heroicons/react/24/solid"
 import { toast } from "react-hot-toast";
 import { createProcedure } from "@/app/actions/procedures";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { ICompany } from "../agent/providers";
 import { ITIcketType } from "../providers";
 
@@ -316,12 +316,16 @@ export const InfoModal = ({title, body, className}:{title:string, body:string, c
 export const MonitorHeader = ({id}: {id?: number}) => {
 
   const router = useRouter()
+  const session = useSession()
   
   return (
     <div className='grid grid-cols-12'>
-      <div className='col-span-3 pl-4'>
-      <Button isIconOnly color="primary" aria-label="home" onPress={() => router.push('/agent/'+id)}>
+      <div className='flex flex-row gap-4 col-span-3 pl-4'>
+      <Button isIconOnly color="primary" aria-label="home" onPress={() => router.push('/agent/'+session.data?.user.id)}>
         <HomeIcon />
+      </Button>
+      <Button isIconOnly color="primary" onPress={() => router.push('/monitor')}>
+        <AdjustmentsHorizontalIcon />
       </Button>
       </div>
       <div className="flex flex-row col-span-8 space-x-4 items-center ">

@@ -2,12 +2,12 @@
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Accordion, AccordionItem} from "@nextui-org/react"
-import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon} from "@heroicons/react/24/solid"
+import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon} from "@heroicons/react/24/solid"
 import  { useRouter} from "next/navigation"
 import {ICompany, ITicket, useTicketContext} from '@/app/agent/providers'
 import {createTicket} from '@/app/actions/api'
 import { useState, useEffect } from 'react';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 export const PerformanceChart = () => {
   const data = [{name: 'Dia 1', uv: 400, pv: 2400, amt: 2400}, {name: 'Dia 2', uv: 200, pv: 3000, amt: 2400}, {name: 'Dia 3', uv: 700, pv: 3000, amt: 2400}];
@@ -25,13 +25,21 @@ export const AgentHeader = ({id}: {id?: number}) => {
 
   const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const session = useSession()
   
   return (
     <div className='grid grid-cols-12'>
-      <div className='col-span-3 pl-4'>
-      <Button isIconOnly color="primary" aria-label="home" onPress={() => router.push('/agent/'+id)}>
-        <HomeIcon />
-      </Button>
+      <div className='flex flex-row gap-4 col-span-3 pl-4'>
+        <Button isIconOnly color="primary" aria-label="home" onPress={() => router.push('/agent/'+id)}>
+          <HomeIcon />
+        </Button>
+        {
+          session.data?.user.roles.includes('2') || session.data?.user.roles.includes('3') ? 
+          <Button isIconOnly color="primary" onPress={() => router.push('/monitor')}>
+            <AdjustmentsHorizontalIcon />
+          </Button> :
+          ''
+        }
       </div>
       <div className="flex flex-row col-span-8 space-x-4 items-center ">
         <span className="font-bold">Agente - 3650 </span>

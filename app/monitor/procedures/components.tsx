@@ -1,12 +1,16 @@
 'use client'
 
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, getKeyValue } from "@nextui-org/react";
+import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, getKeyValue } from "@nextui-org/react";
 import { toast } from "react-hot-toast";
-import { createProcedure, deleteProcedure, getAllProcedures, getProcedures } from "@/app/actions/procedures";
+import { createProcedure, deleteProcedure } from "@/app/actions/procedures";
 import { ICompany } from "@/app/agent/providers";
 import { ITIcketType } from "@/app/providers";
 import { useProcedureContext } from "./providers";
+import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
+import { JsonValue } from "@prisma/client/runtime/library";
+
+
 
 export function Options ({ placeholder, dataSource, isRequired}: { placeholder: string, dataSource:  () => Promise<string>, isRequired: boolean }) {
 
@@ -55,7 +59,7 @@ export function InputPicker({companies, types}:{companies:Array<ICompany>, types
   const [ticketType, setTicketType] = useState(null)
   
   const [label, setLabel] = useState('')
-  const [modalBody, setModalBody] = useState('')
+  const [modalBody, setModalBody] = useState<JsonValue>('')
   const [modalTitle, setModalTitle] = useState('')
   // const [modalMedia, setModalMedia] = useState('')
 
@@ -135,10 +139,9 @@ export function InputPicker({companies, types}:{companies:Array<ICompany>, types
           ticket_type_id: ticketType ? parseInt(ticketType) : null, 
           label, 
           input_type: value? parseInt(value) : 1, 
-          modal_body:modalBody, 
+          modal_body:JSON.stringify(modalBody), 
           modal_title:modalTitle
         })
-        // const response = await createProcedure({company_id:company.id, ticket_type_id:ticketType.id, label: 'any', input_type: value ?? 1})
         if(response.status == 'error'){
           toast.error(response.message)     
         }else if(response.status == 'success'){
@@ -155,7 +158,7 @@ export function InputPicker({companies, types}:{companies:Array<ICompany>, types
 
 export function RadioInput ({modalTitle, modalBody, label}:
   {modalTitle:[string, Dispatch<SetStateAction<string>>],
-   modalBody:[string, Dispatch<SetStateAction<string>>] 
+   modalBody:[JsonValue, Dispatch<SetStateAction<JsonValue>>] 
    label:[string, Dispatch<SetStateAction<string>>] 
   }) 
 {
@@ -235,7 +238,7 @@ export function TextInput ({  Modal }: {Modal?: React.ReactElement}) {
 
 export const EditInfoModal = ({modalTitle, modalBody, className}:
   {modalTitle:[string, Dispatch<SetStateAction<string>>],
-    modalBody:[string, Dispatch<SetStateAction<string>>],
+    modalBody:[JsonValue, Dispatch<SetStateAction<JsonValue>>],
     className: string 
    }) => {
 
@@ -261,8 +264,9 @@ export const EditInfoModal = ({modalTitle, modalBody, className}:
                 <Input type='text' value={title} onValueChange={setTitle} placeholder={'Título'} />
               </ModalHeader>
               <ModalBody>
-                <Textarea value={body} onValueChange={setBody} placeholder="Conteúdo do Modal" />
-                <Input type="image" alt={'no image'} />
+                <RichTextEditor value={body} onValueChange={setBody} />
+                {/* <Textarea value={body} onValueChange={setBody} placeholder="Conteúdo do Modal" />
+                <Input type="image" alt={'no image'} /> */}
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
@@ -277,7 +281,7 @@ export const EditInfoModal = ({modalTitle, modalBody, className}:
   )
 }
 
-export const InfoModal = ({title, body, className}:{title:string, body:string, className?:string}) => {
+export const InfoModal = ({title, body, className}:{title:string, body:JsonValue, className?:string}) => {
 
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const [scrollBehavior] = useState<"inside" | "normal" | "outside" | undefined >("inside");
@@ -298,8 +302,7 @@ export const InfoModal = ({title, body, className}:{title:string, body:string, c
                 {title}
               </ModalHeader>
               <ModalBody>
-                {body}
-                {/* <Input type="image" alt={'no image'} /> */}
+                <RichTextEditor value={body} />
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { useState, useEffect} from "react";
 import { Autocomplete, AutocompleteItem, Button } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon} from "@heroicons/react/24/solid"
@@ -40,7 +40,7 @@ export function Options ({ placeholder, dataSource, isRequired}: { placeholder: 
   );
 }
 
-const options = [{id: 1, label: 'bool'}, {id: 2, label:'text'}, /*{id: 3, label:'options'}, */ /*{id:4, label: 'date'}*/ ]
+// const options = [{id: 1, label: 'bool'}, {id: 2, label:'text'}, /*{id: 3, label:'options'}, */ /*{id:4, label: 'date'}*/ ]
 
 export const MonitorHeader = () => {
 

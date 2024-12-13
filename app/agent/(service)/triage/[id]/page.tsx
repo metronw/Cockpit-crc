@@ -3,7 +3,7 @@ import {Input} from "@nextui-org/react"
 import {ChevronRightIcon} from "@heroicons/react/24/solid"
 import { TextInput } from "../../components";
 import Link from "next/link";
-import {getCrcTicketTypes, getCrcFatherTicketTypes} from '@/app/actions/api';
+import { getCrcFatherTicketTypes} from '@/app/actions/api';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { use } from "react";

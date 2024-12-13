@@ -11,6 +11,8 @@ import { IProcedure, getProcedures } from "@/app/actions/procedures";
 import { useTicketTypeContext } from "@/app/providers";
 import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
+import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
+import { JsonValue } from "@prisma/client/runtime/library";
 
 export const TextInput = ({id, fieldName, label, isRequired=false}: {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string, isRequired?: boolean}) => {
 
@@ -244,7 +246,7 @@ export const RadioInput = ({isInteractive=false, label, Modal, id= 0 }: {isInter
   )
 }
 
-export const InfoModal = ({title, body}:{title:string, body:string}) => {
+export const InfoModal = ({title, body}:{title:string, body:JsonValue}) => {
 
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const [scrollBehavior] = useState<"inside" | "normal" | "outside" | undefined >("inside");
@@ -266,7 +268,7 @@ export const InfoModal = ({title, body}:{title:string, body:string}) => {
                 {title}
               </ModalHeader>
               <ModalBody>
-                {body}
+                <RichTextEditor value={JSON.stringify(body)}/>
                 
               </ModalBody>
               <ModalFooter>

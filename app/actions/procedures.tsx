@@ -3,6 +3,7 @@
 import prisma from '@/app/lib/localDb'
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../lib/authOptions';
+import { JsonValue } from '@prisma/client/runtime/library';
 
 export interface IProcedure {
   id: number,
@@ -10,7 +11,7 @@ export interface IProcedure {
   ticket_type_id: number,
   label: string,
   input_type: number,
-  modal_body: string | null,
+  modal_body: JsonValue,
   modal_title: string | null
 }
 
@@ -20,7 +21,7 @@ export async function createProcedure({
     ticket_type_id:number | null, 
     label: string , 
     input_type: number , 
-    modal_body:string | null, 
+    modal_body:string | undefined, 
     modal_title: string | null  
   }){
   const session = await getServerSession(authOptions);

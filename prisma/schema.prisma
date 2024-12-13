@@ -45,8 +45,15 @@ model Procedure_item {
   ticket_type_id Int
   created_by Int
   modal_title String?
-  modal_body String?
-  modal_media String?
+  modal_body Json?
+}
+
+model Procedure {
+  id      Int      @id @default(autoincrement())
+  label   String
+  ticket_type_id Int
+  company_id  Int?
+  items Json
 }
 
 model Speech_suggestion {

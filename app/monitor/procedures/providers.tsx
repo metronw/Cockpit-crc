@@ -1,7 +1,6 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
-import { IUser, IUserAssign, getUserAssignments } from '@/app/actions/userAssign';
 import { ICompany } from '@/app/agent/providers';
 import { getCompaniesList } from '@/app/actions/api';
 import { IProcedure, getAllProcedures } from '@/app/actions/procedures';

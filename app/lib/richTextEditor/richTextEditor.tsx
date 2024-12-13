@@ -1,10 +1,9 @@
-import {Dispatch, useCallback, SetStateAction} from 'react'
+import { Dispatch, SetStateAction} from 'react'
 import { mergeAttributes } from "@tiptap/core";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useDropzone } from "react-dropzone";
 import { JsonValue } from '@prisma/client/runtime/library';
 
 export function RichTextEditor({value="<p>Welcome to the editor!</p>", onValueChange}:{value:JsonValue, onValueChange?: Dispatch<SetStateAction<JsonValue>> | undefined}) {
@@ -17,6 +16,7 @@ export function RichTextEditor({value="<p>Welcome to the editor!</p>", onValueCh
     ],
     // @ts-expect-error: Temporary mismatch
     content: value,
+    editable: onValueChange ? true : false,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       const content = editor.getJSON();
@@ -25,52 +25,53 @@ export function RichTextEditor({value="<p>Welcome to the editor!</p>", onValueCh
     },
   });
 
-  const onDrop = useCallback(
-  async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
+  const uploadImage = async (file: File) => {
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append('file', file);
 
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-    const data = await response.json();
-    if (data.url) {
-      if (file.type.startsWith("image/")) {
-        editor?.chain().focus().setImage({ src: data.url }).run();
-      } 
-      // else if (file.type.startsWith("video/")) {
-      //   editor?.chain().focus().setVideo({ src: data.url }).run();
-      // }
+      if (!response.ok) {
+        throw new Error('Error uploading file');
+      }
+
+      const data = await response.json();
+      console.log(data)
+      return data.url; // URL of the uploaded image
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      return null;
     }
-  },
-  [editor]
-  );
+  };
 
-  const { getRootProps, getInputProps } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [],
-      "video/*": [],
-    },
-  });
+  const addImage = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = async (event: Event) => {
+      const target = event.target as HTMLInputElement; // Explicitly cast target
+      if (target.files && target.files[0]) { // Ensure files is not null
+        const file = target.files[0];
+        const imageUrl = await uploadImage(file);
+        if (imageUrl) {
+          editor?.chain().focus().setImage({ src: imageUrl }).run();
+        }
+      }
+    };
+    
+    input.click();
+  };
 
   return (
     <div>
-      <div
-        {...getRootProps()}
-        style={{
-          border: "2px dashed #ccc",
-          padding: "10px",
-          marginBottom: "10px",
-          cursor: "pointer",
-        }}
-      >
-        <input {...getInputProps()} />
-        <p>Drag & drop images or videos here, or click to select files</p>
-      </div>
+      {
+        onValueChange && <button onClick={addImage} >Upload Image</button>      
+      }
       <EditorContent editor={editor} />
     </div>
   );

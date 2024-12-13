@@ -268,8 +268,10 @@ export const InfoModal = ({title, body}:{title:string, body:JsonValue}) => {
                 {title}
               </ModalHeader>
               <ModalBody>
-                <RichTextEditor value={JSON.stringify(body)}/>
-                
+                {
+                  // @ts-expect-error: Temporary mismatch
+                   <RichTextEditor value={JSON.parse(body)}/>  
+                }
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>

@@ -15,7 +15,8 @@ export function RichTextEditor({value="<p>Welcome to the editor!</p>", onValueCh
       ResizableImage,
       Placeholder.configure({ placeholder: "Start typing here..." }),
     ],
-    content: JSON.stringify(value),
+    // @ts-expect-error: Temporary mismatch
+    content: value,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       const content = editor.getJSON();

@@ -14,6 +14,16 @@ export async function getCrcTicketTypes() {
   return JSON.stringify(rows);
 }
 
+export async function getCrcFatherTicketTypes() {
+  const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id FROM ticket_type '
+    +'INNER JOIN ticket_type_product ON ticket_type_product.id_ticket_type=ticket_type.id '
+    +'where ticket_type_product.id_product = 2 AND ticket_type.id = ticket_type.id_father'
+  );
+  return JSON.stringify(rows);
+}
+
+
+
 // async function getApiCredentials(){
 //   return {
 //     token: '5b7efd3d9402cc18ces9g4l1',

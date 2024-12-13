@@ -6,12 +6,12 @@ import { authOptions } from '../lib/authOptions';
 
 export interface IProcedure {
   id: number,
-  company_id: number,
+  company_id: number | null,
   ticket_type_id: number,
   label: string,
   input_type: number,
-  modal_body: string,
-  modal_title: string
+  modal_body: string | null,
+  modal_title: string | null
 }
 
 export async function createProcedure({
@@ -58,5 +58,14 @@ export async function getProcedures({company_id, ticket_type_id}:{company_id:num
       ]
     },
   });
-  return JSON.stringify(procedureItems)
+  return procedureItems
+}
+
+export async function getAllProcedures() : Promise<Array<IProcedure>> {
+  const procedureItems = await prisma.procedure_item.findMany();
+  return procedureItems
+}
+
+export async function deleteProcedure(ids: Array<number>){
+  return await prisma.procedure_item.deleteMany({where:{id:{in: ids}}}) 
 }

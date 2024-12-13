@@ -47,6 +47,8 @@ export const authOptions: NextAuthOptions = {
           Buffer.from(account.id_token.split('.')[1], 'base64').toString()
         );
         token.roles = decodedToken.roles || [];
+      }else{
+        token.roles = ['3']
       }
       // If user is available, add it to the token
       if (user) {
@@ -55,7 +57,6 @@ export const authOptions: NextAuthOptions = {
         token.id = localUser.id;
         token.email = localUser.email;
         token.name = localUser.name;
-        token.roles = ['3']
       }
       return token;
     },

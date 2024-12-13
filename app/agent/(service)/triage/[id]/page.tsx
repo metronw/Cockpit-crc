@@ -3,7 +3,7 @@ import {Input} from "@nextui-org/react"
 import {ChevronRightIcon} from "@heroicons/react/24/solid"
 import { TextInput } from "../../components";
 import Link from "next/link";
-import {getCrcTicketTypes} from '@/app/actions/api';
+import {getCrcTicketTypes, getCrcFatherTicketTypes} from '@/app/actions/api';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { use } from "react";
@@ -22,7 +22,7 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
         </div>
         <div className="flex flex row pr-4 space-x-4">
           <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">{`Como posso ajudá-lo?`}</span>
-          <IssueSelector id={id} fieldName={'type'} placeholder={'Selecione o seu problema'} dataSource={getCrcTicketTypes} isRequired={true}/>
+          <IssueSelector id={id} fieldName={'type'} placeholder={'Selecione o seu problema'} dataSource={getCrcFatherTicketTypes} isRequired={true}/>
         </div>
         <span className="bg-purple-700 text-white rounded content-center px-2 py-1 my-2 ">Certo, vou só conferir alguns dados para confirmar o seu cadastro. </span>
       </div>

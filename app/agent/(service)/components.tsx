@@ -346,7 +346,7 @@ export const Procedures = () =>{
   useEffect(() => {
     if(ticket && !isNaN(parseInt(ticket.type))){
       getProcedures({company_id:ticket.company_id, ticket_type_id: parseInt(ticket.type)}).then(response =>{
-        const parsed = JSON.parse(response)
+        const parsed = response
         setProcedures(parsed)
       })
     }
@@ -360,7 +360,7 @@ export const Procedures = () =>{
         procedures.map(el => {
           if(el.input_type == 1){
             return(
-              <RadioInput key={el.id} isInteractive={true} label={el.label} Modal={<InfoModal title={el.modal_title} body={el.modal_body}/>} id={el.id}/>
+              <RadioInput key={el.id} isInteractive={true} label={el.label} Modal={<InfoModal title={el.modal_title ?? ''} body={el.modal_body ?? ''}/>} id={el.id}/>
             )
           }
           // else if(el.input_type == 1){

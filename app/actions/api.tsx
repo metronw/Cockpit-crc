@@ -96,7 +96,7 @@ export async function getTicketContext(user_id: number | undefined){
 function formatProcedures(procedures: string){
   let resp = ''
   JSON.parse(procedures).forEach((el:IProcedureItemResponse) =>{
-    resp += el.label + ': ' + el.response + ' \n '
+    resp += `${el.label} + ': ' + ${el.response} \n`
   })
 
   return resp
@@ -113,8 +113,8 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
       ){
         const session = await getServerSession(authOptions);
         const [result] = await connection.query(
-          `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at )`+
-          `VALUES (${company_id}, 4, "teste", 2, 0, ${parseInt(type)}, 424, ${isNaN(parseInt(erp)) ? null : parseInt(erp)}, ${isNaN(parseInt(phone)) ? null : parseInt(phone)}, NOW(), NOW())`
+          `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner )`+
+          `VALUES (${company_id}, 4, "teste", 2, 0, ${parseInt(type)}, ${session?.user.metro_id ?? 312}, ${isNaN(parseInt(erp)) ? null : parseInt(erp)}, ${isNaN(parseInt(phone)) ? null : parseInt(phone)}, NOW(), NOW(), ${session?.user.metro_id ?? 312} )`
         )
 
         if(result){

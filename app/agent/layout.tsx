@@ -20,7 +20,7 @@ export default function AgentLayout({
             <AgentHeader id={session?.user.id} />        
         </header>
         <main className='grid grid-cols-12 bg-white font-[family-name:var(--font-geist-sans)] text-primary h-full'>
-          <div className='col-span-3 bg-primary border-r-1 border-b-1 border-black'>
+          <div className='col-span-3 bg-primary border-r-1 border-b-1 border-black relative'>
               <Sidebar />
           </div>
           <div className='col-span-9 bg-white'>

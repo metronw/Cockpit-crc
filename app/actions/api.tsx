@@ -2,7 +2,7 @@
 
 import connection from '@/app/lib/db';
 import prisma from '@/app/lib/localDb'
-import { ICompany, IProcedureItem, IProcedureItemResponse, ITicket } from '../agent/providers';
+import { ICompany, IProcedureItemResponse, ITicket } from '../agent/providers';
 import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
 

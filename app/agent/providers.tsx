@@ -36,6 +36,7 @@ export interface ITicket {
 
 export interface IProcedureItemResponse {
   id:number;
+  label:string;
   response: string | boolean | number | null;
 }
 

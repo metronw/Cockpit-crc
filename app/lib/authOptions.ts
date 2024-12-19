@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid email or password');
         }
 
-        return { id: user.id, name: user.name ?? '', email: user.email };
+        return { id: user.id, name: user.name ?? '', email: user.email, metro_id: user.metro_id };
       },
     }),
   ],
@@ -57,12 +57,13 @@ export const authOptions: NextAuthOptions = {
         token.id = localUser.id;
         token.email = localUser.email;
         token.name = localUser.name;
+        token.metro_id = localUser.metro_id;
       }
       return token;
     },
     // Handling session callback
     async session({ session, token }) {
-      const newSession: Session = {...session, user: {id:token.id, email:token.email ?? '', name: token.name ?? '', roles: token.roles ?? []}}
+      const newSession: Session = {...session, user: {id:token.id, email:token.email ?? '', name: token.name ?? '', roles: token.roles ?? [], metro_id: token.metro_id}}
       return newSession;
     },
   },

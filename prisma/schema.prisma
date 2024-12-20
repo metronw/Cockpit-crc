@@ -34,6 +34,18 @@ model User {
   assignments User_assign[]
 }
 
+model User_phone {
+  id        Int      @id @default(autoincrement())
+  sip_extension String   @unique
+  sip_server    String
+  sip_password  String
+  sip_port      Int
+  sip_websocket String
+  user_id   Int
+  createdAt DateTime @default(now())
+  auto_answer Boolean
+}
+
 
 model Procedure_item {
   id      Int      @id @default(autoincrement())

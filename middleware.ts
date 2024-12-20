@@ -1,47 +1,50 @@
-
-import { withAuth } from "next-auth/middleware"
-import { NextResponse, NextRequest } from 'next/server'
+import { withAuth } from "next-auth/middleware";
+import { NextResponse, NextRequest } from "next/server";
 
 export default withAuth(
-  // `withAuth` augments your `Request` with the user's token.
   function middleware(req) {
-    const token = req.nextauth.token
+    const token = req.nextauth.token;
     const url = req.nextUrl.clone();
 
-    if(!token){    
-      url.pathname = "/api/auth/signin";  
-      return NextResponse.redirect(url)
+    // Redirect to sign-in page if no token
+    if (!token) {
+      url.pathname = "/api/auth/signin";
+      return NextResponse.redirect(url);
     }
-    
+
+    // Authorization logic for specific routes
     if (req.nextUrl.pathname.startsWith("/monitor")) {
-      if (!(token.roles?.includes('2') || token.roles?.includes('3'))) {
-        url.pathname = "/agent/"+token.id; // Redirect to an unauthorized page
+      if (!(token.roles?.includes("2") || token.roles?.includes("3"))) {
+        url.pathname = "/agent/" + token.id; // Redirect unauthorized users
         return NextResponse.redirect(url);
       }
     }
 
-    if (req.nextUrl.pathname == "/") {
-      if (!(token.roles?.includes('2') || token.roles?.includes('3'))) {
-        url.pathname = "/agent/"+token.id; // Redirect to an unauthorized page
-      }else{
-        url.pathname = "/monitor"
+    if (req.nextUrl.pathname === "/") {
+      if (!(token.roles?.includes("2") || token.roles?.includes("3"))) {
+        url.pathname = "/agent/" + token.id; // Redirect unauthorized users
+      } else {
+        url.pathname = "/monitor"; // Redirect authorized users
       }
       return NextResponse.redirect(url);
     }
 
-    // Allow access for users with role 2 or 3 to all pages
+    // Allow access to all other pages for authenticated users
     return NextResponse.next();
-
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token }) => !!token, // Only allow access if token exists
     },
-  },
-)
- 
-// See "Matching Paths" below to learn more
+  }
+);
+
+// Configure middleware to match additional API routes
 export const config = {
-  // matcher: '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|login).*)',
-  matcher: ["/monitor/:path*", "/agent/:path*", "/"],
-}
+  matcher: [
+    "/monitor/:path*",
+    "/agent/:path*",
+    "/",
+    "/api/phone/prefix" // Protect the `prefix` API route
+  ],
+};

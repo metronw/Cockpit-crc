@@ -1,20 +1,14 @@
 import { NextResponse } from 'next/server';
+import prisma from '@/app/lib/localDb'; // Adjust path based on your setup
 
 export async function GET() {
   try {
-    // Mock prefix options
-    const prefixes = [
-      { name: 'Metro', number: '1000' },
-      { name: 'UNIFIQUE', number: '6300' },
-      { name: 'Echo Test', number: '4321' }
-    ];
-
-    // Return the prefix options
+    const prefixes = await prisma.phonePrefix.findMany();
     return NextResponse.json(prefixes, { status: 200 });
   } catch (error) {
-    console.error('Error fetching prefixes:', error);
+    console.error('Erro ao buscar os prefixos:', error);
     return NextResponse.json(
-      { error: 'An error occurred while fetching prefixes' },
+      { error: 'Ocorreu um erro ao buscar os prefixos' },
       { status: 500 }
     );
   }

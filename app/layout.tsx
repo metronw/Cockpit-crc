@@ -1,14 +1,14 @@
-"use client";
-
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Providers } from "./providers";
 import "./globals.css";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from 'react-hot-toast';
+import { ToastContainer } from 'react-toastify'; // Adicionado
 import { TicketTypeProvider } from "./providers";
 import { getCrcTicketTypes } from "@/app/actions/api";
-import { use } from "react";
-import WebPhone from "@/components/WebPhone";
+import { use } from 'react';
+import useSWR from "swr";
+import PhoneClient from "./PhoneClient";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -20,6 +20,8 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export const metadata: Metadata = {
   title: "Metro Crc Cockpit",
@@ -35,18 +37,15 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} vsc-initialized`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} vsc-initialized`}>
         <Providers>
           <TicketTypeProvider iniContext={JSON.parse(iniContext)}>
-            <div>
-              {children}
-              <WebPhone />
-            </div>
+            {children}
           </TicketTypeProvider>
           <Toaster />
+          <ToastContainer position="bottom-right" /> {/* Adicionado */}
         </Providers>
+        <PhoneClient />
       </body>
     </html>
   );

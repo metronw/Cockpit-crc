@@ -19,6 +19,10 @@ model Ticket {
   status      String
   user_id     Int
   procedures  Json?
+  communication_type String? // telephone ou chat
+  communication_id     String? // asterisk ou chat
+  caller_number  String?
+  trunk_name    String?
   createdAt   DateTime @default(now())
 }
 
@@ -34,18 +38,32 @@ model User {
   assignments User_assign[]
 }
 
-model User_phone {
+model User_phone { // ramal
   id        Int      @id @default(autoincrement())
   sip_extension String   @unique
   sip_server    String
   sip_password  String
   sip_port      Int
   sip_websocket String
-  user_id   Int
+  user_id   Int     @unique
   createdAt DateTime @default(now())
-  auto_answer Boolean
+  auto_answer   Boolean @default(false)
 }
 
+model Queue {
+  id Int @id
+  name      String
+  company_id Int
+  trunk_name String
+  createdAt DateTime @default(now())
+}
+
+model PhonePrefix { // fila de saida 
+  id        Int      @id @default(autoincrement())
+  name      String
+  number    String
+  trunk     String
+}
 
 model Procedure_item {
   id      Int      @id @default(autoincrement())

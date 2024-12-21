@@ -31,6 +31,8 @@ export async function getCrcFatherTicketTypes() {
 //   }
 // }  
 
+// createTicketFromPhone
+
 export async function createTicket({company_id}:{company_id:number}){
   const session = await getServerSession(authOptions);
 

@@ -10,11 +10,15 @@ export async function GET(request: Request) {
    const session = await getServerSession(authOptions);
    
    const sessionUser = session?.user.id
-
-   console.log('request', request)
+   
+    if (!sessionUser){
+      return NextResponse.json(
+        {error: 'Usuário não está logado'},
+        {status: 401})
+    }
 
     const userPhone = await prisma.user_phone.findUnique({
-      where: { user_id: 1 },
+      where: { user_id: sessionUser },
     });
 
     if (!userPhone) {

@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react';
 import useSWR from 'swr';
-import WebPhone from '@/app/components/WebPhone/WebPhone.js';
+import WebPhone from '@/app/components/WebPhone/WebPhone';
+import { WebPhoneHandle } from '@/app/components/WebPhone/WebPhoneHandle';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -10,12 +11,20 @@ export default function PhoneClient() {
   const { data: userPhone } = useSWR('/api/phone/user', fetcher);
   const [showPhone, setShowPhone] = useState(false);
   const [callStatus, setCallStatus] = useState('');
-  const webPhoneRef = useRef(null);
+  const webPhoneRef = useRef<WebPhoneHandle>(null);
 
   useEffect(() => {
     if (userPhone && !userPhone.error) {
       setShowPhone(true);
     }
+    if (userPhone && userPhone.error) {
+      console.error('Erro ao buscar dados do usuário:', userPhone.error);
+      setShowPhone(false);
+    } if (userPhone && userPhone.error === 'Usuário não está logado') {
+      console.error('Usuário não está logado');
+      setShowPhone(false);
+    }
+
   }, [userPhone]);
 
   return (
@@ -46,7 +55,7 @@ export default function PhoneClient() {
       </button>
       {callStatus === 'Incoming Call' && (
         <button
-          onClick={() => webPhoneRef.current.handleAnswerCall()}
+          onClick={() => webPhoneRef.current?.handleAnswerCall()}
           style={{
             backgroundColor: "#4caf50",
             color: "white",

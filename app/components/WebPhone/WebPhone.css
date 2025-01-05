@@ -1,0 +1,109 @@
+.webphone-container {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  max-width: 400px;
+  margin: auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.webphone-title {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.webphone-input-group {
+  margin-bottom: 15px;
+}
+
+.webphone-label {
+  margin-right: 10px;
+  color: #333;
+}
+
+.webphone-select,
+.webphone-input {
+  margin-left: 5px;
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  color: #333;
+}
+
+.webphone-button-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.call-button,
+.hangup-button {
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  background-color: #333;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.call-button:hover,
+.hangup-button:hover {
+  background-color: #555;
+}
+
+.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.webphone-dtmf-group {
+  margin-bottom: 15px;
+}
+
+.dtmf-button {
+  margin: 5px;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background-color: #333;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.dtmf-button:hover {
+  background-color: #555;
+}
+
+.webphone-call-info {
+  margin-bottom: 15px;
+}
+
+.answer-button,
+.reject-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.answer-button {
+  background-color: #4caf50;
+}
+
+.answer-button:hover {
+  background-color: #45a049;
+}
+
+.reject-button {
+  background-color: #f44336;
+}
+
+.reject-button:hover {
+  background-color: #e53935;
+}

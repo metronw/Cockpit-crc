@@ -45,6 +45,6 @@ export const config = {
     "/monitor/:path*",
     "/agent/:path*",
     "/",
-    "/api/phone/prefix" // Protect the `prefix` API route
+    "/api/phone/:path*" // Protect the `prefix` API route
   ],
 };

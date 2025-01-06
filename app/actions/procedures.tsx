@@ -88,6 +88,7 @@ export async function deleteProcedureItem(ids: Array<number>){
 
 export async function createProcedure({company_id, ticket_type_id, items='[]'}:{company_id:number | null, ticket_type_id:number, items: JsonValue}){
   return await prisma.procedure.create({
+    // @ts-expect-error: json is a string
     data: { company_id, ticket_type_id, items}
   })
 }

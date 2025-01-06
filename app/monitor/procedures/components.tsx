@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, getKeyValue, Checkbox } from "@nextui-org/react";
+import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Checkbox } from "@nextui-org/react";
 import { toast } from "react-hot-toast";
-import { IProcedureItem, createProcedureItem, deleteProcedureItem, getProcedure, saveProcedure } from "@/app/actions/procedures";
+import {  createProcedureItem, deleteProcedureItem, saveProcedure } from "@/app/actions/procedures";
 import { useProcedureContext } from "./providers";
 import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
@@ -245,7 +245,7 @@ export function ProceduresTable(){
   const moveItem = (dir: string, proc:number) =>{
     setProcedure((prev) => {
       const ind = prev.items.findIndex(el => proc == el.id)
-      const items = prev.items
+      const items = [...prev.items]
       if(dir == 'up'){
         [items[ind], items[ind == 0 ? 0 : ind-1]] = [items[ind == 0 ? 0 : ind-1], items[ind]]
       }else{
@@ -327,7 +327,7 @@ export function ProcedureEditor() {
 
   const [value, setValue] = useState<null | string >(null)
   const [procedureId, setProcedureId] = useState<number | undefined>(undefined)
-  const {setIsLoadingProceds, selectedProcedure, setEditProcedure, selectedTicketType, selectedCompany, setSelectedCompany, setSelectedTicketType} = useProcedureContext()
+  const {setIsLoadingProceds, selectedProcedure, selectedTicketType, selectedCompany, setSelectedCompany, setSelectedTicketType} = useProcedureContext()
   const [label, setLabel] = useState('')
   const [modalBody, setModalBody] = useState<JsonValue>('')
   const [modalTitle, setModalTitle] = useState('')

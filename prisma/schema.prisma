@@ -50,7 +50,6 @@ model Procedure_item {
 
 model Procedure {
   id      Int      @id @default(autoincrement())
-  label   String
   ticket_type_id Int
   company_id  Int?
   items Json

@@ -1,89 +1,31 @@
 'use client'
 
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, getKeyValue } from "@nextui-org/react";
+import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, getKeyValue, Checkbox } from "@nextui-org/react";
 import { toast } from "react-hot-toast";
-import { createProcedure, deleteProcedure } from "@/app/actions/procedures";
-import { ICompany } from "@/app/agent/providers";
-import { ITIcketType } from "@/app/providers";
+import { IProcedureItem, createProcedureItem, deleteProcedureItem, getProcedure, saveProcedure } from "@/app/actions/procedures";
 import { useProcedureContext } from "./providers";
 import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
+import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
 
+const options = [{id: 1, label: 'Sim/Não'}, {id: 2, label:'Texto'}, /*{id: 3, label:'options'}, */ /*{id:4, label: 'date'}*/ ]
 
-
-export function Options ({ placeholder, dataSource, isRequired}: { placeholder: string, dataSource:  () => Promise<string>, isRequired: boolean }) {
-
-  const [value, setValue] = useState(null)
-  const [items, setItems] = useState([])
-
-  useEffect(()=>{
-    dataSource().then((data:string) => {
-      setItems(JSON.parse(data))
-    })
-  }, [dataSource])
-
-  return (
-    <Autocomplete
-      variant={'bordered'}
-      aria-label={placeholder}
-      isRequired={isRequired}
-      label=""
-      defaultItems={items}
-      placeholder={placeholder}
-      defaultSelectedKey=""
-      // @ts-expect-error: library has wrong type
-      onSelectionChange={setValue}
-      selectedKey={value}
-      className="flex h-11 max-w-xs my-1"
-      classNames={{
-        popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
-        base: 'flex shrink border-primary border rounded-medium'
-      }}
-    >
-      {items.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
-    </Autocomplete>
-  );
-}
-
-const options = [{id: 1, label: 'bool'}, {id: 2, label:'text'}, /*{id: 3, label:'options'}, */ /*{id:4, label: 'date'}*/ ]
-
-
-
-export function InputPicker({companies, types}:{companies:Array<ICompany>, types: Array<ITIcketType>}){
-
-  const {setIsLoadingProceds} = useProcedureContext()
-
-  const [value, setValue] = useState(null)
+export function InputPicker(){
+  
   const [company, setCompany] = useState(null)
   const [ticketType, setTicketType] = useState(null)
+  const {setSelectedCompany, setSelectedTicketType, ticketTypes, companies, setIsLoadingProceds} = useProcedureContext()
   
-  const [label, setLabel] = useState('')
-  const [modalBody, setModalBody] = useState<JsonValue>('')
-  const [modalTitle, setModalTitle] = useState('')
-  // const [modalMedia, setModalMedia] = useState('')
+  useEffect(()=>{
+    setIsLoadingProceds(true)
+    setSelectedCompany(company ? parseInt(company): null)
+    setSelectedTicketType(ticketType ? parseInt(ticketType) : null)
+  }, [company, ticketType])
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-row gap-2">
-        <Autocomplete
-          variant={'bordered'}
-          aria-label={'Tipo de Input'}
-          // isRequired={true}
-          label={'Tipo de Input'}
-          defaultItems={options}
-          defaultSelectedKey=""
-          // @ts-expect-error: library has wrong type
-          onSelectionChange={setValue}
-          selectedKey={value}
-          className="flex h-11 max-w-xs my-1"
-          classNames={{
-            popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
-            base: 'flex shrink border-primary border rounded-medium'
-          }}
-        >
-          {options.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
-        </Autocomplete>
+      <div className="flex flex-row gap-2">        
 
         <Autocomplete
           variant={'bordered'}
@@ -101,7 +43,7 @@ export function InputPicker({companies, types}:{companies:Array<ICompany>, types
             base: 'flex shrink border-primary border rounded-medium'
           }}
         >
-          {types.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+          {ticketTypes.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
         </Autocomplete>
 
         <Autocomplete
@@ -123,35 +65,6 @@ export function InputPicker({companies, types}:{companies:Array<ICompany>, types
         {companies.map((item:{id:number, fantasy_name: string}) => <AutocompleteItem key={item.id}>{item.fantasy_name}</AutocompleteItem>)}
       </Autocomplete>
       </div>
-      
-      {
-        value == 1 ?
-        <RadioInput modalBody={[modalBody, setModalBody]} modalTitle={[modalTitle, setModalTitle]} label={[label, setLabel]} />
-        :
-        value == 2 ?
-        <TextInput/>
-        :
-        null
-      }
-      <Button className="w-40" onPress={ async () => {
-        const response = await createProcedure({
-          company_id: company ? parseInt(company) : null, 
-          ticket_type_id: ticketType ? parseInt(ticketType) : null, 
-          label, 
-          input_type: value? parseInt(value) : 1, 
-          modal_body:JSON.stringify(modalBody), 
-          modal_title:modalTitle
-        })
-        if(response.status == 'error'){
-          toast.error(response.message)     
-        }else if(response.status == 'success'){
-          setIsLoadingProceds(true)
-         toast.success(response.message)
-        }
-        }} 
-      >
-        Criar procedimento
-      </Button>
     </div>
   );
 }
@@ -317,85 +230,212 @@ export const InfoModal = ({title, body, className}:{title:string, body:JsonValue
   )
 }
 
-const procedureColumns = [
-  {
-    key: 'label',
-    label: 'Nome'
-  },
-  {
-    key: 'input_type',
-    label: 'Tipo de input'
-  },
-  {
-    key: 'company_id',
-    label: 'Empresa'
-  },
-  {
-    key: 'ticket_type_id',
-    label: 'Tipo de ticket'
-  }
-]
-
 export function ProceduresTable(){
 
-  const {  procedures, setIsLoadingProceds} = useProcedureContext()
-
-  // const [procedures, setProcedures] = useState([])
+  const { procedures, setIsLoadingProceds, setEditProcedure} = useProcedureContext()
   const [ready, setReady] = useState<boolean>(false)
+  const [procedure, setProcedure] = useState(procedures)
 
-  const [selectedKeys, setSelectedKeys] = useState(new Set([]));
-  // const [userFilter, setUserFilter] = useState('');
-  // const [companyFilter, setCompanyFilter] = useState('');
+  const editSelectedRows = (id:number) => {    
+    setProcedure((prev) => {
+      return {...prev, items: prev.items.map(el => el.id ==id ? {...el, checked: !el.checked} : el)}
+    })
+  }
 
-  
-  // useEffect(()=>{
-  //   const newAssign = assignments?.filter(el => el.user.name.toLowerCase().includes(userFilter.toLowerCase()) && el.companyName.toLowerCase().includes(companyFilter.toLowerCase()) )
-  //   setFormattedAssignments(newAssign?.map(el => ({...el, userName:el.user.name})))
-  // },[userFilter, companyFilter, assignments])
- 
+  const moveItem = (dir: string, proc:number) =>{
+    setProcedure((prev) => {
+      const ind = prev.items.findIndex(el => proc == el.id)
+      const items = prev.items
+      if(dir == 'up'){
+        [items[ind], items[ind == 0 ? 0 : ind-1]] = [items[ind == 0 ? 0 : ind-1], items[ind]]
+      }else{
+        [items[ind], items[ind == items.length-1 ? items.length-1 : ind+1]] = [items[ind == items.length-1 ? items.length-1 : ind+1], items[ind]]
+      }
+      return {...prev, items}
+    })
+  }
+
   useEffect(()=>{
     setReady(true)
   },[])
 
+  useEffect(()=>{
+    setProcedure(procedures)
+  },[procedures])
+
+
   return (
     <>
-      {/* <div className="flex flex-row gap-2 my-2">        
-        <Input type='text' label='usuário' placeholder='filtro de usuário' value={userFilter} onValueChange={setUserFilter}></Input>
-        <Input type='text' label='empresa' placeholder='filtro de empresa' value={companyFilter} onValueChange={setCompanyFilter}></Input>
-      </div> */}
       {
         ready && (
           <Table 
             aria-label="users"
-            selectionMode="multiple"
-            selectedKeys={selectedKeys}
-            // @ts-expect-error: library has wrong type
-            onSelectionChange={setSelectedKeys}
-            classNames={{wrapper:'overflow-auto h-96'}}
+            classNames={{wrapper:'overflow-auto h-120 h-max-2/3'}}
           >
-            <TableHeader columns={procedureColumns}>
-              {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
+            <TableHeader >
+            <TableColumn>
+              <Input type="checkbox" readOnly disabled />
+            </TableColumn>
+              <TableColumn key={'label'}>{'Nome'}</TableColumn>
+              <TableColumn key={'input_type'}>{'Tipo de Input'}</TableColumn>
+              <TableColumn key={'company_id'}>{'Empresa'}</TableColumn>
+              <TableColumn key={'ticket_type_id'}>{'Tipo de Ticket'}</TableColumn>
+              <TableColumn key={'edit'}>{'Editar'}</TableColumn>
+              <TableColumn key={'move'}>{'Mover'}</TableColumn>
             </TableHeader>
-            <TableBody items={procedures}>
+            <TableBody items={procedure.items}>
               {(item) => (
                 <TableRow key={item.id}>
-                  {(columnKey) => <TableCell key={item.id +columnKey.toString()}>{getKeyValue(item, columnKey)}</TableCell>}
+                  <TableCell key={item.id +'-check'}>
+                    <Checkbox
+                      isSelected={item.checked}
+                      onChange={() => editSelectedRows(item.id)}
+                    />
+                  </TableCell>
+                  <TableCell key={item.id +'label'}>{ item.label}</TableCell>
+                  <TableCell key={item.id +'input_type'}>{ item.input_type}</TableCell>
+                  <TableCell key={item.id +'company_id'}>{ item.company_id}</TableCell>
+                  <TableCell key={item.id +'ticket_type_id'}>{ item.ticket_type_id}</TableCell>
+                  <TableCell key={item.id +'edit'}><Button onPress={() => setEditProcedure(item.id)}>Editar</Button></TableCell>
+                  <TableCell key={item.id +'move'}>
+                    <div className="flex flex-col gap-1">
+                      <Button className="py-1 h-4" onPress={() => moveItem('up', item.id )}><ArrowUpIcon className="h-3" /></Button>
+                      <Button className="py-1 h-4" onPress={() => moveItem('down', item.id )}><ArrowDownIcon className="h-3" /></Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         )
       }
-        <Button  
-          className='w-40' 
-          onPress={() => deleteProcedure( Array.from(selectedKeys).map(el => parseInt(el)))
+        <Button
+          className='w-60' 
+          onPress={() => saveProcedure(procedure)
             .then(() => {
-              toast.success('deletado com sucesso')
+              toast.success('salvo com sucesso')
               setIsLoadingProceds(true)
           })
             .catch(() => toast.error('deu algo de errado'))} >
-            Deletar Atribuições
+            Ordenar Procedimentos
         </Button>
     </>
   );
+}
+
+export function ProcedureEditor() {
+
+  const [value, setValue] = useState<null | string >(null)
+  const [procedureId, setProcedureId] = useState<number | undefined>(undefined)
+  const {setIsLoadingProceds, selectedProcedure, setEditProcedure, selectedTicketType, selectedCompany, setSelectedCompany, setSelectedTicketType} = useProcedureContext()
+  const [label, setLabel] = useState('')
+  const [modalBody, setModalBody] = useState<JsonValue>('')
+  const [modalTitle, setModalTitle] = useState('')
+
+  useEffect(()=>{
+    if(selectedProcedure){
+      setProcedureId(selectedProcedure.id)
+      setValue(selectedProcedure.input_type +'')
+      setLabel(selectedProcedure.label)
+      setModalTitle(selectedProcedure.modal_title ?? '')
+      // @ts-expect-error: json is a string
+      setModalBody(JSON.parse(selectedProcedure.modal_body))
+      setSelectedCompany(selectedProcedure.company_id)
+      setSelectedTicketType(selectedProcedure.ticket_type_id)
+    }
+  }, [selectedProcedure])
+
+  return(
+    <div className="border rounded border-primary p-2">
+      <Autocomplete
+        variant={'bordered'}
+        aria-label={'Tipo de Input'}
+        // isRequired={true}
+        label={'Tipo de Input'}
+        defaultItems={options}
+        defaultSelectedKey=""
+        // @ts-expect-error: library has wrong type
+        onSelectionChange={setValue}
+        selectedKey={value}
+        className="flex h-11 max-w-xs my-1"
+        classNames={{
+          popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
+          base: 'flex shrink border-primary border rounded-medium'
+        }}
+      >
+        {options.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+      </Autocomplete>
+
+      {
+        value == '1' ?
+        <RadioInput modalBody={[modalBody, setModalBody]} modalTitle={[modalTitle, setModalTitle]} label={[label, setLabel]} />
+        :
+        value == '2' ?
+        <TextInput/>
+        :
+        null
+      }
+      {
+        !procedureId         
+        ?
+          <Button className="w-60" onPress={ async () => {
+            const response = await createProcedureItem({
+              company_id:  selectedCompany, 
+              ticket_type_id: selectedTicketType, 
+              label, 
+              input_type: value ? parseInt(value+'') : 1, 
+              modal_body:JSON.stringify(modalBody), 
+              modal_title:modalTitle,
+              id: procedureId
+            })
+            if(response.status == 'error'){
+              toast.error(response.message)     
+            }else if(response.status == 'success'){
+              setIsLoadingProceds(true)
+            toast.success(response.message)
+            }
+            }} 
+          >
+            Criar item de procedimento
+          </Button>
+
+        :
+          <div className="flex flex-row py-2 gap-2">
+            <Button className="w-60" onPress={ async () => {
+              const response = await createProcedureItem({
+                id: procedureId,
+                company_id:  selectedCompany, 
+                ticket_type_id: selectedTicketType, 
+                label, 
+                input_type: value? parseInt(value+'') : 1, 
+                modal_body:JSON.stringify(modalBody), 
+                modal_title:modalTitle
+              })
+              if(response.status == 'error'){
+                toast.error(response.message)     
+              }else if(response.status == 'success'){
+                setProcedureId(undefined)
+                setIsLoadingProceds(true)
+              toast.success(response.message)
+              }
+              }} 
+            >
+              Salvar item de procedimento
+            </Button>
+            <Button  
+            className='w-60 bg-danger' 
+            onPress={() => deleteProcedureItem( [procedureId ?? 0])
+              .then(() => {
+                toast.success('deletado com sucesso')
+                setProcedureId(undefined)
+                setIsLoadingProceds(true)
+            })
+              .catch(() => toast.error('deu algo de errado'))} >
+              Deletar Procedimento
+          </Button>
+        </div>
+      }
+
+    </div>
+  )
 }

@@ -28,10 +28,10 @@ export default function AgentLayout({
           </div>
         </main>
         <footer className="flex gap-6 flex-wrap items-center justify-center bg-primary py-3">
-          <div className='flex flex-col rounded p-4 bg-orange-500'>
+          {/* <div className='flex flex-col rounded p-4 bg-orange-500'>
             <span>Alerta Massiva!</span>
             <span className='font-bold'>ACEM PRIME</span>
-          </div>
+          </div> */}
         </footer>
       </div>
     </TicketProvider>

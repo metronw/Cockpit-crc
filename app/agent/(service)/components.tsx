@@ -2,12 +2,12 @@
 
 import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet } from "@nextui-org/react";
 import Link  from 'next/link'
-import { ILocalData, IProcedureItem, useTicketContext } from "@/app/agent/providers"
+import { ILocalData, useTicketContext } from "@/app/agent/providers"
 import {useState, useEffect, useCallback} from 'react'
 import {Input} from "@nextui-org/react"
 import {createMetroTicket} from '@/app/actions/api'
 import { usePathname, useRouter } from 'next/navigation'
-import { IProcedure, getProcedures } from "@/app/actions/procedures";
+import { IProcedureItem, getProcedure } from "@/app/actions/procedures";
 import { useTicketTypeContext } from "@/app/providers";
 import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
@@ -342,15 +342,15 @@ export const TicketSummary = () => {
 
 export const Procedures = () =>{
   const {ticketContext} = useTicketContext()
-  const [procedures, setProcedures] = useState<Array<IProcedure>| null>(null)
+  const [procedures, setProcedures] = useState<Array<IProcedureItem>| null>(null)
 
   const path = usePathname()
   const { ticket } = parsePageInfo(path, ticketContext)
 
   useEffect(() => {
     if(ticket && !isNaN(parseInt(ticket.type))){
-      getProcedures({company_id:ticket.company_id, ticket_type_id: parseInt(ticket.type)}).then(response =>{
-        const parsed = response
+      getProcedure({company_id:ticket.company_id, ticket_type_id: parseInt(ticket.type)}).then(response =>{
+        const parsed = response.items.filter((el:IProcedureItem) => el.checked)
         setProcedures(parsed)
       })
     }

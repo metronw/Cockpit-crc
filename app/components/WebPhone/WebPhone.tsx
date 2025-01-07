@@ -350,7 +350,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
       // Extrair trunk_name e callid
       const displayName = incomingCall.remote_identity.display_name;
       console.log("Display Name Manual Answer:", displayName); // Adicionado log
-      const regex = /(\w+)\s*\{(\d+)\}/;
+      const regex = /^\s*(\S+)\s*\{\s*([^}]+)\s*\}/;
       const match = displayName.match(regex);
       console.log("Regex Match Manual Answer:", match); // Adicionado log
       if (match) {
@@ -468,21 +468,19 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
             >
               <FiPhoneCall size={20} />
             </button>
-            {session && (
-              <>
-                <button
-                  onClick={() => {
-                    session.terminate();
-                    setSession(null);
-                    setCallStatus('Call Ended');
-                  }}
-                  className="hangup-button"
-                  title="Encerrar Chamada"
-                  data-tooltip-id="hangUpTooltip"
-                >
-                  <FiPhoneOff size={20} />
-                </button>
-              </>
+            {callStatus === 'Connected' && session && (
+              <button
+                onClick={() => {
+                  session.terminate();
+                  setSession(null);
+                  setCallStatus('Call Ended');
+                }}
+                className="hangup-button"
+                title="Encerrar Chamada"
+                data-tooltip-id="hangUpTooltip"
+              >
+                <FiPhoneOff size={20} />
+              </button>
             )}
           </div>
           {isCalling && (
@@ -509,44 +507,40 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               </div>
             </div>
           )}
-          {(incomingCall || (session && callStatus !== 'Idle')) && (
+          {callStatus === 'Incoming Call' && incomingCall && (
             <div style={{ marginBottom: '15px' }}>
               <p style={{ color: 'black' }}>
                 <strong>Chamada de:</strong> {callerName} ({callerNumber})
               </p>
-              {incomingCall && (
-                <>
-                  <button
-                    onClick={handleAnswerCall}
-                    style={{
-                      padding: '10px 20px',
-                      borderRadius: '5px',
-                      backgroundColor: '#4caf50',
-                      border: 'none',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '16px',
-                      marginRight: '10px',
-                    }}
-                  >
-                    Atender
-                  </button>
-                  <button
-                    onClick={handleRejectCall}
-                    style={{
-                      padding: '10px 20px',
-                      borderRadius: '5px',
-                      backgroundColor: '#f44336',
-                      border: 'none',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '16px',
-                    }}
-                  >
-                    Recusar
-                  </button>
-                </>
-              )}
+              <button
+                onClick={handleAnswerCall}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '5px',
+                  backgroundColor: '#4caf50',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  marginRight: '10px',
+                }}
+              >
+                Atender
+              </button>
+              <button
+                onClick={handleRejectCall}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '5px',
+                  backgroundColor: '#f44336',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                }}
+              >
+                Recusar
+              </button>
             </div>
           )}
           <div>
@@ -556,7 +550,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
           <audio ref={answerAudioRef} src="/audio/answer.wav" />
           <audio ref={dialtoneAudioRef} src="/audio/dialtone.wav" />
           <audio ref={hangupAudioRef} src="/audio/hangup.wav" />
-          <audio ref={remoteAudioRef} autoPlay controls />
+          <audio ref={remoteAudioRef} autoPlay controls hidden />
         </>
       )}
     </div>

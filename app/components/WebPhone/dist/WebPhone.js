@@ -386,7 +386,7 @@ var WebPhone = react_1.forwardRef(function (_a, ref) {
                     onCallStatusChange('Connected');
                     displayName = incomingCall.remote_identity.display_name;
                     console.log("Display Name Manual Answer:", displayName); // Adicionado log
-                    regex = /(\w+)\s*\{(\d+)\}/;
+                    regex = /^\s*(\S+)\s*\{\s*([^}]+)\s*\}/;
                     match = displayName.match(regex);
                     console.log("Regex Match Manual Answer:", match); // Adicionado log
                     if (!match) return [3 /*break*/, 2];
@@ -482,13 +482,12 @@ var WebPhone = react_1.forwardRef(function (_a, ref) {
             } },
             react_1["default"].createElement("button", { onClick: handleCall, disabled: isCalling, className: "call-button " + (isCalling ? 'disabled' : ''), title: "Iniciar Chamada", "data-tooltip-id": "callTooltip" },
                 react_1["default"].createElement(fi_1.FiPhoneCall, { size: 20 })),
-            session && (react_1["default"].createElement(react_1["default"].Fragment, null,
-                react_1["default"].createElement("button", { onClick: function () {
-                        session.terminate();
-                        setSession(null);
-                        setCallStatus('Call Ended');
-                    }, className: "hangup-button", title: "Encerrar Chamada", "data-tooltip-id": "hangUpTooltip" },
-                    react_1["default"].createElement(fi_1.FiPhoneOff, { size: 20 }))))),
+            callStatus === 'Connected' && session && (react_1["default"].createElement("button", { onClick: function () {
+                    session.terminate();
+                    setSession(null);
+                    setCallStatus('Call Ended');
+                }, className: "hangup-button", title: "Encerrar Chamada", "data-tooltip-id": "hangUpTooltip" },
+                react_1["default"].createElement(fi_1.FiPhoneOff, { size: 20 })))),
         isCalling && (react_1["default"].createElement("div", { style: { marginBottom: '15px' } },
             react_1["default"].createElement("h4", null, "Enviar DTMF:"),
             react_1["default"].createElement("div", null, ['1', '2', '3', 'A', '4', '5', '6', 'B', '7', '8', '9', 'C', '*', '0', '#', 'D'].map(function (digit) { return (react_1["default"].createElement("button", { key: digit, onClick: function () { return sendDTMF(digit); }, style: {
@@ -500,7 +499,7 @@ var WebPhone = react_1.forwardRef(function (_a, ref) {
                     backgroundColor: '#333',
                     color: 'white'
                 } }, digit)); })))),
-        (incomingCall || (session && callStatus !== 'Idle')) && (react_1["default"].createElement("div", { style: { marginBottom: '15px' } },
+        callStatus === 'Incoming Call' && incomingCall && (react_1["default"].createElement("div", { style: { marginBottom: '15px' } },
             react_1["default"].createElement("p", { style: { color: 'black' } },
                 react_1["default"].createElement("strong", null, "Chamada de:"),
                 " ",
@@ -508,26 +507,25 @@ var WebPhone = react_1.forwardRef(function (_a, ref) {
                 " (",
                 callerNumber,
                 ")"),
-            incomingCall && (react_1["default"].createElement(react_1["default"].Fragment, null,
-                react_1["default"].createElement("button", { onClick: handleAnswerCall, style: {
-                        padding: '10px 20px',
-                        borderRadius: '5px',
-                        backgroundColor: '#4caf50',
-                        border: 'none',
-                        color: 'white',
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        marginRight: '10px'
-                    } }, "Atender"),
-                react_1["default"].createElement("button", { onClick: handleRejectCall, style: {
-                        padding: '10px 20px',
-                        borderRadius: '5px',
-                        backgroundColor: '#f44336',
-                        border: 'none',
-                        color: 'white',
-                        cursor: 'pointer',
-                        fontSize: '16px'
-                    } }, "Recusar"))))),
+            react_1["default"].createElement("button", { onClick: handleAnswerCall, style: {
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    backgroundColor: '#4caf50',
+                    border: 'none',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    marginRight: '10px'
+                } }, "Atender"),
+            react_1["default"].createElement("button", { onClick: handleRejectCall, style: {
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    backgroundColor: '#f44336',
+                    border: 'none',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '16px'
+                } }, "Recusar"))),
         react_1["default"].createElement("div", null,
             react_1["default"].createElement("strong", null, "Status:"),
             " ",
@@ -536,6 +534,6 @@ var WebPhone = react_1.forwardRef(function (_a, ref) {
         react_1["default"].createElement("audio", { ref: answerAudioRef, src: "/audio/answer.wav" }),
         react_1["default"].createElement("audio", { ref: dialtoneAudioRef, src: "/audio/dialtone.wav" }),
         react_1["default"].createElement("audio", { ref: hangupAudioRef, src: "/audio/hangup.wav" }),
-        react_1["default"].createElement("audio", { ref: remoteAudioRef, autoPlay: true, controls: true })))));
+        react_1["default"].createElement("audio", { ref: remoteAudioRef, autoPlay: true, controls: true, hidden: true })))));
 });
 exports["default"] = WebPhone;

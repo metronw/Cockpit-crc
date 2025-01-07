@@ -39,7 +39,8 @@ function PhoneClient() {
                 width: "50px",
                 height: "50px",
                 border: "none",
-                cursor: "pointer"
+                cursor: "pointer",
+                display: callStatus === 'Connected' ? 'none' : 'block'
             } }, showPhone ? "X" : "☎"),
         callStatus === 'Incoming Call' && (React.createElement("button", { onClick: function () { var _a; return (_a = webPhoneRef.current) === null || _a === void 0 ? void 0 : _a.handleAnswerCall(); }, style: {
                 backgroundColor: "#4caf50",

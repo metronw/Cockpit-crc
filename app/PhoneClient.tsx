@@ -49,6 +49,7 @@ export default function PhoneClient() {
           height: "50px",
           border: "none",
           cursor: "pointer",
+          display: callStatus === 'Connected' ? 'none' : 'block'
         }}
       >
         {showPhone ? "X" : "☎"}

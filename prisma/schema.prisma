@@ -1,111 +1,105 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "mysql"
-  url       = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Ticket {
-  id          Int      @id @default(autoincrement())
-  client_name String?  
-  type        Int?
-  company_id  Int
-  status      String
-  user_id     Int
-  procedures  Json?
-  communication_type String? // telephone ou chat
-  communication_id     String? // asterisk ou chat
-  caller_number  String?
-  trunk_name    String?
-  createdAt   DateTime @default(now())
+  id                 Int      @id @default(autoincrement())
+  client_name        String?
+  type               Int?
+  company_id         Int
+  status             String
+  user_id            Int
+  createdAt          DateTime @default(now())
+  procedures         String?  @db.LongText
+  caller_number      String?
+  communication_id   String?
+  communication_type String?
+  trunk_name         String?
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String  @unique
-  metro_id  Int
-  role_id      Int?
-  password  String
-  createdAt DateTime @default(now())
-
+  id          Int           @id @default(autoincrement())
+  name        String
+  email       String        @unique
+  metro_id    Int
+  password    String
+  createdAt   DateTime      @default(now())
+  role_id     Int?
   assignments User_assign[]
 }
 
-model User_phone { // ramal
-  id        Int      @id @default(autoincrement())
+model User_phone {
+  id            Int      @id @default(autoincrement())
   sip_extension String   @unique
   sip_server    String
   sip_password  String
   sip_port      Int
   sip_websocket String
-  user_id   Int     @unique
-  createdAt DateTime @default(now())
-  auto_answer   Boolean @default(false)
+  user_id       Int      @unique
+  createdAt     DateTime @default(now())
+  auto_answer   Boolean  @default(false)
 }
 
 model Queue {
-  id Int @id
-  name      String
+  id         Int      @id
+  name       String
   company_id Int
   trunk_name String
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
 }
 
-model PhonePrefix { // fila de saida 
-  id        Int      @id @default(autoincrement())
-  name      String
-  number    String
-  trunk     String
+model PhonePrefix {
+  id     Int    @id @default(autoincrement())
+  name   String
+  number String
+  trunk  String
 }
 
 model Procedure_item {
-  id      Int      @id @default(autoincrement())
-  label   String
+  id                   Int     @id @default(autoincrement())
+  label                String
   speech_suggestion_id Int?
-  input_type  Int  
-  data_source String?
-  company_id  Int?
-  ticket_type_id Int
-  created_by Int
-  modal_title String?
-  modal_body Json?
+  input_type           Int
+  data_source          String?
+  company_id           Int?
+  ticket_type_id       Int
+  created_by           Int
+  modal_title          String?
+  modal_body           String? @db.LongText
 }
 
 model Procedure {
-  id      Int      @id @default(autoincrement())
-  label   String
+  id             Int    @id @default(autoincrement())
+  label          String
   ticket_type_id Int
-  company_id  Int?
-  items Json
+  company_id     Int?
+  items          String @db.LongText
 }
 
 model Speech_suggestion {
-  id      Int      @id @default(autoincrement())
-  text    String
+  id   Int    @id @default(autoincrement())
+  text String
 }
 
 model Company {
-  id Int @id 
-  threshold_1 Int?
-  threshold_2 Int?
+  id           Int    @id
+  threshold_1  Int?
+  threshold_2  Int?
   fantasy_name String
 }
 
 model User_assign {
-  id Int @id @default(autoincrement())
+  id         Int  @id @default(autoincrement())
   company_id Int
-  user_id Int
+  user_id    Int
   queue_type Int?
+  user       User @relation(fields: [user_id], references: [id])
 
-  user User @relation(fields: [user_id], references: [id])
   @@unique([company_id, user_id, queue_type])
-
+  @@index([user_id], map: "User_assign_user_id_fkey")
 }
-

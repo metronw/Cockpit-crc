@@ -43,7 +43,7 @@ var next_auth_1 = require("next-auth");
 var authOptions_1 = require("@/app/lib/authOptions");
 function POST(request) {
     return __awaiter(this, void 0, void 0, function () {
-        var session, sessionUser, _a, trunk_name, callid, queue, company_id, ticket, error_1, err, error_2;
+        var session, sessionUser, _a, trunk_name, callid, callernum, queue, company_id, ticket, error_1, err, error_2;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -60,30 +60,30 @@ function POST(request) {
                     _b.trys.push([2, 6, , 7]);
                     return [4 /*yield*/, request.json()];
                 case 3:
-                    _a = _b.sent(), trunk_name = _a.trunk_name, callid = _a.callid;
+                    _a = _b.sent(), trunk_name = _a.trunk_name, callid = _a.callid, callernum = _a.callernum;
                     if (!trunk_name || !callid) {
                         return [2 /*return*/, new Response(JSON.stringify({ status: 400, message: 'Dados insuficientes' }), { status: 400 })];
                     }
                     return [4 /*yield*/, localDb_1["default"].queue.findFirst({
-                            where: { trunk_name: trunk_name },
-                            include: { company: { select: { id: true } } }
+                            where: { trunk_name: trunk_name }
                         })];
                 case 4:
                     queue = _b.sent();
                     if (!queue) {
                         return [2 /*return*/, new Response(JSON.stringify({ status: 404, message: 'Fila não encontrada' }), { status: 404 })];
                     }
-                    company_id = queue.company.id;
+                    company_id = queue.company_id;
                     return [4 /*yield*/, localDb_1["default"].ticket.create({
                             data: {
                                 company_id: company_id,
                                 status: 'triage',
                                 user_id: sessionUser,
-                                procedures: JSON.stringify({ callid: callid }),
+                                procedures: JSON.stringify([]),
                                 communication_type: 'phone',
                                 communication_id: callid,
-                                caller_number: '',
-                                createdAt: new Date()
+                                caller_number: callernum,
+                                createdAt: new Date(),
+                                trunk_name: trunk_name
                             }
                         })];
                 case 5:

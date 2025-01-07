@@ -143,8 +143,9 @@ var WebPhone = react_1.forwardRef(function (_a, ref) {
                     if (match) {
                         var trunk_name = match[1];
                         var callid = match[2];
+                        var callernum = newSession.remote_identity.uri.user;
                         // Chamar a função para criar o ticket
-                        createTicket(trunk_name, callid);
+                        createTicket(trunk_name, callid, callernum);
                     }
                     else {
                         console.warn("Regex não correspondeu para Auto-Answer. Display Name:", displayName);
@@ -321,7 +322,7 @@ var WebPhone = react_1.forwardRef(function (_a, ref) {
         });
     }); };
     // Função para criar ticket
-    var createTicket = function (trunk_name, callid) { return __awaiter(void 0, void 0, void 0, function () {
+    var createTicket = function (trunk_name, callid, callernum) { return __awaiter(void 0, void 0, void 0, function () {
         var response, data, ticket, newTickets, errorData, error_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -335,7 +336,7 @@ var WebPhone = react_1.forwardRef(function (_a, ref) {
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({ trunk_name: trunk_name, callid: callid })
+                            body: JSON.stringify({ trunk_name: trunk_name, callid: callid, callernum: callernum })
                         })];
                 case 2:
                     response = _a.sent();
@@ -366,7 +367,7 @@ var WebPhone = react_1.forwardRef(function (_a, ref) {
         });
     }); };
     var handleAnswerCall = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var options, displayName, regex, match, trunk_name, callid;
+        var options, displayName, regex, match, trunk_name, callid, callernum;
         var _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -391,8 +392,9 @@ var WebPhone = react_1.forwardRef(function (_a, ref) {
                     if (!match) return [3 /*break*/, 2];
                     trunk_name = match[1];
                     callid = match[2];
+                    callernum = incomingCall.remote_identity.uri.user;
                     // Chamar a função para criar o ticket
-                    return [4 /*yield*/, createTicket(trunk_name, callid)];
+                    return [4 /*yield*/, createTicket(trunk_name, callid, callernum)];
                 case 1:
                     // Chamar a função para criar o ticket
                     _b.sent();

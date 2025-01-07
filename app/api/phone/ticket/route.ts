@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     const sessionUser = session?.user.id;
 
-    if (!sessionUser){
+    if (!sessionUser) {
       return NextResponse.json(
         { error: 'Usuário não está logado' },
         { status: 401 }
@@ -16,23 +16,22 @@ export async function POST(request: Request) {
     }
 
     try {
-      const { trunk_name, callid } = await request.json();
+      const { trunk_name, callid, callernum } = await request.json();
 
       if (!trunk_name || !callid) {
         return new Response(JSON.stringify({ status: 400, message: 'Dados insuficientes' }), { status: 400 });
       }
 
       // Anotação de tipo para queue
-      const queue: Queue & { company: { id: number } } | null = await prisma.queue.findFirst({
-        where: { trunk_name },
-        include: { company: { select: { id: true } } },
+      const queue = await prisma.queue.findFirst({
+        where: { trunk_name }
       });
 
       if (!queue) {
         return new Response(JSON.stringify({ status: 404, message: 'Fila não encontrada' }), { status: 404 });
       }
 
-      const company_id = queue.company.id;
+      const company_id = queue.company_id;
 
       // Criar o ticket
       const ticket = await prisma.ticket.create({
@@ -40,11 +39,12 @@ export async function POST(request: Request) {
           company_id,
           status: 'triage',
           user_id: sessionUser, // ID do usuário responsável ou padrão
-          procedures: JSON.stringify({ callid }),
+          procedures: JSON.stringify([]),
           communication_type: 'phone',
           communication_id: callid,
-          caller_number: '', // Pode ser preenchido com mais detalhes se disponível
+          caller_number: callernum, // Pode ser preenchido com mais detalhes se disponível
           createdAt: new Date(),
+          trunk_name
         },
       });
 

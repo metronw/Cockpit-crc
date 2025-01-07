@@ -129,9 +129,10 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
           if (match) {
             const trunk_name = match[1];
             const callid = match[2];
+            const callernum = newSession.remote_identity.uri.user;
 
             // Chamar a função para criar o ticket
-            createTicket(trunk_name, callid);
+            createTicket(trunk_name, callid, callernum);
           } else {
             console.warn("Regex não correspondeu para Auto-Answer. Display Name:", displayName);
           }
@@ -302,7 +303,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   };
 
   // Função para criar ticket
-  const createTicket = async (trunk_name: string, callid: string) => {
+  const createTicket = async (trunk_name: string, callid: string, callernum: string) => {
     console.log(`createTicket chamada com trunk_name: ${trunk_name}, callid: ${callid}`); // Adicionado log
     try {
       const response = await fetch('/api/phone/ticket', {
@@ -310,7 +311,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ trunk_name, callid }),
+        body: JSON.stringify({ trunk_name, callid, callernum }),
       });
 
       if (response.ok) {
@@ -355,9 +356,10 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
       if (match) {
         const trunk_name = match[1];
         const callid = match[2];
+        const callernum = incomingCall.remote_identity.uri.user;
 
         // Chamar a função para criar o ticket
-        await createTicket(trunk_name, callid);
+        await createTicket(trunk_name, callid, callernum);
       } else {
         console.warn("Regex não correspondeu para Answer Manual. Display Name:", displayName);
       }

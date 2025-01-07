@@ -36,18 +36,8 @@ export interface ITicket {
 
 export interface IProcedureItemResponse {
   id:number;
+  label:string;
   response: string | boolean | number | null;
-}
-
-export interface IProcedureItem {
-  id: number;
-  company_id: number;
-  ticket_type_id: number;
-  speech_suggestion: number;
-  modal_body: string;
-  modal_title: string;
-  modal_media: string;
-  
 }
 
 export interface ICompany {

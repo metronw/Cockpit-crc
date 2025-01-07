@@ -15,6 +15,7 @@ export interface IUserAssign {
 export interface IUser {
   id:number;
   name:string;
+  metro_id?: number
 }
 
 interface ICompany {

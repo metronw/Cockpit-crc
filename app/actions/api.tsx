@@ -2,7 +2,7 @@
 
 import connection from '@/app/lib/db';
 import prisma from '@/app/lib/localDb'
-import { ICompany, ITicket } from '../agent/providers';
+import { ICompany, IProcedureItemResponse, ITicket } from '../agent/providers';
 import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
 
@@ -94,19 +94,54 @@ export async function getTicketContext(user_id: number | undefined){
   return JSON.stringify({companies: [], tickets:[]})
 } 
 
+function formatProcedures(procedures: string){
+  let resp = ''
+  JSON.parse(procedures).forEach((el:IProcedureItemResponse) =>{
+    resp += `${el.label} + ': ' + ${el.response} \n`
+  })
+
+  return resp
+}
+
 export async function createMetroTicket(ticketInfo:ITicket | undefined){
 
   try{
     if(ticketInfo){
-      const { type, erp, phone, company_id, client_name} = ticketInfo
-
+      const { type, erp, phone, company_id, client_name, procedures, address} = ticketInfo
+      
       if(
         !!type && !!company_id
       ){
-        await connection.query(
-          `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at )`+
-          `VALUES (${company_id}, 4, "teste", 2, 0, ${parseInt(type)}, 424, ${isNaN(parseInt(erp)) ? null : parseInt(erp)}, ${isNaN(parseInt(phone)) ? null : parseInt(phone)}, NOW(), NOW())`
+        const session = await getServerSession(authOptions);
+        const [result] = await connection.query(
+          `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner )`+
+          `VALUES (${company_id}, 4, "teste", 2, 0, ${parseInt(type)}, ${session?.user.metro_id ?? 312}, ${isNaN(parseInt(erp)) ? null : parseInt(erp)}, ${isNaN(parseInt(phone)) ? null : parseInt(phone)}, NOW(), NOW(), ${session?.user.metro_id ?? 312} )`
         )
+
+        if(result){
+          const res = JSON.parse(JSON.stringify(result))
+
+        const message = 
+        `
+        Nome do assinante: ${client_name}
+        Tipo de atendimento: Telefone
+        Nome do solicitante: ${client_name}
+        Endereço: ${address}
+        Problema alegado: 
+        Procedimentos realizados: 
+        ${formatProcedures(procedures)}
+        Data/horários: ${(new Date).toLocaleString()}
+        Telefone: ${phone}
+        Protocolo: ${erp}
+        Nome do atendente: ${session?.user.name}
+        `
+        
+         await connection.query(
+          `INSERT INTO ticket_response (id_ticket, response, type, id_user, created_at, updated_at) `+
+          `VALUES (${res.insertId}, '${message}', 'N', ${session?.user.metro_id ?? 312}, NOW(), NOW() )`
+         )
+
+        }
     
         await prisma.ticket.update({
           where: {

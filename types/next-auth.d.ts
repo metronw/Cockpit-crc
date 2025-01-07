@@ -7,6 +7,7 @@ declare module "next-auth" {
       email: string;
       name: string;
       roles: string[];
+      metro_id?: number;
     };
   }
 
@@ -22,5 +23,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: number; // Custom field for user ID
     roles?: string[]; // Custom field for user role (optional)
+    metro_id?:number;
   }
 }

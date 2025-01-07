@@ -8,6 +8,7 @@ import {ICompany, ITicket, useTicketContext} from '@/app/agent/providers'
 import {createTicket} from '@/app/actions/api'
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
+import {toast} from 'react-hot-toast';
 
 export const PerformanceChart = () => {
   const data = [{name: 'Dia 1', uv: 400, pv: 2400, amt: 2400}, {name: 'Dia 2', uv: 200, pv: 3000, amt: 2400}, {name: 'Dia 3', uv: 700, pv: 3000, amt: 2400}];
@@ -102,13 +103,19 @@ export const Sidebar = () => {
   }, [isMounted, len])
 
   const newTicket = async (company: ICompanyList) => {
-    const response = await createTicket({company_id: company.id})
-    if(response){
-      const ticket= JSON.parse(response)
-      const newTickets = [...tickets, ticket]
-      await setTicketContext({...ticketContext, tickets: newTickets})
-      router.push('/agent/triage/'+ticket.id)
+    if(tickets.length <= 15){
+      const response = await createTicket({company_id: company.id})
+      if(response){
+        const ticket= JSON.parse(response)
+        const newTickets = [...tickets, ticket]
+        await setTicketContext({...ticketContext, tickets: newTickets})
+        router.push('/agent/triage/'+ticket.id)
+      }
+
+    }else{
+      toast.error('Só é possível abrir 15 atendimentos simultaneamente')
     }
+    
   }
 
   const redirectToTicket = (id:number) => {
@@ -116,7 +123,7 @@ export const Sidebar = () => {
   }
 
   return(
-    <div className="bg-primary px-2 py-2 text-primary overflow-auto">
+    <div className="bg-primary px-2 py-2 text-primary overflow-auto absolute max-h-full w-full">
       <Accordion isCompact showDivider selectionMode='multiple' itemClasses={{base: 'bg-zinc-100 my-1'}} >
         {
         ticketList.map(el=> 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma, { Queue } from '@/app/lib/localDb'; // Importação do tipo Queue corrigida
+import prisma from '@/app/lib/localDb'; // Importação do tipo Queue corrigida
 import { getServerSession } from "next-auth";
 import { authOptions } from '@/app/lib/authOptions';
 

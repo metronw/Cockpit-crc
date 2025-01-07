@@ -93,10 +93,16 @@ export const Sidebar = () => {
   const len = tickets.length
   useEffect(()=>{
     const list = companies.map<ICompanyList>(el => ({...el, tickets: []}))
-
+    const others:ICompanyList = {id:0, name: 'Outros', fantasy_name:'Outros', mass: false,  tickets:[]}
+    list.push(others)
+    console.log(tickets)
     tickets.forEach(el => {
       const comp = list.find(item => item.id == el.company_id)
-      comp?.tickets.push(el)
+      if(comp){
+        comp.tickets.push(el)
+      }else{
+        others.tickets.push(el)
+      }
     })
 
     setTicketList(list)
@@ -128,7 +134,9 @@ export const Sidebar = () => {
         {
         ticketList.map(el=> 
           <AccordionItem key={el.name} aria-label={'Accordion ' + el.name} startContent={<CompanyComponent label={el.fantasy_name} mass={el.mass} count={el.tickets.length}/>}>
-            <Client name='+ Novo Atendimento' onClick={() => newTicket(el)}/>
+            {
+              el.id != 0 ? <Client name='+ Novo Atendimento' onClick={() => newTicket(el)}/> : null
+            }
             {
               el.tickets?.map(item => 
                 <Client name={'#'+item.id} timer={'0:00'} key={item.id} onClick={() => redirectToTicket(item.id)}/>
@@ -155,7 +163,7 @@ const Client = ({name, timer='', onClick}:{name:string, timer?:string, onClick: 
   
   return(
     // <Link href="/agent/triage">
-      <Button className="flex flex-row align-center rounded space-x-2 shadow-sm shadow-zinc-400 pt-1 mx-2 hover:bg-zinc-400" onClick={onClick}>
+      <Button className="flex flex-row align-center rounded space-x-2 shadow-sm shadow-zinc-400 pt-1 mx-2 hover:bg-zinc-400" onPress={onClick}>
         <div className="flex  w-2/12 justify-center  py-1 "></div>
         <div className="flex rounded w-8/12 justify-center py-1  text-sm">{name}</div>
         <div className="flex rounded text-sm px-2">{timer}</div>

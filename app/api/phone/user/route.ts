@@ -3,7 +3,7 @@ import prisma from '@/app/lib/localDb'; // Adjust path based on your setup
 import { getServerSession } from "next-auth";
 import { authOptions } from '@/app/lib/authOptions';
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     // Supondo que você tenha uma função para obter o usuário autenticado
    // const userId = /* lógica para obter o ID do usuário autenticado */;

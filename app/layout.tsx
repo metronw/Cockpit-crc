@@ -7,7 +7,6 @@ import { ToastContainer } from 'react-toastify'; // Adicionado
 import { TicketTypeProvider } from "./providers";
 import { getCrcTicketTypes } from "@/app/actions/api";
 import { use } from 'react';
-import useSWR from "swr";
 import PhoneClient from "./PhoneClient";
 
 const geistSans = localFont({
@@ -20,8 +19,6 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
-
-const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export const metadata: Metadata = {
   title: "Metro Crc Cockpit",

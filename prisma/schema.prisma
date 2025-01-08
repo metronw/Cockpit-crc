@@ -73,7 +73,7 @@ model Procedure_item {
   modal_body           String? @db.LongText
 }
 
-model Procedure {
+model Procedures {
   id             Int    @id @default(autoincrement())
   ticket_type_id Int
   company_id     Int?

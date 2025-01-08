@@ -87,7 +87,7 @@ export async function deleteProcedureItem(ids: Array<number>){
 }
 
 export async function createProcedure({company_id, ticket_type_id, items='[]'}:{company_id:number | null, ticket_type_id:number, items: JsonValue}){
-  return await prisma.procedure.create({
+  return await prisma.procedures.create({
     // @ts-expect-error: json is a string
     data: { company_id, ticket_type_id, items}
   })
@@ -96,7 +96,7 @@ export async function createProcedure({company_id, ticket_type_id, items='[]'}:{
 export async function getProcedure({company_id=null, ticket_type_id}:{company_id:number | null, ticket_type_id:number}){
   const items = await getProcedureItems({company_id, ticket_type_id})
   
-  let proc = await prisma.procedure.findFirst({
+  let proc = await prisma.procedures.findFirst({
     where: {
       OR: [
         {
@@ -122,7 +122,7 @@ export async function getProcedure({company_id=null, ticket_type_id}:{company_id
 
 export async function saveProcedure(procedure:IProcedure){
 
-  return await prisma.procedure.update({
+  return await prisma.procedures.update({
     where:{
       id: procedure.id
     },

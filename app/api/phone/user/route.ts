@@ -3,6 +3,8 @@ import prisma from '@/app/lib/localDb'; // Adjust path based on your setup
 import { getServerSession } from "next-auth";
 import { authOptions } from '@/app/lib/authOptions';
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     // Supondo que você tenha uma função para obter o usuário autenticado

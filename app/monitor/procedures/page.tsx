@@ -10,8 +10,10 @@ export default function Procedures() {
   const companies = use(getCompaniesList())
   const procedures = use(getProcedure({company_id:0, ticket_type_id:0}))
 
+
+
   return (
-    <ProcedureProvider companies={JSON.parse(companies)} procedures={procedures} ticketTypes={JSON.parse(types)}>
+    <ProcedureProvider companies={JSON.parse(companies)} procedures={procedures ?? []} ticketTypes={JSON.parse(types)}>
       <div className="flex flex-col p-2">
         Criar procedimentos de uma Empresa
 

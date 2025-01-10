@@ -69,7 +69,7 @@ export const TextInput = ({id, fieldName, label, isRequired=false}:
   )
 }
 
-export const ProcedureTextInput = ({isInteractive=false, label, Modal, id= 0 }: {isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number}) => {
+export const ProcedureTextInput = ({ label, Modal, id= 0 }: {isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number}) => {
 
   const [value, setValue] = useState<string>('')
   const [response, setResponse] = useState<string>('')

@@ -84,7 +84,7 @@ export function RadioInput ({modalTitle, modalBody, label}:
   
   return(
     <div className="flex flex-col gap-2 ">      
-      <div className="flex flex-row gap-2">
+      <div className="flex flex-row gap-2 border rounded p-2 border-primary">
         <Input 
           label={'Descrição do procedimento'}
           type='text' 
@@ -95,8 +95,8 @@ export function RadioInput ({modalTitle, modalBody, label}:
         />
         <EditInfoModal modalTitle={modalTitle} modalBody={modalBody} className={''} />
       </div>
-
       <div className="border border-primary p-3 rounded">
+        <span>Preview</span>
         <RadioGroup 
           label={description} orientation="horizontal" 
           classNames={{label: 'p-1 m-1 rounded bg-purple-700 text-white'}}
@@ -110,29 +110,46 @@ export function RadioInput ({modalTitle, modalBody, label}:
           <Radio value="No" classNames={{ wrapper: 'border-danger', control: 'bg-danger'}}></Radio>
         </RadioGroup>
       </div>
-
     </div>
   )
 }
 
-export function TextInput ({  Modal }: {Modal?: React.ReactElement}) {
+export function TextInput ({  modalTitle, modalBody, label }:
+  {modalTitle:[string, Dispatch<SetStateAction<string>>],
+   modalBody:[JsonValue, Dispatch<SetStateAction<JsonValue>>] 
+   label:[string, Dispatch<SetStateAction<string>>]}) {
+
   const [response, setResponse] = useState('')
   const [procedure, setProcedure] = useState('')
 
-  
+  const [title] = modalTitle
+  const [body] = modalBody
+
   return(
     <div className="flex flex-col gap-2 ">      
-      <Input 
-        label={'label'}
-        type='text' 
-        value={procedure} 
-        color={'primary'}  
-        className={'w-80 h-11 border border-primary rounded-medium'}
-        onValueChange={setProcedure}
-      />
-      {Modal}
-      <span>Preview</span>
-      <div className="border border-primary p-3 rounded">
+      <div className="flex flex-col gap-2">
+
+        <Input 
+          label={'Descrição do Procedimento'}
+          type='text' 
+          value={label[0]} 
+          color={'primary'}  
+          className={'w-80 h-11 border border-primary rounded-medium'}
+          onValueChange={label[1]}
+        />
+        <Input 
+          label={'Título'}
+          type='text' 
+          value={procedure} 
+          color={'primary'}  
+          className={'w-80 h-11 border border-primary rounded-medium'}
+          onValueChange={setProcedure}
+        />
+        <EditInfoModal modalTitle={modalTitle} modalBody={modalBody} className={''} />
+      </div>
+      <div className="flex flex-col border border-primary p-3 gap-2 rounded">
+        <span>Preview</span>
+        <span className="bg-purple-700 text-white rounded p-2">{label[0] }</span>
         <Input 
           label={procedure}
           type='text' 
@@ -141,11 +158,14 @@ export function TextInput ({  Modal }: {Modal?: React.ReactElement}) {
           className={'w-80 h-11 border border-primary rounded-medium'}
           onValueChange={setResponse}
         />
+        {
+          <InfoModal title={title} body={body} />
+        }
       </div>
-
     </div>
   )
 }
+
 
 
 
@@ -163,7 +183,7 @@ export const EditInfoModal = ({modalTitle, modalBody, className}:
 
   return(
     <div className="flex flex-col gap-2">
-      <Button onPress={onOpen}>Editar Modal</Button>
+      <Button className="p-2 w-36" onPress={onOpen}>Editar Modal</Button>
       <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -327,7 +347,7 @@ export function ProcedureEditor() {
 
   const [value, setValue] = useState<null | string >(null)
   const [procedureId, setProcedureId] = useState<number | undefined>(undefined)
-  const {setIsLoadingProceds, selectedProcedure, selectedTicketType, selectedCompany, setSelectedCompany, setSelectedTicketType} = useProcedureContext()
+  const {setIsLoadingProceds, selectedProcedure, selectedTicketType, selectedCompany, setSelectedCompany, setSelectedTicketType, setEditProcedure} = useProcedureContext()
   const [label, setLabel] = useState('')
   const [modalBody, setModalBody] = useState<JsonValue>('')
   const [modalTitle, setModalTitle] = useState('')
@@ -342,43 +362,53 @@ export function ProcedureEditor() {
       setModalBody(JSON.parse(selectedProcedure.modal_body))
       setSelectedCompany(selectedProcedure.company_id)
       setSelectedTicketType(selectedProcedure.ticket_type_id)
+    }else{
+      setProcedureId(0)
+      setValue(null)
+      setLabel('')
+      setModalTitle('')
+      setModalBody(null)
+      setSelectedCompany(null)
+      setIsLoadingProceds(false)
     }
   }, [selectedProcedure])
 
   return(
     <div className="border rounded border-primary p-2">
-      <Autocomplete
-        variant={'bordered'}
-        aria-label={'Tipo de Input'}
-        // isRequired={true}
-        label={'Tipo de Input'}
-        defaultItems={options}
-        defaultSelectedKey=""
-        // @ts-expect-error: library has wrong type
-        onSelectionChange={setValue}
-        selectedKey={value}
-        className="flex h-11 max-w-xs my-1"
-        classNames={{
-          popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
-          base: 'flex shrink border-primary border rounded-medium'
-        }}
-      >
-        {options.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
-      </Autocomplete>
-
+      <div className="flex flex-col pb-3 mb-3">
+        <span className="pr-2">ID do procedimento: {procedureId}</span>
+        <Autocomplete
+          variant={'bordered'}
+          aria-label={'Tipo de Input'}
+          // isRequired={true}
+          label={'Tipo de Input'}
+          defaultItems={options}
+          defaultSelectedKey=""
+          // @ts-expect-error: library has wrong type
+          onSelectionChange={setValue}
+          selectedKey={value}
+          className="flex h-11 max-w-xs my-1"
+          classNames={{
+            popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
+            base: 'flex shrink border-primary border rounded-medium'
+          }}
+        >
+          {options.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+        </Autocomplete>
+      </div>
       {
         value == '1' ?
         <RadioInput modalBody={[modalBody, setModalBody]} modalTitle={[modalTitle, setModalTitle]} label={[label, setLabel]} />
         :
         value == '2' ?
-        <TextInput/>
+        <TextInput modalBody={[modalBody, setModalBody]} modalTitle={[modalTitle, setModalTitle]} label={[label, setLabel]} />
         :
         null
       }
       {
         !procedureId         
         ?
-          <Button className="w-60" onPress={ async () => {
+          <Button className="w-60 m-2" onPress={ async () => {
             const response = await createProcedureItem({
               company_id:  selectedCompany, 
               ticket_type_id: selectedTicketType, 
@@ -432,6 +462,16 @@ export function ProcedureEditor() {
             })
               .catch(() => toast.error('deu algo de errado'))} >
               Deletar Procedimento
+          </Button>
+            <Button  
+            className='w-60' 
+            onPress={() => {
+              setProcedureId(undefined)
+              setIsLoadingProceds(true)
+              setEditProcedure(0)
+
+            }}>
+              voltar
           </Button>
         </div>
       }

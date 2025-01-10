@@ -97,7 +97,7 @@ export async function getTicketContext(user_id: number | undefined){
 function formatProcedures(procedures: string){
   let resp = ''
   JSON.parse(procedures).forEach((el:IProcedureItemResponse) =>{
-    resp += `${el.label} + ': ' + ${el.response} \n`
+    resp += `${el.label}:  ${el.response} \n`
   })
 
   return resp
@@ -111,7 +111,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
       
       if(
         !!type && !!company_id
-      ){
+        ){
         const session = await getServerSession(authOptions);
         const [result] = await connection.query(
           `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner )`+

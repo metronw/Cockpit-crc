@@ -14,7 +14,8 @@ import { toast } from "react-hot-toast";
 import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
 
-export const TextInput = ({id, fieldName, label, isRequired=false}: {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string, isRequired?: boolean}) => {
+export const TextInput = ({id, fieldName, label, isRequired=false}: 
+  {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string, isRequired?: boolean}) => {
 
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
   const [value, setValue] = useState<string>('')
@@ -53,15 +54,165 @@ export const TextInput = ({id, fieldName, label, isRequired=false}: {id: string,
   }, [debouncedValue, id, fieldName])
   
   return(    
-    <Input
-      type="text" 
-      label={label} 
-      color={'primary'}  
-      className={'w-80 h-11 ml-4 border border-primary rounded-medium'}
-      value={value}
-      onValueChange={setValue}
-      isRequired= {isRequired}
-    />
+    <div className="flex flex-col p-1 rounded m-2 gap-2">
+      <Input
+        type="text" 
+        label={label} 
+        color={'primary'}  
+        className={'w-80 h-11 ml-4 border border-primary rounded-medium'}
+        value={value}
+        onValueChange={setValue}
+        isRequired= {isRequired}
+      />
+
+    </div>
+  )
+}
+
+export const ProcedureTextInput = ({isInteractive=false, label, Modal, id= 0 }: {isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number}) => {
+
+  const [value, setValue] = useState<string>('')
+  const [response, setResponse] = useState<string>('')
+
+  const {ticketContext, setTicketContext} = useTicketContext()
+  const path = usePathname()
+  const { ticket } = parsePageInfo(path, ticketContext)
+
+  useEffect(()=>{
+    if(ticket){
+      const procedures = JSON.parse(ticket.procedures)
+      const procedure = procedures.find((el:IProcedureItem) => el.id == id)
+      if(procedure?.response){
+        setResponse(procedure.response)
+        setValue(procedure.response)
+      } 
+    }
+
+  }, [])
+
+  useEffect(() => {
+    if(ticket){
+      let procedures = JSON.parse(ticket.procedures)
+      if(procedures.find((el:IProcedureItem) => el.id == id)){
+        procedures = procedures.map((el:IProcedureItem) => el.id == id ? {...el, response} : el  )
+      }else{
+        procedures.push({id, response, label})
+      }
+      const newTicket = ticketContext.tickets.map(el => el.id == ticket.id ? {...el, procedures: JSON.stringify(procedures)} : el)
+      setTicketContext({...ticketContext, tickets:newTicket})
+    }
+  }, [response])
+
+  useEffect(()=>{
+    const handler = setTimeout(() => {
+      setResponse(value);
+    }, 250); // Save only after 250ms of inactivity
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value])
+  
+  return(    
+    <div className="flex flex-col p-1  rounded m-2 gap-2">
+      <span className="bg-purple-700 text-white px-2">{label}</span>
+      <div className="flex flex-row">
+        {Modal}
+        <Input
+          type="text" 
+          label={label} 
+          color={'primary'}  
+          className={'w-80 h-11 ml-4 border border-primary rounded-medium'}
+          value={value}
+          onValueChange={setValue}
+        />
+
+      </div>
+
+    </div>
+  )
+}
+
+export const RadioInput = ({isInteractive=false, label, Modal, id= 0 }: {isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number}) => {
+
+  const {ticketContext, setTicketContext} = useTicketContext()
+  const path = usePathname()
+  const { ticket } = parsePageInfo(path, ticketContext)
+  const [response, setResponse] = useState('')
+
+  useEffect(()=>{
+    if(ticket){
+      const procedures = JSON.parse(ticket.procedures)
+      const procedure = procedures.find((el:IProcedureItem) => el.id == id)
+      procedure?.response ? setResponse(procedure.response) : null
+    }
+
+  }, [])
+
+  useEffect(() => {
+    if(ticket){
+      let procedures = JSON.parse(ticket.procedures)
+      if(procedures.find((el:IProcedureItem) => el.id == id)){
+        procedures = procedures.map((el:IProcedureItem) => el.id == id ? {...el, response} : el  )
+      }else{
+        procedures.push({id, response, label})
+      }
+      const newTicket = ticketContext.tickets.map(el => el.id == ticket.id ? {...el, procedures: JSON.stringify(procedures)} : el)
+      setTicketContext({...ticketContext, tickets:newTicket})
+    }
+  }, [response])
+
+
+  return(
+    <RadioGroup 
+      label={label} orientation="horizontal" 
+      classNames={{label: 'p-1 m-1 rounded ' + (isInteractive ? 'bg-purple-700 text-white' : 'border border-primary text-primary')}}
+      value={response}
+      onValueChange={setResponse}
+    >
+      {Modal} 
+      <Radio value="true" classNames={{ wrapper: 'border-success', control: 'bg-success' }}></Radio>
+      <Radio value="false" classNames={{ wrapper: 'border-danger', control: 'bg-danger'}}></Radio>
+    </RadioGroup>
+  )
+}
+
+export const InfoModal = ({title, body}:{title:string, body:JsonValue}) => {
+
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const [scrollBehavior] = useState<"inside" | "normal" | "outside" | undefined >("inside");
+
+  return(
+    <div className="flex flex-col gap-2">
+
+      <Button onPress={onOpen}>{'Instrução'}</Button>
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        scrollBehavior={scrollBehavior}
+        classNames={{body: 'text-black', header: 'text-black'}}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                {title}
+              </ModalHeader>
+              <ModalBody>
+                {
+                  // @ts-expect-error: Temporary mismatch
+                   <RichTextEditor value={JSON.parse(body)}/>  
+                }
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Fechar
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </div>
   )
 }
 
@@ -202,89 +353,7 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource, isRequire
   );
 } 
 
-export const RadioInput = ({isInteractive=false, label, Modal, id= 0 }: {isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number}) => {
 
-  const {ticketContext, setTicketContext} = useTicketContext()
-  const path = usePathname()
-  const { ticket } = parsePageInfo(path, ticketContext)
-  const [response, setResponse] = useState('')
-
-  useEffect(()=>{
-    if(ticket){
-      const procedures = JSON.parse(ticket.procedures)
-      const procedure = procedures.find((el:IProcedureItem) => el.id == id)
-      procedure?.response ? setResponse(procedure.response) : null
-    }
-
-  }, [])
-
-  useEffect(() => {
-    if(ticket){
-      let procedures = JSON.parse(ticket.procedures)
-      if(procedures.find((el:IProcedureItem) => el.id == id)){
-        procedures = procedures.map((el:IProcedureItem) => el.id == id ? {...el, response} : el  )
-      }else{
-        procedures.push({id, response, label})
-      }
-      const newTicket = ticketContext.tickets.map(el => el.id == ticket.id ? {...el, procedures: JSON.stringify(procedures)} : el)
-      setTicketContext({...ticketContext, tickets:newTicket})
-    }
-  }, [response])
-
-
-  return(
-    <RadioGroup 
-      label={label} orientation="horizontal" 
-      classNames={{label: 'p-1 m-1 rounded ' + (isInteractive ? 'bg-purple-700 text-white' : 'border border-primary text-primary')}}
-      value={response}
-      onValueChange={setResponse}
-    >
-      {Modal} 
-      <Radio value="true" classNames={{ wrapper: 'border-success', control: 'bg-success' }}></Radio>
-      <Radio value="false" classNames={{ wrapper: 'border-danger', control: 'bg-danger'}}></Radio>
-    </RadioGroup>
-  )
-}
-
-export const InfoModal = ({title, body}:{title:string, body:JsonValue}) => {
-
-  const {isOpen, onOpen, onOpenChange} = useDisclosure();
-  const [scrollBehavior] = useState<"inside" | "normal" | "outside" | undefined >("inside");
-
-  return(
-    <div className="flex flex-col gap-2">
-
-      <Button onPress={onOpen}>{'Instrução'}</Button>
-      <Modal
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        scrollBehavior={scrollBehavior}
-        classNames={{body: 'text-black', header: 'text-black'}}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                {title}
-              </ModalHeader>
-              <ModalBody>
-                {
-                  // @ts-expect-error: Temporary mismatch
-                   <RichTextEditor value={JSON.parse(body)}/>  
-                }
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Fechar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </div>
-  )
-}
 
 export const FinishButton = () => {
 
@@ -355,10 +424,9 @@ export const Procedures = () =>{
       })
     }
   }, [])
-  
 
   return(
-    <div>
+    <div className="max-h-120 overflow-auto my-2">
       {
         procedures ?
         procedures.map(el => {
@@ -367,11 +435,11 @@ export const Procedures = () =>{
               <RadioInput key={el.id} isInteractive={true} label={el.label} Modal={<InfoModal title={el.modal_title ?? ''} body={el.modal_body ?? ''}/>} id={el.id}/>
             )
           }
-          // else if(el.input_type == 1){
-          //   return(
-          //     <TextInput key={el.id}  label={el.label}  id={id} />
-          //   )
-          // }
+          else if(el.input_type == 2){
+            return(
+              <ProcedureTextInput key={el.id}  label={el.label}  id={el.id} Modal={<InfoModal title={el.modal_title ?? ''} body={el.modal_body ?? ''}/>} />
+            )
+          }
         })
         :
         null

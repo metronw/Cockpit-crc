@@ -126,10 +126,17 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         if (!userData.auto_answer) {
           setIncomingCall(newSession);
           if (ringAudioRef.current) {
-            ringAudioRef.current.loop = true;
-            ringAudioRef.current.play();
+        ringAudioRef.current.loop = true;
+        ringAudioRef.current.play();
           }
         } else {
+          if (ringAudioRef.current) {
+        ringAudioRef.current.play();
+        setTimeout(() => {
+          ringAudioRef.current?.pause();
+          if (ringAudioRef.current) {
+            ringAudioRef.current.currentTime = 0;
+          }
           // @ts-expect-error: fix later
           newSession.answer({ mediaStream: localStreamRef.current });
           setupPeerConnection(newSession);
@@ -149,6 +156,8 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
             createTicket(trunk_name, callid, callernum);
           } else {
             console.warn("Regex não correspondeu para Auto-Answer. Display Name:", displayName);
+          }
+        }, 3000);
           }
         }
       }

@@ -63,6 +63,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   const [isCalling, setIsCalling] = useState(false);
   const [callerName, setCallerName] = useState('');
   const [callerNumber, setCallerNumber] = useState('');
+  const [isMuted, setIsMuted] = useState(false);
 
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -416,6 +417,15 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     }
   };
 
+  const toggleMute = () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach(track => {
+        track.enabled = isMuted;
+      });
+    }
+    setIsMuted(!isMuted);
+  };
+
   useImperativeHandle(ref, () => ({
     handleAnswerCall,
   }));
@@ -496,18 +506,23 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               <FiPhoneCall size={20} />
             </button>
             {callStatus === 'Connected' && session && (
-              <button
-                onClick={() => {
-                  session.terminate();
-                  setSession(null);
-                  setCallStatus('Call Ended');
-                }}
-                className="hangup-button"
-                title="Encerrar Chamada"
-                data-tooltip-id="hangUpTooltip"
-              >
-                <FiPhoneOff size={20} />
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    session.terminate();
+                    setSession(null);
+                    setCallStatus('Call Ended');
+                  }}
+                  className="hangup-button"
+                  title="Encerrar Chamada"
+                  data-tooltip-id="hangUpTooltip"
+                >
+                  <FiPhoneOff size={20} />
+                </button>
+                <button onClick={toggleMute}>
+                  {isMuted ? 'Unmute' : 'Mute'}
+                </button>
+              </>
             )}
           </div>
           {isCalling && (

@@ -264,7 +264,7 @@ export const StagePanel = () => {
         <Card className="border border-primary">
           <CardBody>
             <p className="text-primary text-center">Interação na etapa</p>
-            <p className="text-primary text-center">1:48</p>
+            <p className="text-primary text-center">00:00</p>
           </CardBody>
         </Card>
       </div>
@@ -372,7 +372,7 @@ export const FinishButton = () => {
     }else{
       toast.error( resp.message)
     }
-  }, [])
+  }, [JSON.stringify(ticket)])
 
   return(
     <Button onPress={finishAction}>

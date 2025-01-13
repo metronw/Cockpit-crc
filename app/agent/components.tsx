@@ -45,7 +45,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
       <div className="flex flex-row col-span-8 space-x-4 items-center ">
         <span className="font-bold">Agente - 3650 </span>
         <ClockIcon className="h-10" />
-        <div>13:16</div>      
+        <div>00:00</div>      
         <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary"/></Button>
       </div>
       <Button isIconOnly color="primary" aria-label="logout" onPress={() => signOut()}>
@@ -92,10 +92,18 @@ export const Sidebar = () => {
 
   const len = tickets.length
   useEffect(()=>{
+    refreshList()
+  }, [isMounted, len])
+
+  useEffect(() => {
+    refreshList()
+  }, [JSON.stringify(ticketContext)])
+
+  const refreshList = () => {
     const list = companies.map<ICompanyList>(el => ({...el, tickets: []}))
     const others:ICompanyList = {id:0, name: 'Outros', fantasy_name:'Outros', mass: false,  tickets:[]}
     list.push(others)
-    console.log(tickets)
+    
     tickets.forEach(el => {
       const comp = list.find(item => item.id == el.company_id)
       if(comp){
@@ -106,7 +114,7 @@ export const Sidebar = () => {
     })
 
     setTicketList(list)
-  }, [isMounted, len])
+  }
 
   const newTicket = async (company: ICompanyList) => {
     if(tickets.length <= 15){
@@ -139,7 +147,7 @@ export const Sidebar = () => {
             }
             {
               el.tickets?.map(item => 
-                <Client name={'#'+item.id} timer={'0:00'} key={item.id} onClick={() => redirectToTicket(item.id)}/>
+                <Client name={'#'+item.id+`, `+(item.client_name ? item.client_name.substring(0,12) : `sem nome`)} timer={'0:00'} key={item.id} onClick={() => redirectToTicket(item.id)}/>
               )
             }
           </AccordionItem>

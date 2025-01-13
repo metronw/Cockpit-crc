@@ -38,7 +38,7 @@ export async function createTicket({company_id}:{company_id:number}){
   if(session){
     const ticket = await prisma.ticket.create({
       data: { company_id, status: 'triage', user_id: session.user.id, procedures: JSON.stringify([]) },
-    })
+    }) 
     return JSON.stringify(ticket)
   }
 }
@@ -107,7 +107,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
 
   try{
     if(ticketInfo){
-      const { type, erp, phone, company_id, client_name, procedures, address} = ticketInfo
+      const { type, erp, phone, company_id, client_name, procedures, address, communication_id, communication_type, caller_number, trunk_name} = ticketInfo
       
       if(
         !!type && !!company_id
@@ -147,7 +147,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
           where: {
             id: ticketInfo.id,
           },
-          data: { company_id, status: 'closed', user_id: 424, client_name, type: parseInt(type) },
+          data: { company_id, status: 'closed', user_id: 424, client_name, type: parseInt(type), procedures, communication_id, communication_type, caller_number, trunk_name },
         })
     
         return {status: 200, message: 'ticket criado com sucesso' }

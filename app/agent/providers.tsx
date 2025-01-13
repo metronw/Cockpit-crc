@@ -32,6 +32,10 @@ export interface ITicket {
   time: string;
   createdAt:Date;
   procedures: string;
+  caller_number: string;
+  communication_id: string;
+  communication_type: string;
+  trunk_name: string;
 }
 
 export interface IProcedureItemResponse {

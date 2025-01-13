@@ -9,7 +9,7 @@ import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
 import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
 
-const options = [{id: 1, label: 'Sim/Não'}, {id: 2, label:'Texto'}, /*{id: 3, label:'options'}, */ /*{id:4, label: 'date'}*/ ]
+const ticketTypeOptions = [{id: 1, label: 'Sim/Não'}, {id: 2, label:'Texto'}, /*{id: 3, label:'options'},*/ /*{id:4, label: 'date'}*/ ]
 
 export function InputPicker(){
   
@@ -83,7 +83,7 @@ export function RadioInput ({modalTitle, modalBody, label}:
   const [body] = modalBody
   
   return(
-    <div className="flex flex-col gap-2 ">      
+    <div className="flex flex-col gap-2 ">
       <div className="flex flex-row gap-2 border rounded p-2 border-primary">
         <Input 
           label={'Descrição do procedimento'}
@@ -109,6 +109,79 @@ export function RadioInput ({modalTitle, modalBody, label}:
           <Radio value="Yes" classNames={{ wrapper: 'border-success', control: 'bg-success' }}></Radio>
           <Radio value="No" classNames={{ wrapper: 'border-danger', control: 'bg-danger'}}></Radio>
         </RadioGroup>
+      </div>
+    </div>
+  )
+}
+
+interface Option {
+  label:string
+  id: number
+}
+
+export function OptionsInput ({modalTitle, modalBody, label}:
+  {modalTitle:[string, Dispatch<SetStateAction<string>>],
+   modalBody:[JsonValue, Dispatch<SetStateAction<JsonValue>>] 
+   label:[string, Dispatch<SetStateAction<string>>] 
+  }) 
+{
+
+  const [description, setDescription] = label
+  const [response, setResponse] = useState('')
+  const [option, setOption] = useState('')
+  const [options, setOptions] = useState<Option[]>([])
+
+  const [title] = modalTitle
+  const [body] = modalBody
+  
+  return(
+    <div className="flex flex-col ">    
+      <div className="flex flex-col gap-2 border border-primary rounded-medium p-2 m-2">
+        <Input 
+          label={'Descrição do procedimento'}
+          type='text' 
+          value={description} 
+          color={'primary'}  
+          className={'w-80 h-11 border border-primary rounded-medium'}
+          onValueChange={setDescription}
+        />
+        <div className="flex flex-row gap-2 ">
+        <Input 
+          label={'Opção'}
+          type='text' 
+          value={option} 
+          color={'primary'}  
+          className={'w-80 h-11 '}
+          onValueChange={setOption}
+        />
+        <Button onPress={() => setOptions((prev ) => [...prev, {id:prev.length, label: option}])} > Adicionar opção</Button>
+        </div>
+        <EditInfoModal modalTitle={modalTitle} modalBody={modalBody} className={''} />
+      </div>  
+
+      <div className="flex flex-col border border-primary p-3 rounded gap-2">
+        <span className="bg-purple-700 rounded p-2 text-white my-2 ">{description} </span>
+        <div className="flex flex-row gap-2">
+          <InfoModal title={title} body={body} />
+          <Autocomplete
+            variant={'bordered'}
+            aria-label={'Tipo de Input'}
+            // isRequired={true}
+            label={'Tipo de Input'}
+            defaultItems={options}
+            defaultSelectedKey=""
+            // @ts-expect-error: library has wrong type
+            onSelectionChange={setResponse}
+            selectedKey={response}
+            className="flex h-11 max-w-xs my-1"
+            classNames={{
+              popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
+              base: 'flex shrink border-primary border rounded-medium'
+            }}
+          >
+            {options.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+          </Autocomplete>
+        </div>
       </div>
     </div>
   )
@@ -382,7 +455,7 @@ export function ProcedureEditor() {
           aria-label={'Tipo de Input'}
           // isRequired={true}
           label={'Tipo de Input'}
-          defaultItems={options}
+          defaultItems={ticketTypeOptions}
           defaultSelectedKey=""
           // @ts-expect-error: library has wrong type
           onSelectionChange={setValue}
@@ -393,7 +466,7 @@ export function ProcedureEditor() {
             base: 'flex shrink border-primary border rounded-medium'
           }}
         >
-          {options.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+          {ticketTypeOptions.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
         </Autocomplete>
       </div>
       {
@@ -402,6 +475,9 @@ export function ProcedureEditor() {
         :
         value == '2' ?
         <TextInput modalBody={[modalBody, setModalBody]} modalTitle={[modalTitle, setModalTitle]} label={[label, setLabel]} />
+        :
+        value == '3' ?
+        <OptionsInput modalBody={[modalBody, setModalBody]} modalTitle={[modalTitle, setModalTitle]} label={[label, setLabel]} />
         :
         null
       }

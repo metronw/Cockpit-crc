@@ -11,10 +11,10 @@ export default function Finishing({params: {id}}: {params: {id: string}}) {
           <p className='bg-purple-700 text-white rounded content-center px-2 my-1 py-1'>
             {"Solicitante, foi aberto um atendimento de protocolo [protocolo ERP] para o setor responsável. O prazo de retorno é "}
           </p>
-          <div className="border rounded border-warning p-2 my-2">
+          {/* <div className="border rounded border-warning p-2 my-2">
             <p className="text-warning">Prazo Financeiro/Comercial: Até proximo dia útil</p>
             <p className="text-warning">Prazo técnico: Dois dias úteis para retorno telefônico</p>
-          </div>
+          </div> */}
           <p className='bg-purple-700 text-white rounded content-center px-2 my-1 py-1'>
             {"Poderia te auxiliar em algo mais?"}
           </p>

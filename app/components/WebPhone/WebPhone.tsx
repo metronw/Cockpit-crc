@@ -168,6 +168,10 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         setCallerNumber(newSession.remote_identity.uri.user || 'Desconhecido');
       }
 
+      newSession.on('confirmed', () => {
+        setCallStatus('Connected');
+      });
+
       // @ts-expect-error: fix later
       newSession.on('ended', (e: RTCSessionEndedEvent) => {
         setCallStatus('Call Ended');
@@ -320,6 +324,10 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
       };
 
       setCallStatus(session.direction === 'incoming' ? 'Incoming Call' : 'Calling');
+
+      session.on('confirmed', () => {
+        setCallStatus('Connected');
+      });
 
       session.on('ended', () => {
         releaseStream();

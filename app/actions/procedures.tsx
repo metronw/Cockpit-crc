@@ -15,7 +15,7 @@ export interface IProcedure {
 export interface IProcedureItem {
   id: number,
   company_id: number | null,
-  ticket_type_id: number,
+  ticket_type_id: number | null,
   label: string,
   input_type: number,
   modal_body: JsonValue,
@@ -36,7 +36,7 @@ export async function createProcedureItem({
     
   const session = await getServerSession(authOptions);
 
-  if(session && ticket_type_id){
+  if(session){
     try{
       await prisma.procedure_item.upsert({
         where:{
@@ -49,7 +49,7 @@ export async function createProcedureItem({
       })
       return {message: 'procedimento criado com sucesso', status: 'success'}
   
-    }catch(error){
+    }catch(error){ 
       return {message: JSON.stringify(error), status: 'error'}
     }
   }
@@ -69,6 +69,10 @@ export async function getProcedureItems({company_id, ticket_type_id}:{company_id
         {
           company_id: null,
           ticket_type_id
+        },
+        {
+          company_id: null,
+          ticket_type_id:null
         },
 
       ]

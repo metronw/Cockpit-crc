@@ -140,7 +140,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
 
   try{
     if(ticketInfo){
-      const { type, erp, phone, company_id, client_name, procedures, address, communication_id, communication_type, caller_number, trunk_name} = ticketInfo
+      const { type, erp, company_id, client_name, procedures, address, communication_id, communication_type, caller_number, trunk_name, caller_name, isRecall, identity_document} = ticketInfo
       
       if(
         !!type && !!company_id
@@ -148,7 +148,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
         const session = await getServerSession(authOptions);
         const [result] = await connection.query(
           `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner )`+
-          `VALUES (${company_id}, 4, "teste", 2, 0, ${parseInt(type)}, ${session?.user.metro_id ?? 312}, ${isNaN(parseInt(erp)) ? null : parseInt(erp)}, ${isNaN(parseInt(phone)) ? null : parseInt(phone)}, NOW(), NOW(), ${session?.user.metro_id ?? 312} )`
+          `VALUES (${company_id}, 4, "teste", 2, 0, ${parseInt(type)}, ${session?.user.metro_id ?? 312}, ${isNaN(parseInt(erp)) ? null : parseInt(erp)}, ${isNaN(parseInt(caller_number)) ? null : parseInt(caller_number)}, NOW(), NOW(), ${session?.user.metro_id ?? 312} )`
         )
 
         if(result){
@@ -164,8 +164,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
         Procedimentos realizados: 
         ${formatProcedures(procedures)}
         Data/horários: ${(new Date).toLocaleString()}
-        Telefone: ${phone}
-        Protocolo: ${erp}
+        Telefone: ${caller_number}
         Nome do atendente: ${session?.user.name}
         `
         
@@ -180,7 +179,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
           where: {
             id: ticketInfo.id,
           },
-          data: { company_id, status: 'closed', user_id: 424, client_name, type: parseInt(type), procedures, communication_id, communication_type, caller_number, trunk_name },
+          data: { company_id, status: 'closed', user_id: 424, client_name, type: parseInt(type), procedures, communication_id, communication_type, caller_number, trunk_name, address, caller_name, isRecall, identity_document },
         })
     
         return {status: 200, message: 'ticket criado com sucesso' }

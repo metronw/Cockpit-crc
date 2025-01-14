@@ -1,5 +1,4 @@
 import {IssueSelector, NavigateTicket} from "../../components"
-import {Input} from "@nextui-org/react"
 import { TextInput } from "../../components";
 import { getCrcTicketTypes} from '@/app/actions/api';
 import { getServerSession } from "next-auth";
@@ -15,33 +14,42 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
     
       <div className="flex gap-1 flex-col">
         <div className="flex flex row pr-4">
-          <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{` Bom dia. Meu nome é ${session?.user.name}, em que posso ajudá-lo?`}</span>
+          <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{` Bom dia. Meu nome é ${session?.user.name}, com quem eu falo?`}</span>
+          <TextInput id={id} fieldName={'caller_name'} label={'Nome do solicitante'} />
+        </div>
+        <div className="flex flex row pr-4">
+          {/* <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{` ?`}</span> */}
+          <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de atendimento'} />
+        </div>
+        {/* <Input type="checkbox" label="Rechamado?" color={'primary'} className={'w-32 h-16 pl-4'}/> */}
+        <div className="flex flex row pr-4">
+          <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{`Pode me informar o nome do titular do contrato?`}</span>
           <TextInput id={id} fieldName={'client_name'} label={'Nome do cliente'} />
         </div>
         <div className="flex flex row pr-4 space-x-4">
           <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">{`Como posso ajudá-lo?`}</span>
           <IssueSelector id={id} fieldName={'type'} placeholder={'Selecione o seu problema'} dataSource={getCrcTicketTypes} isRequired={true}/>
         </div>
-        <span className="bg-purple-700 text-white rounded content-center px-2 py-1 my-2 ">Certo, vou só conferir alguns dados para confirmar o seu cadastro. </span>
       </div>
-      <div className="flex flex-row flex-wrap py-4 gap-1">
-        <div className="flex flex row pr-4">
-          <TextInput id={id} fieldName={'cpf'} label={'CPF'} />
-          {/* <Input type="text" label="CPF" variant={'bordered'} color={'primary'} className={'w-40 h-11 border border-primary rounded-medium'}/> */}
-        </div>
-        <div className="flex flex row pr-4">
-          <TextInput id={id} fieldName={'phone'} label={'Telefone'} />
-          {/* <Input type="text" label="Telefone com DDD" variant={'bordered'} color={'primary'} className={'w-40 h-11 border border-primary rounded-medium'}/> */}
-        </div>
-        {/* <div className="flex flex row pr-4">
-          <IssueSelector items={issueItems} placeholder={'Status do Contrato'}/>
-        </div>
-        <div className="flex flex row pr-4">
-          <IssueSelector items={issueItems} placeholder={'Tipo de Plano'}/>
-        </div> */}
-        <TextInput id={id} fieldName={'address'} label={'Endereço'}/>
-        <Input type="checkbox" label="Rechamado?" color={'primary'} className={'w-80 h-11 pl-4'}/>
-        <div className="flex flex row px-2 pr-4">
+      <div className="flex flex-col flex-wrap gap-1">
+        <span className="bg-purple-700 text-white rounded content-center px-2 py-1 my-2 ">Certo, vou só conferir alguns dados para confirmar o seu cadastro. </span>
+        <div className="flex flex-row flex-wrap gap-1">
+          <div className="flex flex row pr-4">
+            <TextInput id={id} fieldName={'cpf'} label={'CPF'} />
+          </div>
+          <div className="flex flex row pr-4">
+            <TextInput id={id} fieldName={'caller_number'} label={'Telefone'} />
+          </div>
+          {/* <div className="flex flex row pr-4">
+            <IssueSelector items={issueItems} placeholder={'Status do Contrato'}/>
+          </div>
+          <div className="flex flex row pr-4">
+            <IssueSelector items={issueItems} placeholder={'Tipo de Plano'}/>
+          </div> */}
+          <TextInput id={id} fieldName={'address'} label={'Endereço'}/>
+          
+          <div className="flex flex row px-2 pr-4">
+          </div>
         </div>
       </div>
       <div className="flex flex-row justify-center">

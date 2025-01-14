@@ -9,17 +9,21 @@ datasource db {
 
 model Ticket {
   id                 Int      @id @default(autoincrement())
-  client_name        String?
-  type               Int?
   company_id         Int
   status             String
   user_id            Int
-  createdAt          DateTime @default(now())
+  type               Int?
   procedures         String?  @db.LongText
+  createdAt          DateTime @default(now())
+  client_name        String?
   caller_number      String?
   communication_id   String?
-  communication_type String?
+  communication_type String? @default("chat")
   trunk_name         String?
+  caller_name        String?  
+  identity_document  Int?     
+  address            String?
+  isRecall           Boolean?  @default(false)
 }
 
 model User {
@@ -67,7 +71,7 @@ model Procedure_item {
   input_type           Int
   data_source          String?
   company_id           Int?
-  ticket_type_id       Int
+  ticket_type_id       Int?
   created_by           Int
   modal_title          String?
   modal_body           String? @db.LongText

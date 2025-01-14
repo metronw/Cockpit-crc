@@ -16,7 +16,7 @@ import { JsonValue } from "@prisma/client/runtime/library";
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
 
 export const TextInput = ({id, fieldName, label, isRequired=false}: 
-  {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string, isRequired?: boolean}) => {
+  {id: string, fieldName: 'client_name' | 'caller_number' | 'cpf' | 'address' | 'erp' | 'complement' | `caller_name` | `communication_id`, label: string, isRequired?: boolean}) => {
 
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
   const [value, setValue] = useState<string>('')
@@ -404,7 +404,7 @@ export const TicketSummary = () => {
       <p>Procedimentos Realizados:</p>
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>
-      <p>Telefone: {ticket?.phone}</p>
+      <p>Telefone: {ticket?.caller_number}</p>
       <p>Protocolo ERP: {ticket?.erp}</p>
       <p>Protocolo Chat</p>
       <p>Atendente: {session?.data?.user.name} </p>

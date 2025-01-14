@@ -21,7 +21,6 @@ export interface ITicket {
   id: number;
   client_name: string;
   cpf: string;
-  phone: string;
   address: string;
   type:string;
   erp: string;
@@ -36,6 +35,9 @@ export interface ITicket {
   communication_id: string;
   communication_type: string;
   trunk_name: string;
+  caller_name: string;
+  isRecall: boolean;
+  identity_document: number;
 }
 
 export interface IProcedureItemResponse {

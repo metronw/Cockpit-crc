@@ -1,4 +1,4 @@
-import { TextInput, Procedures, NavigateTicket } from "../../components";
+import {  Procedures, NavigateTicket } from "../../components";
 
 
 export default function Procedure({params: {id}}: {params: {id: string}}) {
@@ -11,8 +11,8 @@ export default function Procedure({params: {id}}: {params: {id: string}}) {
         <div className=" grid grid-cols-12">
           <div className="col-span-6">
             <Procedures />
-            <TextInput id={id} fieldName={'erp'} label={'Protocolo ERP'} isRequired={true}/>
-            <TextInput id={id} fieldName={'complement'} label={'Informações complementares'}/>
+            {/* <TextInput id={id} fieldName={'erp'} label={'Protocolo ERP'} isRequired={true}/>
+            <TextInput id={id} fieldName={'complement'} label={'Informações complementares'}/> */}
           </div>
         </div>
 

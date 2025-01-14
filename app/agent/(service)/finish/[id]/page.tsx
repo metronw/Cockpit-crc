@@ -6,9 +6,9 @@ export default function Finishing({params: {id}}: {params: {id: string}}) {
     <div className="flex flex-col pt-3 h-full">    
       <div className="grid grid-cols-12 h-full">
         <div className="col-span-6 flex flex-col mx-4 gap-4">
-          <p className='bg-purple-700 text-white rounded content-center px-2 my-1 py-1'>
+          {/* <p className='bg-purple-700 text-white rounded content-center px-2 my-1 py-1'>
             {"Solicitante, foi aberto um atendimento de protocolo [protocolo ERP] para o setor responsável. O prazo de retorno é "}
-          </p>
+          </p> */}
           {/* <div className="border rounded border-warning p-2 my-2">
             <p className="text-warning">Prazo Financeiro/Comercial: Até proximo dia útil</p>
             <p className="text-warning">Prazo técnico: Dois dias úteis para retorno telefônico</p>

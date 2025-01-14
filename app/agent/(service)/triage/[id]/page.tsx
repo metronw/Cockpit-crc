@@ -1,6 +1,6 @@
 import {IssueSelector, NavigateTicket} from "../../components"
 import { TextInput } from "../../components";
-import { getCrcTicketTypes} from '@/app/actions/api';
+import { getCrcTicketTypes, getTicket} from '@/app/actions/api';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { use } from "react";
@@ -8,6 +8,7 @@ import { use } from "react";
 export default function Triage({params: {id}}: {params: {id: string}}) {
   
   const session = use(getServerSession(authOptions));
+  const ticket = use(getTicket(parseInt(id)))
 
   return (
     <form className="flex flex-col flex-stretch px-4 pt-3 mt-8 h-full grow justify-around">        
@@ -19,7 +20,11 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
         </div>
         <div className="flex flex row pr-4">
           {/* <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{` ?`}</span> */}
-          <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de atendimento'} />
+          {
+            ticket?.communication_type == `phone` ?
+            null :
+            <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de atendimento'} />
+          }
         </div>
         {/* <Input type="checkbox" label="Rechamado?" color={'primary'} className={'w-32 h-16 pl-4'}/> */}
         <div className="flex flex row pr-4">

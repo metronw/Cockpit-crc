@@ -94,6 +94,12 @@ export async function getCompaniesList(){
 
 }
 
+export async function getTicket(id:number){
+  const ticket = prisma.ticket.findFirst({
+    where:{id}
+  }) 
+  return ticket
+}
 
 
 export async function getTicketContext(user_id: number | undefined){
@@ -165,6 +171,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
         ${formatProcedures(procedures)}
         Data/horários: ${(new Date).toLocaleString()}
         Telefone: ${caller_number}
+        Protocolo ERP: ${erp}
         Nome do atendente: ${session?.user.name}
         `
         

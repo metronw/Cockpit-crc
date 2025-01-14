@@ -1,8 +1,6 @@
-import {IssueSelector} from "../../components"
+import {IssueSelector, NavigateTicket} from "../../components"
 import {Input} from "@nextui-org/react"
-import {ChevronRightIcon} from "@heroicons/react/24/solid"
 import { TextInput } from "../../components";
-import Link from "next/link";
 import { getCrcTicketTypes} from '@/app/actions/api';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
@@ -47,8 +45,7 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
         </div>
       </div>
       <div className="flex flex-row justify-center">
-        <Link href={'/agent/procedure/'+id}>Próximo <ChevronRightIcon width='40' /></Link>
-        {/* <Input type="submit" label="Próximo" color={'primary'} className={'w-40'} startContent={<ChevronRightIcon width='40' />} /> */}
+        <NavigateTicket route={'/agent/procedure/'+id} direction={`forwards`} />
       </div>
     </form>
   );

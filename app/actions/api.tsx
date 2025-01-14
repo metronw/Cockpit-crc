@@ -37,10 +37,26 @@ export async function createTicket({company_id}:{company_id:number}){
 
   if(session){
     const ticket = await prisma.ticket.create({
-      data: { company_id, status: 'triage', user_id: session.user.id, procedures: JSON.stringify([]) },
+      data: { company_id, status: 'triage', user_id: session.user.id, procedures: JSON.stringify([]), communication_id: `chat`  },
     }) 
     return JSON.stringify(ticket)
   }
+}
+
+export async function updateTicket({ticket}: {ticket: ITicket | undefined}){
+  if(ticket){
+    const {company_id, status, procedures} = ticket
+  
+    const updatedTicket = await prisma.ticket.update({
+      where: {
+        id: ticket.id
+      },
+      data: { company_id, status, procedures },
+    })
+  
+    return JSON.stringify(updatedTicket)
+  }
+  
 }
 
 

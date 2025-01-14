@@ -1,6 +1,6 @@
 import { ChevronLeftIcon} from "@heroicons/react/24/solid"
 import Link from "next/link";
-import { FinishButton, TicketSummary } from "../../components";
+import { FinishButton, TicketSummary, NavigateTicket } from "../../components";
 
 export default function Finishing({params: {id}}: {params: {id: string}}) {
   
@@ -28,8 +28,8 @@ export default function Finishing({params: {id}}: {params: {id: string}}) {
         </div>
         
       </div>    
-      <div className="flex flex-row justify-center ">
-        <Link href={'/agent/procedure/'+id} className="w-40"><ChevronLeftIcon width='40' /> Anterior  </Link>
+      <div className="flex flex-row justify-center gap-2">
+        <NavigateTicket route={'/agent/procedure/'+id} direction={`backwards`} />
         <FinishButton />
       </div>
     </div>

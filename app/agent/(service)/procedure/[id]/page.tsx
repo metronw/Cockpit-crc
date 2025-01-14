@@ -1,5 +1,5 @@
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
-import { TextInput, Procedures } from "../../components";
+import { TextInput, Procedures, NavigateTicket } from "../../components";
 import Link from "next/link";
 
 
@@ -18,9 +18,9 @@ export default function Procedure({params: {id}}: {params: {id: string}}) {
           </div>
         </div>
 
-      <div className="flex flex-row justify-center ">
-        <Link href={'/agent/triage/'+id} className="w-40"><ChevronLeftIcon width='40' /> Anterior  </Link>
-        <Link href={'/agent/finish/'+id} className="w-40">  Próximo <ChevronRightIcon width='40' /></Link>
+      <div className="flex flex-row justify-center gap-2">
+        <NavigateTicket route={'/agent/triage/'+id} direction={`backwards`} />
+        <NavigateTicket route={'/agent/finish/'+id} direction={`forwards`} />
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import Link  from 'next/link'
 import { ILocalData, useTicketContext } from "@/app/agent/providers"
 import {useState, useEffect, useCallback} from 'react'
 import {Input} from "@nextui-org/react"
-import {createMetroTicket} from '@/app/actions/api'
+import {createMetroTicket, updateTicket} from '@/app/actions/api'
 import { usePathname, useRouter } from 'next/navigation'
 import { IProcedureItem, getProcedure } from "@/app/actions/procedures";
 import { useTicketTypeContext } from "@/app/providers";
@@ -13,6 +13,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
 import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
+import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
 
 export const TextInput = ({id, fieldName, label, isRequired=false}: 
   {id: string, fieldName: 'client_name' | 'phone' | 'cpf' | 'address' | 'erp' | 'complement', label: string, isRequired?: boolean}) => {
@@ -253,7 +254,7 @@ export const StagePanel = () => {
           <CardBody><p className="text-primary">{company?.fantasy_name ?? ''}</p><p className="text-primary text-center font-bold">Ticket #{ticket?.id ?? ''}</p></CardBody>
         </Card>
         <Card className="border border-primary">
-          <CardBody><p className="text-primary">Atendimento Telefônico</p></CardBody>
+          <CardBody><p className="text-primary min-w-24">{ticket?.communication_type == `phone` ? `Atendimento Telefônico` : ticket?.communication_type ==`chat` ? `Chat` : `` }</p></CardBody>
         </Card>
         <Card className="border border-primary">
           <CardBody>
@@ -448,3 +449,29 @@ export const Procedures = () =>{
   )
 }
 
+export const NavigateTicket = ({direction, route}: {direction: string, route: string}) => {
+  const {ticketContext} = useTicketContext()
+  const router = useRouter();
+  const path = usePathname()
+  const { ticket } = parsePageInfo(path, ticketContext)
+
+  const onClick = () => {
+    updateTicket({ticket})
+    router.push(route)
+  } 
+
+  return(
+    <div >
+      {
+        direction == `backwards` ?
+        <Button onPress={onClick} className="text-primary p-4">
+          <ChevronLeftIcon width='40' /> Anterior
+        </Button>
+        :
+        <Button onPress={onClick} className="text-primary p-4 " >
+          Próximo <ChevronRightIcon width='40' />
+        </Button>
+      }      
+    </div>
+  )
+}

@@ -23,7 +23,7 @@ export interface ITicket {
   cpf: string;
   address: string;
   type:string;
-  erp: string;
+  erpProtocol: string;
   complement:string;
   status: string;
   user_id: number;
@@ -64,24 +64,24 @@ export interface ITicketContext {
   isMounted: boolean
 }
 
-function mergeContext(local:ILocalData, server: ILocalData){
-  const mergedTickets = local.tickets
-  const mergedCompanies = local.companies
+// function mergeContext(local:ILocalData, server: ILocalData){
+//   const mergedTickets = local.tickets
+//   const mergedCompanies = local.companies
 
-  server.companies.forEach((el:ICompany) => {
-    if(!local.companies.find(item => item.id === el.id)){
-      mergedCompanies.push(el)
-    }
-  })
+//   server.companies.forEach((el:ICompany) => {
+//     if(!local.companies.find(item => item.id === el.id)){
+//       mergedCompanies.push(el)
+//     }
+//   })
   
-  server.tickets.forEach((el:ITicket) => {
-    if(!local.tickets.find(item => item.id === el.id)){
-      mergedTickets.push(el)
-    }
-  })
+//   server.tickets.forEach((el:ITicket) => {
+//     if(!local.tickets.find(item => item.id === el.id)){
+//       mergedTickets.push(el)
+//     }
+//   })
   
-  return {tickets: mergedTickets, companies:server.companies}
-}
+//   return {tickets: mergedTickets, companies:server.companies}
+// }
 
 
 export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext:string }) {
@@ -90,13 +90,13 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    const savedTickets = localStorage.getItem('tickets');
+    // const savedTickets = localStorage.getItem('tickets');
     setIsMounted(true)
-    if (savedTickets) {
-      const local = JSON.parse(savedTickets)
-      const ctx = (mergeContext(local, ticketContext))
-      setTicketContext(ctx);
-    }
+    // if (savedTickets) {
+    //   const local = JSON.parse(savedTickets)
+    //   const ctx = (mergeContext(local, ticketContext))
+    //   setTicketContext(ctx);
+    // }
 
     // return () => {
     //   if(isMounted){

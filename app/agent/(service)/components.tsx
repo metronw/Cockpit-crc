@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet } from "@nextui-org/react";
+import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet, Checkbox } from "@nextui-org/react";
 import Link  from 'next/link'
 import { ILocalData, useTicketContext } from "@/app/agent/providers"
 import {useState, useEffect, useCallback} from 'react'
@@ -16,7 +16,7 @@ import { JsonValue } from "@prisma/client/runtime/library";
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
 
 export const TextInput = ({id, fieldName, label, isRequired=false}: 
-  {id: string, fieldName: 'client_name' | 'caller_number' | 'cpf' | 'address' | 'erp' | 'complement' | `caller_name` | `communication_id`, label: string, isRequired?: boolean}) => {
+  {id: string, fieldName: 'client_name' | 'caller_number' | 'cpf' | 'address' | 'erpProtocol' | 'complement' | `caller_name` | `communication_id`, label: string, isRequired?: boolean}) => {
 
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
   const [value, setValue] = useState<string>('')
@@ -64,6 +64,48 @@ export const TextInput = ({id, fieldName, label, isRequired=false}:
         value={value}
         onValueChange={setValue}
         isRequired= {isRequired}
+      />
+
+    </div>
+  )
+}
+
+export function BooleanInput({id, fieldName, label}:{id:string, fieldName: "isRecall", label:string} ){
+  const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
+  const [value, setValue] = useState<boolean>(false)
+  const [isCtxLoaded, setIsCtxLoaded] = useState<boolean>(false)
+
+  useEffect(()=>{
+    if(!isCtxLoaded && isMounted){
+      const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
+      const initialValue = ticket ? ticket[fieldName] : false
+      
+      setValue(initialValue)
+      setIsCtxLoaded(true)
+    }
+    
+  }, [ticketContext.tickets, fieldName,id, isCtxLoaded, isMounted])
+
+
+  useEffect(()=>{
+    setTicketContext((prevContext) => { 
+      const updatedTickets = prevContext.tickets.map((el) =>
+        el.id === parseInt(id) ? { ...el, [fieldName]: value } : el
+      );
+      return {...prevContext, tickets: updatedTickets} 
+    });
+    
+  }, [value])
+
+  return(    
+    <div className="flex flex-col p-1 rounded  items-center">
+      <span className="text-primary" >{label}</span>
+      <Checkbox type="checkbox" 
+        color={'primary'} 
+        className={'w-32 h-16 pl-4 text-primary'}
+        isSelected={value}
+        onValueChange={setValue}
+        // onValueChange={(val) => setValue(newLocal ? true : false)}
       />
 
     </div>
@@ -405,7 +447,7 @@ export const TicketSummary = () => {
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>
       <p>Telefone: {ticket?.caller_number}</p>
-      <p>Protocolo ERP: {ticket?.erp}</p>
+      <p>Protocolo ERP: {ticket?.erpProtocol}</p>
       <p>Protocolo Chat</p>
       <p>Atendente: {session?.data?.user.name} </p>
     </Snippet>

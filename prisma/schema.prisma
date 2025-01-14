@@ -22,8 +22,9 @@ model Ticket {
   trunk_name         String?
   caller_name        String?  
   identity_document  Int?     
-  address            String?
+  address            String? @db.VarChar(500)
   isRecall           Boolean?  @default(false)
+  erpProtocol        String?
 }
 
 model User {

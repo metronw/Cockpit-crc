@@ -45,13 +45,13 @@ export async function createTicket({company_id}:{company_id:number}){
 
 export async function updateTicket({ticket}: {ticket: ITicket | undefined}){
   if(ticket){
-    const {company_id, status, procedures} = ticket
+    const {company_id, status, procedures, erpProtocol, address, caller_name, client_name, identity_document, isRecall} = ticket
   
     const updatedTicket = await prisma.ticket.update({
       where: {
         id: ticket.id
       },
-      data: { company_id, status, procedures },
+      data: { company_id, status, procedures, erpProtocol, address, caller_name, client_name, identity_document, isRecall  },
     })
   
     return JSON.stringify(updatedTicket)
@@ -146,7 +146,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
 
   try{
     if(ticketInfo){
-      const { type, erp, company_id, client_name, procedures, address, communication_id, communication_type, caller_number, trunk_name, caller_name, isRecall, identity_document} = ticketInfo
+      const { type, erpProtocol, company_id, client_name, procedures, address, communication_id, communication_type, caller_number, trunk_name, caller_name, isRecall, identity_document} = ticketInfo
       
       if(
         !!type && !!company_id
@@ -154,7 +154,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
         const session = await getServerSession(authOptions);
         const [result] = await connection.query(
           `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner )`+
-          `VALUES (${company_id}, 4, "teste", 2, 0, ${parseInt(type)}, ${session?.user.metro_id ?? 312}, ${isNaN(parseInt(erp)) ? null : parseInt(erp)}, ${isNaN(parseInt(caller_number)) ? null : parseInt(caller_number)}, NOW(), NOW(), ${session?.user.metro_id ?? 312} )`
+          `VALUES (${company_id}, 4, "teste", 2, 0, ${parseInt(type)}, ${session?.user.metro_id ?? 312}, ${isNaN(parseInt(erpProtocol)) ? null : parseInt(erpProtocol)}, ${isNaN(parseInt(caller_number)) ? null : parseInt(caller_number)}, NOW(), NOW(), ${session?.user.metro_id ?? 312} )`
         )
 
         if(result){
@@ -171,7 +171,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
         ${formatProcedures(procedures)}
         Data/horários: ${(new Date).toLocaleString()}
         Telefone: ${caller_number}
-        Protocolo ERP: ${erp}
+        Protocolo ERP: ${erpProtocol}
         Nome do atendente: ${session?.user.name}
         `
         

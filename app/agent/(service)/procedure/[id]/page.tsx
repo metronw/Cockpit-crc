@@ -12,7 +12,7 @@ export default function Procedure({params: {id}}: {params: {id: string}}) {
         <div className=" grid grid-cols-12">
           <div className="col-span-6">
             <Procedures />
-            <TextInput id={id} fieldName={'erp'} label={'Protocolo ERP'} isRequired={true}/>
+            <TextInput id={id} fieldName={'erpProtocol'} label={'Protocolo ERP'} isRequired={true}/>
             {/* <TextInput id={id} fieldName={'complement'} label={'Informações complementares'}/> */}
           </div>
         </div>

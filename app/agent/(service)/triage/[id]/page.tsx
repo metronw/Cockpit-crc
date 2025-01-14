@@ -1,4 +1,4 @@
-import {IssueSelector, NavigateTicket} from "../../components"
+import {BooleanInput, IssueSelector, NavigateTicket} from "../../components"
 import { TextInput } from "../../components";
 import { getCrcTicketTypes, getTicket} from '@/app/actions/api';
 import { getServerSession } from "next-auth";
@@ -25,6 +25,7 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
             null :
             <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de atendimento'} />
           }
+          <BooleanInput id={id} fieldName={"isRecall"} label={`Rechamado?`} />
         </div>
         {/* <Input type="checkbox" label="Rechamado?" color={'primary'} className={'w-32 h-16 pl-4'}/> */}
         <div className="flex flex row pr-4">

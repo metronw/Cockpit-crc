@@ -142,23 +142,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               // @ts-expect-error: fix later
               newSession.answer({ mediaStream: localStreamRef.current });
               setupPeerConnection(newSession);
-
-              // Extrair trunk_name e callid no auto-answer
-              const displayName = newSession.remote_identity.display_name;
-              console.log("Display Name Auto-Answer:", displayName); // Adicionado log
-              const regex = /^\s*(\S+)\s*\{\s*([^}]+)\s*\}/;
-              const match = displayName.match(regex);
-              console.log("Regex Match Auto-Answer:", match); // Adicionado log
-              if (match) {
-                const trunk_name = match[1];
-                const callid = match[2];
-                const callernum = newSession.remote_identity.uri.user;
-
-                // Chamar a função para criar o ticket
-                createTicket(trunk_name, callid, callernum);
-              } else {
-                console.warn("Regex não correspondeu para Auto-Answer. Display Name:", displayName);
-              }
             }, 3000);
           }
         }

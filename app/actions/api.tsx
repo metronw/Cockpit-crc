@@ -5,7 +5,6 @@ import prisma from '@/app/lib/localDb'
 import { ICompany, IProcedureItemResponse, ITicket } from '../agent/providers';
 import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
-import { IUser } from './userAssign';
 
 export async function getCrcTicketTypes() {
   const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id FROM ticket_type '

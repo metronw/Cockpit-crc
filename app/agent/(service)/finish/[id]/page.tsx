@@ -1,5 +1,3 @@
-import { ChevronLeftIcon} from "@heroicons/react/24/solid"
-import Link from "next/link";
 import { FinishButton, TicketSummary, NavigateTicket } from "../../components";
 
 export default function Finishing({params: {id}}: {params: {id: string}}) {

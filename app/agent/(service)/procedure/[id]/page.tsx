@@ -1,6 +1,4 @@
-import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
 import { TextInput, Procedures, NavigateTicket } from "../../components";
-import Link from "next/link";
 
 
 export default function Procedure({params: {id}}: {params: {id: string}}) {

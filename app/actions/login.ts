@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt'; // Assuming passwords are hashed in the database
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../lib/authOptions';
+import { syncUserGestor } from './api';
 
 interface LoginCredentials {
   email: string;
@@ -33,6 +34,8 @@ export async function loginSSO({email, name, metro_id} :{email:string, name?:str
   let user = await prisma.user.findUnique({
     where: { email },
   });
+
+  syncUserGestor(email)
 
   if(!user){
     const password = bcrypt.hashSync('951Mudar!', 10)

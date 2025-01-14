@@ -5,6 +5,7 @@ import prisma from '@/app/lib/localDb'
 import { ICompany, IProcedureItemResponse, ITicket } from '../agent/providers';
 import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
+import { IUser } from './userAssign';
 
 export async function getCrcTicketTypes() {
   const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id FROM ticket_type '
@@ -37,7 +38,7 @@ export async function createTicket({company_id}:{company_id:number}){
 
   if(session){
     const ticket = await prisma.ticket.create({
-      data: { company_id, status: 'triage', user_id: session.user.id, procedures: JSON.stringify([]), communication_id: `chat`  },
+      data: { company_id, status: 'triage', user_id: session.user.id, procedures: JSON.stringify([]), communication_type: `chat`  },
     }) 
     return JSON.stringify(ticket)
   }
@@ -117,6 +118,23 @@ function formatProcedures(procedures: string){
   })
 
   return resp
+}
+
+export async function syncUserGestor(email: string){
+  const [result] = await connection.query(
+    `SELECT * FROM Users where email='${email}';`
+  )
+
+  if(result){
+    const res = JSON.parse(JSON.stringify(result))
+    const metro_id = res[0].id
+
+    console.log(metro_id)
+    await prisma.user.update({
+      where:{email},
+      data:{metro_id: metro_id}
+    })
+  }
 }
 
 export async function createMetroTicket(ticketInfo:ITicket | undefined){

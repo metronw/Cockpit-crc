@@ -16,6 +16,7 @@ export interface IUser {
   id:number;
   name:string;
   metro_id?: number
+  email: string
 }
 
 interface ICompany {

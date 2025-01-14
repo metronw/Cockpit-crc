@@ -246,7 +246,7 @@ export const StagePanel = () => {
 
    const {ticketContext} = useTicketContext()
    const path = usePathname()
-   const {company, ticket} = parsePageInfo(path, ticketContext)  
+   const {company, ticket} = parsePageInfo(path, ticketContext)
 
   return(
     <div className='col-span-8 bg-white flex flex-row p-2 space-x-4 justify-center'>
@@ -254,7 +254,10 @@ export const StagePanel = () => {
           <CardBody><p className="text-primary">{company?.fantasy_name ?? ''}</p><p className="text-primary text-center font-bold">Ticket #{ticket?.id ?? ''}</p></CardBody>
         </Card>
         <Card className="border border-primary">
-          <CardBody><p className="text-primary min-w-24">{ticket?.communication_type == `phone` ? `Atendimento Telefônico` : ticket?.communication_type ==`chat` ? `Chat` : `` }</p></CardBody>
+          <CardBody>
+            <p className="text-center text-primary">Tipo do atendimento:</p> 
+            <p className="text-primary min-w-24 text-center justify-center font-bold text-lg">{ticket?.communication_type == `phone` ? `Telefônico` : ticket?.communication_type ==`chat` ? `Chat` : `` }</p>
+          </CardBody>
         </Card>
         <Card className="border border-primary">
           <CardBody>

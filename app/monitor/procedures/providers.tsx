@@ -52,7 +52,7 @@ export function ProcedureProvider(
 
   useEffect(() => {
     if(isLoadingProceds){
-      getProcedure({company_id: selectedCompany ?? null, ticket_type_id: selectedTicketType ?? 0}).then(resp => {
+      getProcedure({company_id: selectedCompany ?? null, ticket_type_id: selectedTicketType ?? null}).then(resp => {
         setProceds(resp)
         setIsLoadingProceds(false)
       })

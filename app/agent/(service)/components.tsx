@@ -5,7 +5,8 @@ import Link  from 'next/link'
 import { ILocalData, useTicketContext } from "@/app/agent/providers"
 import {useState, useEffect, useCallback} from 'react'
 import {Input} from "@nextui-org/react"
-import {createMetroTicket, updateTicket} from '@/app/actions/api'
+import {createMetroTicket} from '@/app/actions/api'
+import { updateTicket } from "@/app/actions/ticket";
 import { usePathname, useRouter } from 'next/navigation'
 import { IProcedureItem, getProcedure } from "@/app/actions/procedures";
 import { useTicketTypeContext } from "@/app/providers";
@@ -16,7 +17,7 @@ import { JsonValue } from "@prisma/client/runtime/library";
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
 
 export const TextInput = ({id, fieldName, label, isRequired=false}: 
-  {id: string, fieldName: 'client_name' | 'caller_number' | 'cpf' | 'address' | 'erpProtocol' | 'complement' | `caller_name` | `communication_id`, label: string, isRequired?: boolean}) => {
+  {id: string, fieldName: 'client_name' | 'caller_number' | 'identity_document' | 'address' | 'erpProtocol' | `caller_name` | `communication_id`, label: string, isRequired?: boolean}) => {
 
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
   const [value, setValue] = useState<string>('')
@@ -26,10 +27,10 @@ export const TextInput = ({id, fieldName, label, isRequired=false}:
   useEffect(()=>{
     if(!isCtxLoaded && isMounted){
       const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
-      const initialValue = ticket ? ticket[fieldName] : ''
+      const initialValue = ticket ? ticket[fieldName]+'' : ''
       
-      setValue(initialValue ?? '')
-      setDebouncedValue(initialValue ?? '')
+      setValue(initialValue+'')
+      setDebouncedValue(initialValue+'')
       setIsCtxLoaded(true)
     }
     
@@ -78,9 +79,9 @@ export function BooleanInput({id, fieldName, label}:{id:string, fieldName: "isRe
   useEffect(()=>{
     if(!isCtxLoaded && isMounted){
       const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
-      const initialValue = ticket ? ticket[fieldName] : false
+      const initialValue :boolean = ticket ? !!ticket[fieldName] : false
       
-      setValue(initialValue)
+      setValue(initialValue ?? true)
       setIsCtxLoaded(true)
     }
     
@@ -123,7 +124,7 @@ export const ProcedureTextInput = ({ label, Modal, id= 0 }: {isInteractive?: boo
 
   useEffect(()=>{
     if(ticket){
-      const procedures = JSON.parse(ticket.procedures)
+      const procedures = JSON.parse(ticket.procedures ?? `[]`)
       const procedure = procedures.find((el:IProcedureItem) => el.id == id)
       if(procedure?.response){
         setResponse(procedure.response)
@@ -135,7 +136,7 @@ export const ProcedureTextInput = ({ label, Modal, id= 0 }: {isInteractive?: boo
 
   useEffect(() => {
     if(ticket){
-      let procedures = JSON.parse(ticket.procedures)
+      let procedures = JSON.parse(ticket.procedures ?? `[]`)
       if(procedures.find((el:IProcedureItem) => el.id == id)){
         procedures = procedures.map((el:IProcedureItem) => el.id == id ? {...el, response} : el  )
       }else{
@@ -184,7 +185,7 @@ export const RadioInput = ({isInteractive=false, label, Modal, id= 0 }: {isInter
 
   useEffect(()=>{
     if(ticket){
-      const procedures = JSON.parse(ticket.procedures)
+      const procedures = JSON.parse(ticket.procedures ?? `[]`)
       const procedure = procedures.find((el:IProcedureItem) => el.id == id)
       procedure?.response ? setResponse(procedure.response) : null
     }
@@ -193,7 +194,7 @@ export const RadioInput = ({isInteractive=false, label, Modal, id= 0 }: {isInter
 
   useEffect(() => {
     if(ticket){
-      let procedures = JSON.parse(ticket.procedures)
+      let procedures = JSON.parse(ticket.procedures ?? `[]`)
       if(procedures.find((el:IProcedureItem) => el.id == id)){
         procedures = procedures.map((el:IProcedureItem) => el.id == id ? {...el, response} : el  )
       }else{
@@ -351,7 +352,7 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource, isRequire
   const [items, setItems ] = useState([])
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()
   const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
-  const [value, setValue] = useState<string>(ticket ? ticket[fieldName] ?? '' : '')
+  const [value, setValue] = useState<string>(ticket ? ticket[fieldName]+'' : '')
   const [isCtxLoaded, setIsCtxLoaded] = useState<boolean>(false)
 
   useEffect(()=>{
@@ -365,14 +366,14 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource, isRequire
       const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
       if(ticket){
         setIsCtxLoaded(true)
-        setValue((prevState) => prevState == ticket[fieldName] ? prevState : ticket[fieldName] )
+        setValue( ticket[fieldName] ? ticket[fieldName]+`` : `` )
       }
     }
-  }, [items, fieldName, id, isMounted, isCtxLoaded, ticketContext.tickets])
+  }, [isMounted, isCtxLoaded, JSON.stringify(ticketContext)])
 
   
-  useEffect(()=>{    
-    const newContext = {...ticketContext, tickets: ticketContext.tickets.map(el => el.id == parseInt(id) ? {...el, [fieldName]: value} : el)}
+  useEffect(()=>{
+    const newContext = {...ticketContext, tickets: ticketContext.tickets.map(el => el.id == parseInt(id) ? {...el, [fieldName]: parseInt(value)} : el)}
     setTicketContext(newContext)
   }, [value])
 
@@ -397,7 +398,7 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource, isRequire
       {items.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
     </Autocomplete>
   );
-} 
+}
 
 
 
@@ -427,6 +428,14 @@ export const FinishButton = () => {
   )
 }
 
+// function formatProcedures(procedures: string | undefined){
+//   if(procedures){
+//     console.log(procedures)
+
+//   }
+//   return ``
+// }
+
 export const TicketSummary = () => {
   
   const {ticketContext} = useTicketContext()
@@ -434,15 +443,14 @@ export const TicketSummary = () => {
   const path = usePathname()
   const {company, ticket} = parsePageInfo(path, ticketContext)
   const session = useSession()
-  
-  
+
   return(
     <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
       <p>Nome de Assinante: {company?.fantasy_name}</p>
       <p>Tipo de atendimento: </p>
       <p>Nome do solicitante: {ticket?.client_name}</p>
       <p>Endereço: {ticket?.address}</p>
-      <p>Problema alegado: {ticketTypeContext.find(el => el.id == parseInt(ticket?.type ?? ''))?.label} </p>
+      <p>Problema alegado: {ticketTypeContext.find(el => el.id == ticket?.type ?? '')?.label} </p>
       <p>Procedimentos Realizados:</p>
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>
@@ -463,14 +471,14 @@ export const Procedures = () =>{
   const { ticket } = parsePageInfo(path, ticketContext)
 
   useEffect(() => {
-    if(ticket && !isNaN(parseInt(ticket.type))){
-      getProcedure({company_id:ticket.company_id, ticket_type_id: parseInt(ticket.type)}).then(response =>{
+    if(ticket){
+      getProcedure({company_id:ticket.company_id, ticket_type_id: ticket.type}).then(response =>{
         const parsed = response.items.filter((el:IProcedureItem) => el.checked)
         setProcedures(parsed)
       })
     }
   }, [])
-
+  
   return(
     <div className="max-h-120 overflow-auto my-2">
       {
@@ -480,8 +488,7 @@ export const Procedures = () =>{
             return(
               <RadioInput key={el.id} isInteractive={true} label={el.label} Modal={<InfoModal title={el.modal_title ?? ''} body={el.modal_body ?? ''}/>} id={el.id}/>
             )
-          }
-          else if(el.input_type == 2){
+          }else if(el.input_type == 2){
             return(
               <ProcedureTextInput key={el.id}  label={el.label}  id={el.id} Modal={<InfoModal title={el.modal_title ?? ''} body={el.modal_body ?? ''}/>} />
             )

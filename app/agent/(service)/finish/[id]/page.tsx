@@ -1,6 +1,6 @@
 import { FinishButton, TicketSummary, NavigateTicket } from "../../components";
 import { use } from "react";
-import { getTicket} from '@/app/actions/api';
+import { getTicket} from '@/app/actions/ticket';
 
 export default function Finishing({params: {id}}: {params: {id: string}}) {
   const ticket = use(getTicket(parseInt(id)))

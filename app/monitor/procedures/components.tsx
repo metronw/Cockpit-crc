@@ -193,7 +193,7 @@ export function TextInput ({  modalTitle, modalBody, label }:
    label:[string, Dispatch<SetStateAction<string>>]}) {
 
   const [response, setResponse] = useState('')
-  const [procedure, setProcedure] = useState('')
+  const [procedure, setProcedure] = modalTitle
 
   const [title] = modalTitle
   const [body] = modalBody
@@ -326,8 +326,10 @@ export const InfoModal = ({title, body, className}:{title:string, body:JsonValue
 export function ProceduresTable(){
 
   const { procedures, setIsLoadingProceds, setEditProcedure} = useProcedureContext()
-  const [ready, setReady] = useState<boolean>(false)
+  const [ready, setReady] = useState<boolean>(false) 
   const [procedure, setProcedure] = useState(procedures)
+
+  console.log(procedures)
 
   const editSelectedRows = (id:number) => {    
     setProcedure((prev) => {

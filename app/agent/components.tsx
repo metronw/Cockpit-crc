@@ -4,8 +4,9 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Accordion, AccordionItem} from "@nextui-org/react"
 import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon} from "@heroicons/react/24/solid"
 import  { useRouter} from "next/navigation"
-import {ICompany, ITicket, useTicketContext} from '@/app/agent/providers'
-import {createTicket} from '@/app/actions/api'
+import {ICompany, useTicketContext} from '@/app/agent/providers'
+import { Ticket } from '@prisma/client';
+import { createTicket } from '../actions/ticket';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import {toast} from 'react-hot-toast';
@@ -83,7 +84,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
 export const Sidebar = () => { 
 
   interface ICompanyList extends ICompany {
-    tickets: Array<ITicket>
+    tickets: Array<Ticket>
   }
   const router = useRouter();
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()

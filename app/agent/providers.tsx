@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { Ticket } from '@prisma/client';
 
 // const emptyData= {tickets: [], companies:[]}
 
@@ -17,28 +18,7 @@ const testData = {
 const TicketContext = createContext<ITicketContext>({ticketContext: testData, setTicketContext: ()=> null, isMounted: false});
 export const useTicketContext = () => useContext(TicketContext);
 
-export interface ITicket {
-  id: number;
-  client_name: string;
-  cpf: string;
-  address: string;
-  type:string;
-  erpProtocol: string;
-  complement:string;
-  status: string;
-  user_id: number;
-  company_id: number;
-  time: string;
-  createdAt:Date;
-  procedures: string;
-  caller_number: string;
-  communication_id: string;
-  communication_type: string;
-  trunk_name: string;
-  caller_name: string;
-  isRecall: boolean;
-  identity_document: number;
-}
+
 
 export interface IProcedureItemResponse {
   id:number;
@@ -54,13 +34,13 @@ export interface ICompany {
 }
 
 export interface ILocalData {
-  tickets: Array<ITicket>
+  tickets: Array<Ticket>
   companies: Array<ICompany>
 }
 
 export interface ITicketContext {
   ticketContext:ILocalData
-  setTicketContext: React.Dispatch<React.SetStateAction<{ tickets: ITicket[], companies: ICompany[] }>>;
+  setTicketContext: React.Dispatch<React.SetStateAction<{ tickets: Ticket[], companies: ICompany[] }>>;
   isMounted: boolean
 }
 
@@ -84,12 +64,13 @@ export interface ITicketContext {
 // }
 
 
-export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext:string }) {
+export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext: {companies: ICompany[], tickets: Ticket[]} }) {
 
-  const [ticketContext, setTicketContext] = useState<ILocalData>(JSON.parse(iniContext))
+  const [ticketContext, setTicketContext] = useState<ILocalData>(iniContext)
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
+    localStorage.setItem('tickets', JSON.stringify(ticketContext));
     // const savedTickets = localStorage.getItem('tickets');
     setIsMounted(true)
     // if (savedTickets) {

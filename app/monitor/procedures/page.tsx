@@ -8,7 +8,7 @@ export default function Procedures() {
 
   const types = use(getCrcTicketTypes())
   const companies = use(getCompaniesList())
-  const procedures = use(getProcedure({company_id:0, ticket_type_id:0}))
+  const procedures = use(getProcedure({company_id: null, ticket_type_id: null}))
 
 
 

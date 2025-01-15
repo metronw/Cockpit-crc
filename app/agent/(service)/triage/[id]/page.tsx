@@ -1,6 +1,7 @@
 import {BooleanInput, IssueSelector, NavigateTicket} from "../../components"
 import { TextInput } from "../../components";
-import { getCrcTicketTypes, getTicket} from '@/app/actions/api';
+import { getCrcTicketTypes} from '@/app/actions/api';
+import { getTicket } from "@/app/actions/ticket";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { use } from "react";
@@ -41,7 +42,7 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
         <span className="bg-purple-700 text-white rounded content-center px-2 py-1 my-2 ">Certo, vou só conferir alguns dados para confirmar o seu cadastro. </span>
         <div className="flex flex-row flex-wrap gap-1">
           <div className="flex flex row pr-4">
-            <TextInput id={id} fieldName={'cpf'} label={'CPF'} />
+            <TextInput id={id} fieldName={'identity_document'} label={'CPF/CNPJ'} />
           </div>
           <div className="flex flex row pr-4">
             <TextInput id={id} fieldName={'caller_number'} label={'Telefone'} />

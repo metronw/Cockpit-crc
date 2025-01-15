@@ -21,7 +21,7 @@ model Ticket {
   communication_type String? @default("chat")
   trunk_name         String?
   caller_name        String?  
-  identity_document  Int?     
+  identity_document  String?     
   address            String? @db.VarChar(500)
   isRecall           Boolean?  @default(false)
   erpProtocol        String?
@@ -80,7 +80,7 @@ model Procedure_item {
 
 model Procedures {
   id             Int    @id @default(autoincrement())
-  ticket_type_id Int
+  ticket_type_id Int?
   company_id     Int?
   items          String @db.LongText
 }

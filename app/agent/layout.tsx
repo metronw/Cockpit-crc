@@ -14,7 +14,7 @@ export default function AgentLayout({
   const iniContext = use(getTicketContext(session?.user.id))
 
   return (
-    <TicketProvider iniContext={iniContext}>
+    <TicketProvider iniContext={iniContext}> 
       <div className='flex flex-col h-screen'>
         <header className="w-full py-3 border-b-2 border-black bg-primary">
             <AgentHeader id={session?.user.id} />        

@@ -2,9 +2,11 @@
 
 import connection from '@/app/lib/db';
 import prisma from '@/app/lib/localDb'
-import { ICompany, IProcedureItemResponse, ITicket } from '../agent/providers';
+import { ICompany, IProcedureItemResponse } from '../agent/providers';
+import { Ticket } from '@prisma/client';
 import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
+import { getOpenTickets } from './ticket';
 
 export async function getCrcTicketTypes() {
   const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id FROM ticket_type '
@@ -32,50 +34,6 @@ export async function getCrcFatherTicketTypes() {
 // }  
 
 
-export async function createTicket({company_id}:{company_id:number}){
-  const session = await getServerSession(authOptions);
-
-  if(session){
-    const ticket = await prisma.ticket.create({
-      data: { company_id, status: 'triage', user_id: session.user.id, procedures: JSON.stringify([]), communication_type: `chat`  },
-    }) 
-    return JSON.stringify(ticket)
-  }
-}
-
-export async function updateTicket({ticket}: {ticket: ITicket | undefined}){
-  if(ticket){
-    const {company_id, status, procedures, erpProtocol, address, caller_name, client_name, identity_document, isRecall} = ticket
-  
-    const updatedTicket = await prisma.ticket.update({
-      where: {
-        id: ticket.id
-      },
-      data: { company_id, status, procedures, erpProtocol, address, caller_name, client_name, identity_document, isRecall  },
-    })
-  
-    return JSON.stringify(updatedTicket)
-  }
-  
-}
-
-
-export const getOpenTickets = async () => {
-  const session = await getServerSession(authOptions);
-
-  if(session){
-    const filteredTickets = await prisma.ticket.findMany({
-      where: {
-        user_id: session.user.id,
-        status: { not: 'closed' }
-      },
-    });
-  
-    return JSON.stringify(filteredTickets)
-  }
-  return '[]'
-}
-
 export async function getCompaniesList(){
 
   const [rows] = await connection.query('SELECT client.* FROM client '+
@@ -94,26 +52,21 @@ export async function getCompaniesList(){
 
 }
 
-export async function getTicket(id:number){
-  const ticket = prisma.ticket.findFirst({
-    where:{id}
-  }) 
-  return ticket
-}
 
 
-export async function getTicketContext(user_id: number | undefined){
+
+export async function getTicketContext(user_id: number | undefined):Promise<{companies: ICompany[], tickets: Ticket[]}>{
   if(user_id){
-    const companies = JSON.parse(await getCompaniesList()) 
+    const companies:ICompany[] = JSON.parse(await getCompaniesList()) 
   
     const userAssignments = await prisma.user_assign.findMany({where:{ user_id }})
     const filteredComp =  companies.filter((el:ICompany) =>  userAssignments.find(item => item.company_id == el.id) )
-    const tickets = JSON.parse(await getOpenTickets())
+    const tickets:Ticket[] = await getOpenTickets()
     
-    return JSON.stringify({companies: filteredComp, tickets})
+    return {companies: filteredComp, tickets}
     
   }
-  return JSON.stringify({companies: [], tickets:[]})
+  return {companies: [], tickets:[]}
 } 
 
 function formatProcedures(procedures: string){
@@ -142,7 +95,7 @@ export async function syncUserGestor(email: string){
   }
 }
 
-export async function createMetroTicket(ticketInfo:ITicket | undefined){
+export async function createMetroTicket(ticketInfo:Ticket | undefined){
 
   try{
     if(ticketInfo){
@@ -154,7 +107,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
         const session = await getServerSession(authOptions);
         const [result] = await connection.query(
           `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner )`+
-          `VALUES (${company_id}, 4, "teste", 2, 0, ${parseInt(type)}, ${session?.user.metro_id ?? 312}, ${isNaN(parseInt(erpProtocol)) ? null : parseInt(erpProtocol)}, ${isNaN(parseInt(caller_number)) ? null : parseInt(caller_number)}, NOW(), NOW(), ${session?.user.metro_id ?? 312} )`
+          `VALUES (${company_id}, 4, "teste", 2, 0, ${type}, ${session?.user.metro_id ?? 312}, ${erpProtocol ? null : erpProtocol}, ${caller_number ? null : caller_number}, NOW(), NOW(), ${session?.user.metro_id ?? 312} )`
         )
 
         if(result){
@@ -168,7 +121,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
         Endereço: ${address}
         Problema alegado: 
         Procedimentos realizados: 
-        ${formatProcedures(procedures)}
+        ${formatProcedures(procedures ?? `[]`)}
         Data/horários: ${(new Date).toLocaleString()}
         Telefone: ${caller_number}
         Protocolo ERP: ${erpProtocol}
@@ -186,7 +139,7 @@ export async function createMetroTicket(ticketInfo:ITicket | undefined){
           where: {
             id: ticketInfo.id,
           },
-          data: { company_id, status: 'closed', user_id: 424, client_name, type: parseInt(type), procedures, communication_id, communication_type, caller_number, trunk_name, address, caller_name, isRecall, identity_document },
+          data: { company_id, status: 'closed', user_id: 424, client_name, type: type, procedures, communication_id, communication_type, caller_number, trunk_name, address, caller_name, isRecall, identity_document },
         })
     
         return {status: 200, message: 'ticket criado com sucesso' }

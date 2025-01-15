@@ -165,9 +165,9 @@ export const Sidebar = () => {
             {
               el.tickets?.map(item => {
                 return(
-                  <div key={item.id} className='flex flex-row'>
+                  <div key={item.id} className='flex flex-row items-center justify-between mx-2'>
                   <Client name={'#'+item.id+`, `+(item.client_name ? item.client_name.substring(0,12) : `sem nome`)} timer={'0:00'}  onClick={() => redirectToTicket(item.id)}/>
-                  <Button className='bg-danger' size='sm' radius='md' onPress={() => {onOpen(); setModalTick(item)}}><MinusIcon className='bg-danger'/></Button>
+                  <Button isIconOnly className='bg-danger content-center' size='sm' radius='md' onPress={() => {onOpen(); setModalTick(item)}}><MinusIcon className='bg-danger w-4'/></Button>
                   </div>
                 )
               })

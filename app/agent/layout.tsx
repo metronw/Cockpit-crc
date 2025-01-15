@@ -4,6 +4,7 @@ import {use} from 'react'
 import {getTicketContext} from '@/app/actions/api'
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../lib/authOptions';
+import PhoneClient from '../PhoneClient';
 
 export default function AgentLayout({
   children,
@@ -34,6 +35,7 @@ export default function AgentLayout({
           </div> */}
         </footer>
       </div>
+      <PhoneClient />
     </TicketProvider>
   );
 }

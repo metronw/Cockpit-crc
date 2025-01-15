@@ -329,8 +329,6 @@ export function ProceduresTable(){
   const [ready, setReady] = useState<boolean>(false) 
   const [procedure, setProcedure] = useState(procedures)
 
-  console.log(procedures)
-
   const editSelectedRows = (id:number) => {    
     setProcedure((prev) => {
       return {...prev, items: prev.items.map(el => el.id ==id ? {...el, checked: !el.checked} : el)}

@@ -5,8 +5,6 @@ import { getTicket} from '@/app/actions/ticket';
 export default function Finishing({params: {id}}: {params: {id: string}}) {
   const ticket = use(getTicket(parseInt(id)))
 
-  console.log(ticket)
-
   return (
     <div className="flex flex-col pt-3 h-full">    
       <div className="grid grid-cols-12 h-full">

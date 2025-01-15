@@ -87,7 +87,6 @@ export async function syncUserGestor(email: string){
     const res = JSON.parse(JSON.stringify(result))
     const metro_id = res[0].id
 
-    console.log(metro_id)
     await prisma.user.update({
       where:{email},
       data:{metro_id: metro_id}

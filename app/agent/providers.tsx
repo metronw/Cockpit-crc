@@ -70,7 +70,6 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    localStorage.setItem('tickets', JSON.stringify(ticketContext));
     // const savedTickets = localStorage.getItem('tickets');
     setIsMounted(true)
     // if (savedTickets) {
@@ -88,7 +87,7 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
 
   useEffect(() => {
     if(isMounted){
-      localStorage.setItem('tickets', JSON.stringify(ticketContext));
+      // localStorage.setItem('tickets', JSON.stringify(ticketContext));
     }
     
   }, [JSON.stringify(ticketContext)]);

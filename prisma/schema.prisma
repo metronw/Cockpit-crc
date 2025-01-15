@@ -83,6 +83,8 @@ model Procedures {
   ticket_type_id Int?
   company_id     Int?
   items          String @db.LongText
+
+  @@unique([company_id, ticket_type_id])
 }
 
 model Speech_suggestion {

@@ -18,7 +18,6 @@ export function LoginForm() {
     try {
       // await loginUser({ email, password });
       const response = await signIn("credentials", { email, password, callbackUrl: '/monitor'})
-      console.log(response)
       // console.log('Logged in user:', user); // Handle successful login (e.g., redirect)
     } catch (err) {
       const error = err as Error;

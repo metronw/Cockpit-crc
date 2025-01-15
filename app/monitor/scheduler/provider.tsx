@@ -34,7 +34,6 @@ export function SchedulerProvider({children, companies, users, assignments}: { c
   useEffect(() => {
     if(isLoadingAssigns){
       getUserAssignments().then(resp => {
-        console.log(resp)
         setAssigns(resp)
         setIsLoadingAssigns(false)
       })

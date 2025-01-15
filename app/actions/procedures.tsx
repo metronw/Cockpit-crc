@@ -102,26 +102,35 @@ export async function getProcedure({company_id=null, ticket_type_id=null}:{compa
 
   let proc
   
-  if(!company_id && ticket_type_id){
-    proc = await prisma.procedures.findFirst({
-      where: {
-        company_id: null,
-        ticket_type_id: ticket_type_id
-      },
-    })  
-  }else if(company_id && ticket_type_id ){
+  if(company_id && ticket_type_id ){
     proc = await prisma.procedures.findFirst({
       where: {
         company_id,
         ticket_type_id: ticket_type_id
       },
     }) 
-  }  
+  } 
 
+  if(!proc && ticket_type_id){
+    proc = await prisma.procedures.findFirst({
+      where: {
+        company_id: null,
+        ticket_type_id: ticket_type_id
+      },
+    })  
+  }
+  
+  if(!proc){
+    proc = await prisma.procedures.findFirst({
+      where:{
+        company_id: null, ticket_type_id: null, items:`[]`
+      }
+    })
+  }
   if(!proc){
     proc = await prisma.procedures.create({
       data:{
-        company_id, ticket_type_id, items:`[]`
+        company_id: null, ticket_type_id: null, items:`[]`
       }
     })
   }

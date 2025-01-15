@@ -29,30 +29,34 @@ export const TextInput = ({id, fieldName, label, isRequired=false}:
       const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
       const initialValue = ticket ? ticket[fieldName]+'' : ''
       
-      setValue(initialValue+'')
-      setDebouncedValue(initialValue+'')
+      setValue(initialValue)
+      setDebouncedValue(initialValue)
       setIsCtxLoaded(true)
     }
     
-  }, [ticketContext.tickets, fieldName,id, isCtxLoaded, isMounted])
+  }, [JSON.stringify(ticketContext.tickets), fieldName,id, isCtxLoaded, isMounted])
 
   useEffect(()=>{
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, 250); // Save only after 250ms of inactivity
-    return () => {
-      clearTimeout(handler);
-    };
+    if(isMounted){
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, 250); // Save only after 250ms of inactivity
+      return () => {
+        clearTimeout(handler);
+      };
+    }
   }, [value])
 
   useEffect(()=>{
-    setTicketContext((prevContext) => { 
-      const updatedTickets = prevContext.tickets.map((el) =>
-        el.id === parseInt(id) ? { ...el, [fieldName]: debouncedValue } : el
-      );
-      return {...prevContext, tickets: updatedTickets} 
-    });
-    
+    if(isMounted){
+      setTicketContext((prevContext) => { 
+        const updatedTickets = prevContext.tickets.map((el) =>
+          el.id === parseInt(id) ? { ...el, [fieldName]: debouncedValue } : el
+        );
+        return {...prevContext, tickets: updatedTickets} 
+      });
+    }
+
   }, [debouncedValue, id, fieldName])
   
   return(    
@@ -89,12 +93,14 @@ export function BooleanInput({id, fieldName, label}:{id:string, fieldName: "isRe
 
 
   useEffect(()=>{
-    setTicketContext((prevContext) => { 
-      const updatedTickets = prevContext.tickets.map((el) =>
-        el.id === parseInt(id) ? { ...el, [fieldName]: value } : el
-      );
-      return {...prevContext, tickets: updatedTickets} 
-    });
+    if(isCtxLoaded){
+      setTicketContext((prevContext) => { 
+        const updatedTickets = prevContext.tickets.map((el) =>
+          el.id === parseInt(id) ? { ...el, [fieldName]: value } : el
+        );
+        return {...prevContext, tickets: updatedTickets} 
+      });
+    }
     
   }, [value])
 
@@ -118,7 +124,7 @@ export const ProcedureTextInput = ({ label, Modal, id= 0 }: {isInteractive?: boo
   const [value, setValue] = useState<string>('')
   const [response, setResponse] = useState<string>('')
 
-  const {ticketContext, setTicketContext} = useTicketContext()
+  const {ticketContext, setTicketContext, isMounted} = useTicketContext()
   const path = usePathname()
   const { ticket } = parsePageInfo(path, ticketContext)
 
@@ -135,7 +141,7 @@ export const ProcedureTextInput = ({ label, Modal, id= 0 }: {isInteractive?: boo
   }, [])
 
   useEffect(() => {
-    if(ticket){
+    if(ticket && isMounted){
       let procedures = JSON.parse(ticket.procedures ?? `[]`)
       if(procedures.find((el:IProcedureItem) => el.id == id)){
         procedures = procedures.map((el:IProcedureItem) => el.id == id ? {...el, response} : el  )
@@ -145,7 +151,7 @@ export const ProcedureTextInput = ({ label, Modal, id= 0 }: {isInteractive?: boo
       const newTicket = ticketContext.tickets.map(el => el.id == ticket.id ? {...el, procedures: JSON.stringify(procedures)} : el)
       setTicketContext({...ticketContext, tickets:newTicket})
     }
-  }, [response])
+  }, [response, isMounted])
 
   useEffect(()=>{
     const handler = setTimeout(() => {
@@ -178,7 +184,7 @@ export const ProcedureTextInput = ({ label, Modal, id= 0 }: {isInteractive?: boo
 
 export const RadioInput = ({isInteractive=false, label, Modal, id= 0 }: {isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number}) => {
 
-  const {ticketContext, setTicketContext} = useTicketContext()
+  const {ticketContext, setTicketContext, isMounted} = useTicketContext()
   const path = usePathname()
   const { ticket } = parsePageInfo(path, ticketContext)
   const [response, setResponse] = useState('')
@@ -193,7 +199,7 @@ export const RadioInput = ({isInteractive=false, label, Modal, id= 0 }: {isInter
   }, [])
 
   useEffect(() => {
-    if(ticket){
+    if(ticket && isMounted){
       let procedures = JSON.parse(ticket.procedures ?? `[]`)
       if(procedures.find((el:IProcedureItem) => el.id == id)){
         procedures = procedures.map((el:IProcedureItem) => el.id == id ? {...el, response} : el  )
@@ -203,7 +209,7 @@ export const RadioInput = ({isInteractive=false, label, Modal, id= 0 }: {isInter
       const newTicket = ticketContext.tickets.map(el => el.id == ticket.id ? {...el, procedures: JSON.stringify(procedures)} : el)
       setTicketContext({...ticketContext, tickets:newTicket})
     }
-  }, [response])
+  }, [response, isMounted])
 
 
   return(
@@ -373,8 +379,10 @@ export const IssueSelector = ({id, fieldName, placeholder, dataSource, isRequire
 
   
   useEffect(()=>{
-    const newContext = {...ticketContext, tickets: ticketContext.tickets.map(el => el.id == parseInt(id) ? {...el, [fieldName]: parseInt(value)} : el)}
-    setTicketContext(newContext)
+    if(isMounted){
+      const newContext = {...ticketContext, tickets: ticketContext.tickets.map(el => el.id == parseInt(id) ? {...el, [fieldName]: parseInt(value)} : el)}
+      setTicketContext(newContext)
+    }
   }, [value])
 
   return (
@@ -450,7 +458,7 @@ export const TicketSummary = () => {
       <p>Tipo de atendimento: </p>
       <p>Nome do solicitante: {ticket?.client_name}</p>
       <p>Endereço: {ticket?.address}</p>
-      <p>Problema alegado: {ticketTypeContext.find(el => el.id == ticket?.type ?? '')?.label} </p>
+      <p>Problema alegado: {ticketTypeContext.find(el => el.id == ticket?.type)?.label} </p>
       <p>Procedimentos Realizados:</p>
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>

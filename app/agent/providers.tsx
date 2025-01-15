@@ -44,24 +44,15 @@ export interface ITicketContext {
   isMounted: boolean
 }
 
-// function mergeContext(local:ILocalData, server: ILocalData){
-//   const mergedTickets = local.tickets
-//   const mergedCompanies = local.companies
+function mergeContext(local:ILocalData, server: ILocalData){
 
-//   server.companies.forEach((el:ICompany) => {
-//     if(!local.companies.find(item => item.id === el.id)){
-//       mergedCompanies.push(el)
-//     }
-//   })
+  const mergedTickets = server.tickets.map((el:Ticket) => {
+    const tick = local.tickets.find(item => item.id === el.id)
+    return tick ? tick : el
+  })
   
-//   server.tickets.forEach((el:ITicket) => {
-//     if(!local.tickets.find(item => item.id === el.id)){
-//       mergedTickets.push(el)
-//     }
-//   })
-  
-//   return {tickets: mergedTickets, companies:server.companies}
-// }
+  return {tickets: mergedTickets, companies:server.companies}
+}
 
 
 export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext: {companies: ICompany[], tickets: Ticket[]} }) {
@@ -70,24 +61,19 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    // const savedTickets = localStorage.getItem('tickets');
+    const savedTickets = localStorage.getItem('tickets');
     setIsMounted(true)
-    // if (savedTickets) {
-    //   const local = JSON.parse(savedTickets)
-    //   const ctx = (mergeContext(local, ticketContext))
-    //   setTicketContext(ctx);
-    // }
-
-    // return () => {
-    //   if(isMounted){
-    //     localStorage.setItem('tickets', JSON.stringify(ticketContext));
-    //   }
-    // }
+    if (savedTickets) {
+      const local = JSON.parse(savedTickets)
+      const ctx = (mergeContext(local, ticketContext))
+      setTicketContext(ctx);
+    }
+    
   }, []);
 
   useEffect(() => {
     if(isMounted){
-      // localStorage.setItem('tickets', JSON.stringify(ticketContext));
+      localStorage.setItem('tickets', JSON.stringify(ticketContext));
     }
     
   }, [JSON.stringify(ticketContext)]);

@@ -2,11 +2,11 @@
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Accordion, AccordionItem} from "@nextui-org/react"
-import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon} from "@heroicons/react/24/solid"
+import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon, MinusIcon} from "@heroicons/react/24/solid"
 import  { useRouter} from "next/navigation"
 import {ICompany, useTicketContext} from '@/app/agent/providers'
 import { Ticket } from '@prisma/client';
-import { createTicket } from '../actions/ticket';
+import { createTicket, updateTicket } from '../actions/ticket';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import {toast} from 'react-hot-toast';
@@ -91,6 +91,9 @@ export const Sidebar = () => {
   const {tickets, companies} = ticketContext
   const [ticketList, setTicketList] = useState<Array<ICompanyList>>([]) 
 
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const [modalTick, setModalTick] = useState<Ticket | null>(null)
+
   const len = tickets.length
   useEffect(()=>{
     refreshList()
@@ -133,6 +136,19 @@ export const Sidebar = () => {
     
   }
 
+  const closeTicket = async (ticket: Ticket) => {
+    const newTicket:Ticket = {...ticket, status:`closed`}
+    try{
+      await updateTicket({ticket: newTicket})
+      toast.success(`ticket id:${ticket.id} foi fechado`)
+    }catch(err){
+      toast.error(`algo deu errado \n ${err}`)
+    }finally{
+      setTicketContext({...ticketContext, tickets: ticketContext.tickets.filter(el=> ticket.id != el.id)})
+
+    }
+  }
+
   const redirectToTicket = (id:number) => {
     router.push('/agent/triage/'+id)
   }
@@ -147,13 +163,35 @@ export const Sidebar = () => {
               el.id != 0 ? <Client name='+ Novo Atendimento' onClick={() => newTicket(el)}/> : null
             }
             {
-              el.tickets?.map(item => 
-                <Client name={'#'+item.id+`, `+(item.client_name ? item.client_name.substring(0,12) : `sem nome`)} timer={'0:00'} key={item.id} onClick={() => redirectToTicket(item.id)}/>
-              )
+              el.tickets?.map(item => {
+                return(
+                  <div className='flex flex-row'>
+                  <Client name={'#'+item.id+`, `+(item.client_name ? item.client_name.substring(0,12) : `sem nome`)} timer={'0:00'} key={item.id} onClick={() => redirectToTicket(item.id)}/>
+                  <Button className='bg-danger' size='sm' radius='md' onPress={() => {onOpen(); setModalTick(item)}}><MinusIcon className='bg-danger'/></Button>
+                  </div>
+                )
+              })
             }
           </AccordionItem>
         )}
       </Accordion>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 text-black">Fechar Ticket {modalTick?.id}</ModalHeader>
+              <ModalFooter>
+                <Button color="primary" variant="light" onPress={() => {onClose(); setModalTick(null)}}>
+                  Cancelar
+                </Button>
+                <Button color="danger" onPress={() => {onClose(); modalTick ? closeTicket(modalTick): null}} >
+                  Confirmar
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>       
     </div>
   )
 }
@@ -171,13 +209,11 @@ const CompanyComponent = ({label, mass, count}:{label:string, mass:boolean, coun
 const Client = ({name, timer='', onClick}:{name:string, timer?:string, onClick: () => void}) => {
   
   return(
-    // <Link href="/agent/triage">
       <Button className="flex flex-row align-center rounded space-x-2 shadow-sm shadow-zinc-400 pt-1 mx-2 hover:bg-zinc-400" onPress={onClick}>
         <div className="flex  w-2/12 justify-center  py-1 "></div>
         <div className="flex rounded w-8/12 justify-center py-1  text-sm">{name}</div>
         <div className="flex rounded text-sm px-2">{timer}</div>
       </Button>
-    // </Link>
   )
 }
 

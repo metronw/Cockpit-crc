@@ -27,7 +27,7 @@ export const TextInput = ({id, fieldName, label, isRequired=false}:
   useEffect(()=>{
     if(!isCtxLoaded && isMounted){
       const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
-      const initialValue = ticket ? ticket[fieldName]+'' : ''
+      const initialValue = ticket ? ticket[fieldName] ?? '' : ''
       
       setValue(initialValue)
       setDebouncedValue(initialValue)

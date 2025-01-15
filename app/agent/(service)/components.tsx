@@ -2,7 +2,7 @@
 
 import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet, Checkbox } from "@nextui-org/react";
 import Link  from 'next/link'
-import { ILocalData, useTicketContext } from "@/app/agent/providers"
+import { ILocalData, IProcedureItemResponse, useTicketContext } from "@/app/agent/providers"
 import {useState, useEffect, useCallback} from 'react'
 import {Input} from "@nextui-org/react"
 import {createMetroTicket} from '@/app/actions/api'
@@ -436,13 +436,14 @@ export const FinishButton = () => {
   )
 }
 
-// function formatProcedures(procedures: string | undefined){
-//   if(procedures){
-//     console.log(procedures)
+function formatProcedures(procedures: string){
+  console.log(procedures)
+  const resp = JSON.parse(procedures).map((el:IProcedureItemResponse) =>{
+    return <p key={el.id}>{'   ' + el.label}:  {el.response == true ? `Sim` : el.response == false ?  'Não' : el.response} </p>
+  })
 
-//   }
-//   return ``
-// }
+  return resp
+}
 
 export const TicketSummary = () => {
   
@@ -460,6 +461,7 @@ export const TicketSummary = () => {
       <p>Endereço: {ticket?.address}</p>
       <p>Problema alegado: {ticketTypeContext.find(el => el.id == ticket?.type)?.label} </p>
       <p>Procedimentos Realizados:</p>
+      {formatProcedures(ticket?.procedures ?? ``)}
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>
       <p>Telefone: {ticket?.caller_number}</p>

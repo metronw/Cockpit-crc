@@ -78,7 +78,7 @@ function formatProcedures(procedures: string){
   return resp
 }
 
-export async function syncUserGestor(email: string){
+export async function syncUserGestor(email: string):Promise<number>{
   const [result] = await connection.query(
     `SELECT * FROM Users where email='${email}';`
   )

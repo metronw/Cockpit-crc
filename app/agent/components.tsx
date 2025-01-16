@@ -180,6 +180,9 @@ export const Sidebar = () => {
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1 text-black">Fechar Ticket {modalTick?.id}</ModalHeader>
+              <ModalBody>
+                <p className='text-black'>Todas as informações serão perdidas, tem certeza que deseja continuar?</p>
+              </ModalBody>
               <ModalFooter>
                 <Button color="primary" variant="light" onPress={() => {onClose(); setModalTick(null)}}>
                   Cancelar

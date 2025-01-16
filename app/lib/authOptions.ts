@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { loginSSO } from "@/app/actions/login";
 import bcrypt from 'bcrypt'; // Assuming passwords are hashed in the database
 import prisma  from '@/app/lib/localDb';
+import { syncUserGestor } from "../actions/api";
 
 
 // Defining the authOptions with proper types
@@ -39,26 +40,29 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     // Handling the JWT callback
-    async jwt({ token, user, account }) {
-
-      if (account?.id_token) {
-        // Decode Azure AD token to extract roles
-        const decodedToken = JSON.parse(
-          Buffer.from(account.id_token.split('.')[1], 'base64').toString()
-        );
-        token.roles = decodedToken.roles || [];
-      }else{
-        token.roles = ['3']
-      }
+    async jwt({ token, user, account }) {      
+      
       // If user is available, add it to the token
       if (user) {
-        const localUser = await loginSSO({email:user.email ?? '', name: user.name ?? ''})
+        const metro_id = await syncUserGestor(user.email ?? ``)
+        const localUser = await loginSSO({email:user.email ?? '', name: user.name ?? '', metro_id })
         
         token.id = localUser.id;
         token.email = localUser.email;
         token.name = localUser.name;
         token.metro_id = localUser.metro_id;
+
+        if (account?.id_token) {
+          // Decode Azure AD token to extract roles
+          const decodedToken = JSON.parse(
+            Buffer.from(account.id_token.split('.')[1], 'base64').toString()
+          );
+          token.roles = decodedToken.roles || [];
+        }else{
+          token.roles = ['1']
+        }
       }
+      
       return token;
     },
     // Handling session callback

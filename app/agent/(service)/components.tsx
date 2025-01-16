@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet, Checkbox, Textarea } from "@nextui-org/react";
+import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet, Checkbox } from "@nextui-org/react";
 import Link  from 'next/link'
 import { ILocalData, IProcedureItemResponse, useTicketContext } from "@/app/agent/providers"
 import {useState, useEffect, useCallback} from 'react'
@@ -9,7 +9,6 @@ import {createMetroTicket} from '@/app/actions/api'
 import { updateTicket } from "@/app/actions/ticket";
 import { usePathname, useRouter } from 'next/navigation'
 import { IProcedureItem, getProcedure } from "@/app/actions/procedures";
-import { useTicketTypeContext } from "@/app/providers";
 import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
 import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
@@ -67,7 +66,7 @@ export const TextInput = ({id, fieldName, label, isRequired=false, isLarge=false
         type="text" 
         label={label} 
         color={'primary'}  
-        className={`w-80 h-11 ml-4 border border-primary rounded-medium`}
+        className={`w-80 h-11 ml-4 border border-primary rounded-medium ${isLarge ? 'w-120 h-24' : ''}`}
         // classNames={{base:`${isLarge ? 'w-144 h-32': 'w-80 h-11'} ml-4 border border-primary rounded-medium`, inputWrapper:`bg-white ${isLarge ? 'w-144 h-32': 'w-80 h-11'}`, input:`${isLarge ? 'w-144 h-32': 'w-80 h-11'}`}}
         value={value}
         onValueChange={setValue}

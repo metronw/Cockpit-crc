@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt'; // Assuming passwords are hashed in the database
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../lib/authOptions';
-import { syncUserGestor } from './api';
+// import { syncUserGestor } from './api';
 
 interface LoginCredentials {
   email: string;

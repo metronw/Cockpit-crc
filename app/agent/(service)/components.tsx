@@ -420,8 +420,6 @@ export const FinishButton = () => {
   const { ticket } = parsePageInfo(path, ticketContext)
   const router = useRouter();
 
-  console.log(ticket)
-
   const finishAction = useCallback(async () => {
     const resp = await createMetroTicket(ticket)
     if(resp.status === 200 && ticket){

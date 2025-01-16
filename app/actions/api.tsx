@@ -119,7 +119,6 @@ export async function createMetroTicket(ticketInfo:Ticket | undefined){
 
         if(result){
           const res = JSON.parse(JSON.stringify(result))
-          console.log(res)
 
         const message = 
         `

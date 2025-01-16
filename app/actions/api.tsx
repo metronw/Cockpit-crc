@@ -91,7 +91,9 @@ export async function syncUserGestor(email: string){
       where:{email},
       data:{metro_id: metro_id}
     })
+    return metro_id
   }
+  return 312
 }
 
 export async function createMetroTicket(ticketInfo:Ticket | undefined){

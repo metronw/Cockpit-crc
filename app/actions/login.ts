@@ -30,12 +30,12 @@ export async function loginUser({ email, password }: LoginCredentials) {
 
 }
 
-export async function loginSSO({email, name, metro_id} :{email:string, name?:string, metro_id?: number}){
+export async function loginSSO({email, name} :{email:string, name?:string}){
   let user = await prisma.user.findUnique({
     where: { email },
   });
 
-  syncUserGestor(email)
+  const metro_id = await syncUserGestor(email)
 
   if(!user){
     const password = bcrypt.hashSync('951Mudar!', 10)
@@ -44,12 +44,11 @@ export async function loginSSO({email, name, metro_id} :{email:string, name?:str
         email,
         name: name ?? '',
         password: password, // In a real app, hash the password before storing
-        metro_id: metro_id ?? 312
+        metro_id: metro_id
       },
     });
   }
   return user
-
 }
 
 export async function logout(){

@@ -106,10 +106,11 @@ export async function createMetroTicket(ticketInfo:Ticket | undefined){
           const caller_number_insert = !!caller_number ? caller_number.length > 0 ? caller_number : null : null
           const call_id = communication_type == `phone` ? communication_id : "NULL" 
           const chat_protocol = communication_type == `chat` ? communication_id : "NULL" 
+          const origin = communication_type == 'chat' ? 0 : communication_type == `phone` ? 1 : 0
 
           const [result] = await connection.query(
           `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner, call_id, chat_protocol ) `+
-          `VALUES (${company_id}, 4, '${subject}', 2, 0, ${type}, ${session?.user.metro_id ?? 312}, '${erp_protocol}', '${caller_number_insert}', NOW(), NOW(), ${session?.user.metro_id ?? 312}, ${call_id}, '${chat_protocol}' )`
+          `VALUES (${company_id}, 4, '${subject}', 2, ${origin}, ${type}, ${session?.user.metro_id ?? 312}, '${erp_protocol}', '${caller_number_insert}', NOW(), NOW(), ${session?.user.metro_id ?? 312}, ${call_id}, '${chat_protocol}' )`
         )
 
         if(result){
@@ -141,7 +142,7 @@ export async function createMetroTicket(ticketInfo:Ticket | undefined){
           where: {
             id: ticketInfo.id,
           },
-          data: { company_id, status: 'closed', user_id: 424, client_name, type: type, procedures, communication_id, communication_type, caller_number, trunk_name, address, caller_name, isRecall, identity_document },
+          data: { company_id, status: 'closed', user_id: 424, client_name, type: type, procedures, communication_id, communication_type, caller_number, trunk_name, address, caller_name, isRecall, identity_document, subject },
         })
     
         return {status: 200, message: 'ticket criado com sucesso' }

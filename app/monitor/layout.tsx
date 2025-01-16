@@ -1,8 +1,4 @@
-// import {use} from 'react'
-// import {getTicketContext} from '@/app/actions/api'
 import { MonitorHeader, MonitorSidebar } from './components';
-// import { getServerSession } from "next-auth";
-// import { authOptions } from "@/app/lib/authOptions";
 
 
 export default function AgentLayout({
@@ -10,8 +6,6 @@ export default function AgentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const session = use(getServerSession(authOptions))
-  // const iniContext = use(getTicketContext(session?.user.id))
 
   return (
     <div className='flex flex-col h-screen'>

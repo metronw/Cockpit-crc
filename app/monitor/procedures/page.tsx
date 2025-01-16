@@ -8,10 +8,12 @@ export default function Procedures() {
 
   const types = use(getCrcTicketTypes())
   const companies = use(getCompaniesList())
-  const procedures = use(getProcedure({company_id:0, ticket_type_id:0}))
+  const procedures = use(getProcedure({company_id: null, ticket_type_id: null}))
+
+
 
   return (
-    <ProcedureProvider companies={JSON.parse(companies)} procedures={procedures} ticketTypes={JSON.parse(types)}>
+    <ProcedureProvider companies={JSON.parse(companies)} procedures={procedures ?? []} ticketTypes={JSON.parse(types)}>
       <div className="flex flex-col p-2">
         Criar procedimentos de uma Empresa
 

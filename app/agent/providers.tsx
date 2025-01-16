@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { Ticket } from '@prisma/client';
 
 // const emptyData= {tickets: [], companies:[]}
 
@@ -17,22 +18,7 @@ const testData = {
 const TicketContext = createContext<ITicketContext>({ticketContext: testData, setTicketContext: ()=> null, isMounted: false});
 export const useTicketContext = () => useContext(TicketContext);
 
-export interface ITicket {
-  id: number;
-  client_name: string;
-  cpf: string;
-  phone: string;
-  address: string;
-  type:string;
-  erp: string;
-  complement:string;
-  status: string;
-  user_id: number;
-  company_id: number;
-  time: string;
-  createdAt:Date;
-  procedures: string;
-}
+
 
 export interface IProcedureItemResponse {
   id:number;
@@ -48,39 +34,30 @@ export interface ICompany {
 }
 
 export interface ILocalData {
-  tickets: Array<ITicket>
+  tickets: Array<Ticket>
   companies: Array<ICompany>
 }
 
 export interface ITicketContext {
   ticketContext:ILocalData
-  setTicketContext: React.Dispatch<React.SetStateAction<{ tickets: ITicket[], companies: ICompany[] }>>;
+  setTicketContext: React.Dispatch<React.SetStateAction<{ tickets: Ticket[], companies: ICompany[] }>>;
   isMounted: boolean
 }
 
 function mergeContext(local:ILocalData, server: ILocalData){
-  const mergedTickets = local.tickets
-  const mergedCompanies = local.companies
 
-  server.companies.forEach((el:ICompany) => {
-    if(!local.companies.find(item => item.id === el.id)){
-      mergedCompanies.push(el)
-    }
-  })
-  
-  server.tickets.forEach((el:ITicket) => {
-    if(!local.tickets.find(item => item.id === el.id)){
-      mergedTickets.push(el)
-    }
+  const mergedTickets = server.tickets.map((el:Ticket) => {
+    const tick = local.tickets.find(item => item.id === el.id)
+    return tick ? tick : el
   })
   
   return {tickets: mergedTickets, companies:server.companies}
 }
 
 
-export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext:string }) {
+export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext: {companies: ICompany[], tickets: Ticket[]} }) {
 
-  const [ticketContext, setTicketContext] = useState<ILocalData>(JSON.parse(iniContext))
+  const [ticketContext, setTicketContext] = useState<ILocalData>(iniContext)
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -91,12 +68,7 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
       const ctx = (mergeContext(local, ticketContext))
       setTicketContext(ctx);
     }
-
-    // return () => {
-    //   if(isMounted){
-    //     localStorage.setItem('tickets', JSON.stringify(ticketContext));
-    //   }
-    // }
+    
   }, []);
 
   useEffect(() => {

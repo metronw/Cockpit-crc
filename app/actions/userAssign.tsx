@@ -16,6 +16,7 @@ export interface IUser {
   id:number;
   name:string;
   metro_id?: number
+  email: string
 }
 
 interface ICompany {
@@ -49,7 +50,7 @@ export async function getUserAssignments() : Promise<Array<IUserAssign>> {
 
   return assigns.map((el) => {
     const comp = companies.find((item:ICompany) => el.company_id == item.id)
-    return {...el, companyName:comp.fantasy_name}
+    return {...el, companyName:comp?.fantasy_name ?? ``}
   })
 }
 

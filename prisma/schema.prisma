@@ -9,17 +9,23 @@ datasource db {
 
 model Ticket {
   id                 Int      @id @default(autoincrement())
-  client_name        String?
-  type               Int?
+  subject            String?  @db.VarChar(1000)
   company_id         Int
   status             String
   user_id            Int
-  createdAt          DateTime @default(now())
+  type               Int?
   procedures         String?  @db.LongText
+  createdAt          DateTime @default(now())
+  client_name        String?
   caller_number      String?
   communication_id   String?
-  communication_type String?
+  communication_type String? @default("chat")
   trunk_name         String?
+  caller_name        String?  
+  identity_document  String?     
+  address            String? @db.VarChar(500)
+  isRecall           Boolean?  @default(false)
+  erpProtocol        String?
 }
 
 model User {
@@ -67,17 +73,19 @@ model Procedure_item {
   input_type           Int
   data_source          String?
   company_id           Int?
-  ticket_type_id       Int
+  ticket_type_id       Int?
   created_by           Int
   modal_title          String?
   modal_body           String? @db.LongText
 }
 
-model Procedure {
+model Procedures {
   id             Int    @id @default(autoincrement())
-  ticket_type_id Int
+  ticket_type_id Int?
   company_id     Int?
   items          String @db.LongText
+
+  @@unique([company_id, ticket_type_id])
 }
 
 model Speech_suggestion {

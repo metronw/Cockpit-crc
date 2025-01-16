@@ -22,6 +22,13 @@ const config: Config = {
         light: "#FBFBFB",
         dark: "#332D2D",
       },
+      spacing: {
+        '104': '26rem',
+        '112': '28rem',
+        '120': '30rem',
+        '128': '32rem',
+        '144': '36rem',
+      },
     },
   },
   darkMode: "class",

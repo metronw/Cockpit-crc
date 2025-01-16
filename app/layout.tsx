@@ -7,7 +7,6 @@ import { ToastContainer } from 'react-toastify'; // Adicionado
 import { TicketTypeProvider } from "./providers";
 import { getCrcTicketTypes } from "@/app/actions/api";
 import { use } from 'react';
-import PhoneClient from "./PhoneClient";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,8 +40,7 @@ export default function RootLayout({
           </TicketTypeProvider>
           <Toaster />
           <ToastContainer position="bottom-right" /> {/* Adicionado */}
-        </Providers>
-        <PhoneClient />
+        </Providers>        
       </body>
     </html>
   );

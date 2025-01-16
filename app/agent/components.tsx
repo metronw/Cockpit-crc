@@ -2,10 +2,11 @@
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Accordion, AccordionItem} from "@nextui-org/react"
-import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon} from "@heroicons/react/24/solid"
+import {ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon, MinusIcon} from "@heroicons/react/24/solid"
 import  { useRouter} from "next/navigation"
-import {ICompany, ITicket, useTicketContext} from '@/app/agent/providers'
-import {createTicket} from '@/app/actions/api'
+import {ICompany, useTicketContext} from '@/app/agent/providers'
+import { Ticket } from '@prisma/client';
+import { createTicket, updateTicket } from '../actions/ticket';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import {toast} from 'react-hot-toast';
@@ -27,7 +28,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
   const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const session = useSession()
-  console.log(JSON.stringify(session.data?.user))
+  
   return (
     <div className='grid grid-cols-12'>
       <div className='flex flex-row gap-4 col-span-3 pl-4'>
@@ -45,7 +46,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
       <div className="flex flex-row col-span-8 space-x-4 items-center ">
         <span className="font-bold">{`${session.data?.user.name}`}</span>
         <ClockIcon className="h-10" />
-        <div>13:16</div>      
+        <div>00:00</div>      
         <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary"/></Button>
       </div>
       <Button isIconOnly color="primary" aria-label="logout" onPress={() => signOut()}>
@@ -83,19 +84,30 @@ export const AgentHeader = ({id}: {id?: number}) => {
 export const Sidebar = () => { 
 
   interface ICompanyList extends ICompany {
-    tickets: Array<ITicket>
+    tickets: Array<Ticket>
   }
   const router = useRouter();
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()
   const {tickets, companies} = ticketContext
   const [ticketList, setTicketList] = useState<Array<ICompanyList>>([]) 
 
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const [modalTick, setModalTick] = useState<Ticket | null>(null)
+
   const len = tickets.length
   useEffect(()=>{
+    refreshList()
+  }, [isMounted, len])
+
+  useEffect(() => {
+    refreshList()
+  }, [JSON.stringify(ticketContext)])
+
+  const refreshList = () => {
     const list = companies.map<ICompanyList>(el => ({...el, tickets: []}))
     const others:ICompanyList = {id:0, name: 'Outros', fantasy_name:'Outros', mass: false,  tickets:[]}
     list.push(others)
-    console.log(tickets)
+    
     tickets.forEach(el => {
       const comp = list.find(item => item.id == el.company_id)
       if(comp){
@@ -106,7 +118,7 @@ export const Sidebar = () => {
     })
 
     setTicketList(list)
-  }, [isMounted, len])
+  }
 
   const newTicket = async (company: ICompanyList) => {
     if(tickets.length <= 15){
@@ -124,6 +136,19 @@ export const Sidebar = () => {
     
   }
 
+  const closeTicket = async (ticket: Ticket) => {
+    const newTicket:Ticket = {...ticket, status:`closed`}
+    try{
+      await updateTicket({ticket: newTicket})
+      toast.success(`ticket id:${ticket.id} foi fechado`)
+    }catch(err){
+      toast.error(`algo deu errado \n ${err}`)
+    }finally{
+      setTicketContext({...ticketContext, tickets: ticketContext.tickets.filter(el=> ticket.id != el.id)})
+
+    }
+  }
+
   const redirectToTicket = (id:number) => {
     router.push('/agent/triage/'+id)
   }
@@ -138,13 +163,38 @@ export const Sidebar = () => {
               el.id != 0 ? <Client name='+ Novo Atendimento' onClick={() => newTicket(el)}/> : null
             }
             {
-              el.tickets?.map(item => 
-                <Client name={'#'+item.id} timer={'0:00'} key={item.id} onClick={() => redirectToTicket(item.id)}/>
-              )
+              el.tickets?.map(item => {
+                return(
+                  <div key={item.id} className='flex flex-row items-center justify-between mx-2'>
+                  <Client name={'#'+item.id+`, `+(item.client_name ? item.client_name.substring(0,12) : `sem nome`)} timer={'0:00'}  onClick={() => redirectToTicket(item.id)}/>
+                  <Button isIconOnly className='bg-danger content-center' size='sm' radius='md' onPress={() => {onOpen(); setModalTick(item)}}><MinusIcon className='bg-danger w-4'/></Button>
+                  </div>
+                )
+              })
             }
           </AccordionItem>
         )}
       </Accordion>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 text-black">Fechar Ticket {modalTick?.id}</ModalHeader>
+              <ModalBody>
+                <p className='text-black'>Todas as informações serão perdidas, tem certeza que deseja continuar?</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" variant="light" onPress={() => {onClose(); setModalTick(null)}}>
+                  Cancelar
+                </Button>
+                <Button color="danger" onPress={() => {onClose(); modalTick ? closeTicket(modalTick): null}} >
+                  Confirmar
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>       
     </div>
   )
 }
@@ -162,13 +212,11 @@ const CompanyComponent = ({label, mass, count}:{label:string, mass:boolean, coun
 const Client = ({name, timer='', onClick}:{name:string, timer?:string, onClick: () => void}) => {
   
   return(
-    // <Link href="/agent/triage">
       <Button className="flex flex-row align-center rounded space-x-2 shadow-sm shadow-zinc-400 pt-1 mx-2 hover:bg-zinc-400" onPress={onClick}>
         <div className="flex  w-2/12 justify-center  py-1 "></div>
         <div className="flex rounded w-8/12 justify-center py-1  text-sm">{name}</div>
         <div className="flex rounded text-sm px-2">{timer}</div>
       </Button>
-    // </Link>
   )
 }
 

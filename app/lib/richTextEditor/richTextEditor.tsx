@@ -40,7 +40,7 @@ export function RichTextEditor({value="<p>Welcome to the editor!</p>", onValueCh
       }
 
       const data = await response.json();
-      console.log(data)
+      
       return data.url; // URL of the uploaded image
     } catch (error) {
       console.error('Error uploading image:', error);

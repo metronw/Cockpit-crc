@@ -142,23 +142,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               // @ts-expect-error: fix later
               newSession.answer({ mediaStream: localStreamRef.current });
               setupPeerConnection(newSession);
-
-              // Extrair trunk_name e callid no auto-answer
-              const displayName = newSession.remote_identity.display_name;
-              console.log("Display Name Auto-Answer:", displayName); // Adicionado log
-              const regex = /^\s*(\S+)\s*\{\s*([^}]+)\s*\}/;
-              const match = displayName.match(regex);
-              console.log("Regex Match Auto-Answer:", match); // Adicionado log
-              if (match) {
-                const trunk_name = match[1];
-                const callid = match[2];
-                const callernum = newSession.remote_identity.uri.user;
-
-                // Chamar a função para criar o ticket
-                createTicket(trunk_name, callid, callernum);
-              } else {
-                console.warn("Regex não correspondeu para Auto-Answer. Display Name:", displayName);
-              }
             }, 3000);
           }
         }
@@ -329,9 +312,24 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         }
       };
 
-     // setCallStatus(session.direction === 'incoming' ? 'Incoming Call' : 'Calling');
-      
-      setCallStatus("Connected")
+      setCallStatus("Connected");
+
+      // Extrair trunk_name e callid após a conexão ser estabelecida
+      const displayName = session.remote_identity.display_name;
+      console.log("Display Name Connected:", displayName); // Adicionado log
+      const regex = /^\s*(\S+)\s*\{\s*([^}]+)\s*\}/;
+      const match = displayName.match(regex);
+      console.log("Regex Match Connected:", match); // Adicionado log
+      if (match) {
+        const trunk_name = match[1];
+        const callid = match[2];
+        const callernum = session.remote_identity.uri.user;
+
+        // Chamar a função para criar o ticket
+        await createTicket(trunk_name, callid, callernum);
+      } else {
+        console.warn("Regex não correspondeu para Connected. Display Name:", displayName);
+      }
 
       session.on('ended', () => {
         releaseStream();
@@ -389,23 +387,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         setIncomingCall(null);
         setCallStatus('Connected');
         onCallStatusChange('Connected');
-
-        // Extrair trunk_name e callid
-        const displayName = incomingCall.remote_identity.display_name;
-        console.log("Display Name Manual Answer:", displayName); // Adicionado log
-        const regex = /^\s*(\S+)\s*\{\s*([^}]+)\s*\}/;
-        const match = displayName.match(regex);
-        console.log("Regex Match Manual Answer:", match); // Adicionado log
-        if (match) {
-          const trunk_name = match[1];
-          const callid = match[2];
-          const callernum = incomingCall.remote_identity.uri.user;
-
-          // Chamar a função para criar o ticket
-          await createTicket(trunk_name, callid, callernum);
-        } else {
-          console.warn("Regex não correspondeu para Answer Manual. Display Name:", displayName);
-        }
       } catch (error) {
         console.error('Erro ao responder a chamada:', error);
         toast.error('Falha ao responder a chamada.');

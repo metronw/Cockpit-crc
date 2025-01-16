@@ -20,13 +20,18 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
           <TextInput id={id} fieldName={'caller_name'} label={'Nome do solicitante'} />
         </div>
         <div className="flex flex row pr-4">
-          {/* <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{` ?`}</span> */}
           {
             ticket?.communication_type == `phone` ?
             null :
-            <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de atendimento'} />
+            <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de chat'} />
           }
-          <BooleanInput id={id} fieldName={"isRecall"} label={`Rechamado?`} />
+          
+        </div>
+        <div className="flex flex row pr-4">
+          
+          <TextInput id={id} fieldName={'subject'} label={'Problema alegado'} isLarge={true} />
+          
+          
         </div>
         {/* <Input type="checkbox" label="Rechamado?" color={'primary'} className={'w-32 h-16 pl-4'}/> */}
         <div className="flex flex row pr-4">
@@ -36,6 +41,7 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
         <div className="flex flex row pr-4 space-x-4">
           <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">{`Como posso ajudá-lo?`}</span>
           <IssueSelector id={id} fieldName={'type'} placeholder={'Selecione o seu problema'} dataSource={getCrcTicketTypes} isRequired={true}/>
+          <BooleanInput id={id} fieldName={"isRecall"} label={`Rechamado?`} />
         </div>
       </div>
       <div className="flex flex-col flex-wrap gap-1">
@@ -53,7 +59,7 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
           <div className="flex flex row pr-4">
             <IssueSelector items={issueItems} placeholder={'Tipo de Plano'}/>
           </div> */}
-          <TextInput id={id} fieldName={'address'} label={'Endereço'}/>
+          <TextInput id={id} fieldName={'address'} label={'Endereço'} isLarge={true} />
           
           <div className="flex flex row px-2 pr-4">
           </div>

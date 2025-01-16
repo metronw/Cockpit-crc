@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet, Checkbox } from "@nextui-org/react";
+import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Snippet, Checkbox, Textarea } from "@nextui-org/react";
 import Link  from 'next/link'
 import { ILocalData, IProcedureItemResponse, useTicketContext } from "@/app/agent/providers"
 import {useState, useEffect, useCallback} from 'react'
@@ -16,8 +16,10 @@ import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
 
-export const TextInput = ({id, fieldName, label, isRequired=false}: 
-  {id: string, fieldName: 'client_name' | 'caller_number' | 'identity_document' | 'address' | 'erpProtocol' | `caller_name` | `communication_id`, label: string, isRequired?: boolean}) => {
+export const TextInput = ({id, fieldName, label, isRequired=false, isLarge=false}: 
+  {id: string, label: string, isRequired?: boolean, isLarge?:boolean
+    fieldName: 'client_name' | 'caller_number' | 'identity_document' | 'address' | 'erpProtocol' | `caller_name` | `communication_id` | 'subject'    
+  }) => {
 
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
   const [value, setValue] = useState<string>('')
@@ -65,7 +67,8 @@ export const TextInput = ({id, fieldName, label, isRequired=false}:
         type="text" 
         label={label} 
         color={'primary'}  
-        className={'w-80 h-11 ml-4 border border-primary rounded-medium'}
+        className={`w-80 h-11 ml-4 border border-primary rounded-medium`}
+        // classNames={{base:`${isLarge ? 'w-144 h-32': 'w-80 h-11'} ml-4 border border-primary rounded-medium`, inputWrapper:`bg-white ${isLarge ? 'w-144 h-32': 'w-80 h-11'}`, input:`${isLarge ? 'w-144 h-32': 'w-80 h-11'}`}}
         value={value}
         onValueChange={setValue}
         isRequired= {isRequired}
@@ -417,6 +420,8 @@ export const FinishButton = () => {
   const { ticket } = parsePageInfo(path, ticketContext)
   const router = useRouter();
 
+  console.log(ticket)
+
   const finishAction = useCallback(async () => {
     const resp = await createMetroTicket(ticket)
     if(resp.status === 200 && ticket){
@@ -450,7 +455,6 @@ function formatProcedures(procedures: string){
 export const TicketSummary = () => {
   
   const {ticketContext} = useTicketContext()
-  const {ticketTypeContext} = useTicketTypeContext()
   const path = usePathname()
   const {company, ticket} = parsePageInfo(path, ticketContext)
   const session = useSession()
@@ -458,17 +462,17 @@ export const TicketSummary = () => {
   return(
     <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
       <p>Nome de Assinante: {company?.fantasy_name}</p>
-      <p>Tipo de atendimento: </p>
+      <p>Tipo de atendimento: {ticket?.communication_type == `phone` ? 'Telefônico' : 'Chat'}</p>
       <p>Nome do solicitante: {ticket?.client_name}</p>
       <p>Endereço: {ticket?.address}</p>
-      <p>Problema alegado: {ticketTypeContext.find(el => el.id == ticket?.type)?.label} </p>
+      <p>Problema alegado: {ticket?.subject} </p>
       <p>Procedimentos Realizados:</p>
       {formatProcedures(ticket?.procedures ?? "")}
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>
       <p>Telefone: {ticket?.caller_number}</p>
       <p>Protocolo ERP: {ticket?.erpProtocol}</p>
-      <p>Protocolo Chat</p>
+      <p>Protocolo Chat: {ticket?.communication_type == `chat` ? ticket.communication_id : ''}</p>
       <p>Atendente: {session?.data?.user.name} </p>
     </Snippet>
   )

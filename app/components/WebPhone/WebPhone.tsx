@@ -450,7 +450,11 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     >
       {isReady && (
       <>
-        <h3 style={{ color: '#000', marginBottom: '15px' }}>WebRTC SIP Phone</h3>
+        <h3 style={{ color: '#000', marginBottom: '15px' }}>WebPhone
+          <span style={{ marginLeft: '10px', fontSize: '14px', color: '#555' }}>
+            {userData?.sip_extension}
+          </span>
+        </h3>
         {callStatus !== 'Connected' && (
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
           <label style={{ marginRight: '10px', color: '#000', flex: '1' }}>

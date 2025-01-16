@@ -31,11 +31,14 @@ export async function loginUser({ email, password }: LoginCredentials) {
 }
 
 export async function loginSSO({email, name} :{email:string, name?:string}){
+
+  // const metro_id = await syncUserGestor(email)
+  const metro_id = 312
+  
   let user = await prisma.user.findUnique({
     where: { email },
   });
 
-  const metro_id = await syncUserGestor(email)
 
   if(!user){
     const password = bcrypt.hashSync('951Mudar!', 10)

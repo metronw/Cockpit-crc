@@ -28,7 +28,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
   const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const session = useSession()
-  console.log(JSON.stringify(session.data?.user))
+  
   return (
     <div className='grid grid-cols-12'>
       <div className='flex flex-row gap-4 col-span-3 pl-4'>

@@ -102,18 +102,22 @@ export async function createMetroTicket(ticketInfo:Ticket | undefined){
   try{
     if(ticketInfo){
       const { type, erpProtocol, company_id, client_name, procedures, address, communication_id, communication_type, caller_number, trunk_name, caller_name, isRecall, identity_document} = ticketInfo
-      
+
       if(
         !!type && !!company_id
         ){
-        const session = await getServerSession(authOptions);
-        const [result] = await connection.query(
-          `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner )`+
-          `VALUES (${company_id}, 4, "teste", 2, 0, ${type}, ${session?.user.metro_id ?? 312}, ${erpProtocol ? null : erpProtocol}, ${caller_number ? null : caller_number}, NOW(), NOW(), ${session?.user.metro_id ?? 312} )`
+          const session = await getServerSession(authOptions);
+          const erp_protocol = !!erpProtocol ? erpProtocol.length > 0 ? erpProtocol : null : null
+          const caller_number_insert = !!caller_number ? caller_number.length > 0 ? caller_number : null : null
+
+          const [result] = await connection.query(
+          `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner ) `+
+          `VALUES (${company_id}, 4, "teste", 2, 0, ${type}, ${session?.user.metro_id ?? 312}, ${erp_protocol}, ${caller_number_insert}, NOW(), NOW(), ${session?.user.metro_id ?? 312} )`
         )
 
         if(result){
           const res = JSON.parse(JSON.stringify(result))
+          console.log(res)
 
         const message = 
         `

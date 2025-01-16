@@ -437,12 +437,14 @@ export const FinishButton = () => {
 }
 
 function formatProcedures(procedures: string){
-  console.log(procedures)
-  const resp = JSON.parse(procedures).map((el:IProcedureItemResponse) =>{
-    return <p key={el.id}>{'   ' + el.label}:  {el.response == true ? `Sim` : el.response == false ?  'Não' : el.response} </p>
-  })
+  if(procedures){
+    const resp = JSON.parse(procedures).map((el:IProcedureItemResponse) =>{
+      return <p key={el.id}>{'   ' + el.label}:  {el.response == true ? `Sim` : el.response == false ?  'Não' : el.response} </p>
+    })
 
-  return resp
+    return resp
+  }
+  return ""
 }
 
 export const TicketSummary = () => {
@@ -461,7 +463,7 @@ export const TicketSummary = () => {
       <p>Endereço: {ticket?.address}</p>
       <p>Problema alegado: {ticketTypeContext.find(el => el.id == ticket?.type)?.label} </p>
       <p>Procedimentos Realizados:</p>
-      {formatProcedures(ticket?.procedures ?? ``)}
+      {formatProcedures(ticket?.procedures ?? "")}
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
       <p>Melhor horário para retorno:</p>
       <p>Telefone: {ticket?.caller_number}</p>

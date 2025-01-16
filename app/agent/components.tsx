@@ -28,7 +28,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
   const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const session = useSession()
-  
+  console.log(JSON.stringify(session.data?.user))
   return (
     <div className='grid grid-cols-12'>
       <div className='flex flex-row gap-4 col-span-3 pl-4'>
@@ -44,7 +44,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
         }
       </div>
       <div className="flex flex-row col-span-8 space-x-4 items-center ">
-        <span className="font-bold">Agente - 3650 </span>
+        <span className="font-bold">{`${session.data?.user.name}`}</span>
         <ClockIcon className="h-10" />
         <div>00:00</div>      
         <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary"/></Button>

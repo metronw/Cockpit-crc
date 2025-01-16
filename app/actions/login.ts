@@ -35,17 +35,25 @@ export async function loginSSO({email, name, metro_id=312} :{email:string, name?
     where: { email },
   });
 
+  if(user){
+    await prisma.user.update({
+      where:{email},
+      data:{metro_id: metro_id}
+    })
+  }
+
   if(!user){
     const password = bcrypt.hashSync('951Mudar!', 10)
     user = await prisma.user.create({
       data: {
         email,
         name: name ?? '',
-        password: password, // In a real app, hash the password before storing
+        password: password, 
         metro_id: metro_id
       },
     });
   }
+  
   return user
 }
 

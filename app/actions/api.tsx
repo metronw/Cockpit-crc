@@ -78,7 +78,7 @@ function formatProcedures(procedures: string){
   return resp
 }
 
-export async function syncUserGestor(email: string):Promise<number>{
+export async function getMetroId(email: string):Promise<number>{
 
   const [result] = await connection.query(
     `SELECT * FROM users where email='${email}';`
@@ -87,15 +87,10 @@ export async function syncUserGestor(email: string):Promise<number>{
   if(result){
     const res = JSON.parse(JSON.stringify(result))
     const metro_id = res[0].id
-
-    await prisma.user.update({
-      where:{email},
-      data:{metro_id: metro_id}
-    })
     return metro_id
   }
   return 312
-}
+} 
 
 export async function createMetroTicket(ticketInfo:Ticket | undefined){
 

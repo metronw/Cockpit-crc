@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from '@/app/lib/authOptions';
-import AsteriskAmi from 'asterisk-ami';
+import AsteriskAmi, { AmiResponse, QueuePauseAction, QueueStatusAction } from 'asterisk-ami';
 import prisma from '@/app/lib/localDb';
 
 export async function POST(request: Request) {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     // Função para conectar ao AMI
     const connectAmi = (): Promise<void> => {
       return new Promise((resolve, reject) => {
-        amiClient.connect((err) => {
+        amiClient.connect((err: Error | null) => {
           if (err) {
             console.error("Erro ao conectar ao AMI:", err.message);
             return reject(new Error("Erro ao conectar ao AMI"));
@@ -50,11 +50,11 @@ export async function POST(request: Request) {
     };
 
     // Função para coletar eventos até 'QueueStatusComplete'
-    const collectQueueStatusEvents = (): Promise<AsteriskEvent[]> => {
+    const collectQueueStatusEvents = (): Promise<AmiResponse[]> => {
       return new Promise((resolve, reject) => {
-        const events: AsteriskEvent[] = [];
+        const events: AmiResponse[] = [];
 
-        const onData = (data: AsteriskEvent) => {
+        const onData = (data: AmiResponse) => {
           events.push(data);
           if (data.event === 'QueueStatusComplete') {
             amiClient.off('ami_data', onData);
@@ -77,8 +77,8 @@ export async function POST(request: Request) {
     try {
       // 2. Envia a ação QueuePause
       try {
-        const action = {
-          Action: 'QueuePause',
+        const action: QueuePauseAction = {
+          action: 'QueuePause',
           Interface: interfaceName,
           Paused: paused ? 'true' : 'false',
           Reason: reason || '',
@@ -86,18 +86,21 @@ export async function POST(request: Request) {
 
         await amiClient.send(action);
         console.log("Comando QueuePause enviado com sucesso");
-      } catch (err) {
-        console.error("Erro ao enviar comando ao AMI:", err.message);
-        throw new Error("Erro ao pausar interface no Asterisk");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error("Erro ao enviar comando ao AMI:", err.message);
+          throw new Error("Erro ao pausar interface no Asterisk");
+        }
+        throw err;
       }
 
       // 3. Agora pedimos o QueueStatus para confirmar a mudança
-      await amiClient.send({ Action: 'QueueStatus' });
+      await amiClient.send({ action: 'QueueStatus' } as QueueStatusAction);
       const events = await collectQueueStatusEvents();
 
       // 4. Verificamos se a interface consta nas filas e se ficou pausada/despausada
       const isInQueue = events.some(
-        (evt: AsteriskEvent) =>
+        (evt: AmiResponse) =>
           evt.event === 'QueueMember' && evt.stateinterface === interfaceName
       );
 
@@ -112,7 +115,7 @@ export async function POST(request: Request) {
 
       // Verifica se a interface está com paused=1 nas filas
       const isPaused = events.some(
-        (evt: AsteriskEvent) =>
+        (evt: AmiResponse) =>
           evt.event === 'QueueMember' &&
           evt.stateinterface === interfaceName &&
           evt.paused === '1'
@@ -130,16 +133,28 @@ export async function POST(request: Request) {
         },
         { status: 200 }
       );
-    } catch (error: Error) {
-      console.error("Erro ao processar comando AMI:", error.message);
+    } catch (error: unknown) {
       amiClient.disconnect();
+      if (error instanceof Error) {
+        console.error("Erro ao processar comando AMI:", error.message);
+        return NextResponse.json(
+          { error: error.message || 'Erro interno no servidor' },
+          { status: 500 }
+        );
+      }
       return NextResponse.json(
-        { error: error.message || 'Erro interno no servidor' },
+        { error: 'Erro interno no servidor' },
         { status: 500 }
       );
     }
-  } catch (error: Error) {
-    console.error('Erro ao processar requisição POST:', error.message);
+  } catch (error: unknown) {
+    console.error('Erro ao processar requisição POST:', error);
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: 'Erro interno no servidor' },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
       { error: 'Erro interno no servidor' },
       { status: 500 }
@@ -197,11 +212,11 @@ export async function GET() {
     };
 
     // Função para coletar eventos até 'QueueStatusComplete'
-    const collectEvents = (): Promise<AsteriskEvent[]> => {
+    const collectEvents = (): Promise<AmiResponse[]> => {
       return new Promise((resolve, reject) => {
-        const events: AsteriskEvent[] = [];
+        const events: AmiResponse[] = [];
 
-        const onData = (data: AsteriskEvent) => {
+        const onData = (data: AmiResponse) => {
           events.push(data);
           if (data.event === 'QueueStatusComplete') {
             amiClient.off('ami_data', onData);
@@ -223,14 +238,14 @@ export async function GET() {
     await connectAmi();
 
     try {
-      await amiClient.send({ action: 'QueueStatus' });
+      await amiClient.send({ action: 'QueueStatus' } as QueueStatusAction);
       const events = await collectEvents();
 
       amiClient.disconnect();
 
       // Primeiro confirmar se a interface se encontra em ao menos uma das filas
       const isInQueue = events.some(
-        (evt: AsteriskEvent) =>
+        (evt: AmiResponse) =>
           evt.event === 'QueueMember' && evt.stateinterface === interfaceName
       );
 
@@ -242,34 +257,38 @@ export async function GET() {
       }
 
       const isPaused = events.some(
-        (evt: AsteriskEvent) =>
+        (evt: AmiResponse) =>
           evt.event === 'QueueMember' &&
           evt.stateinterface === interfaceName &&
           evt.paused === '1'
       );
 
       return NextResponse.json({ paused: isPaused }, { status: 200 });
-    } catch (error: Error) {
+    } catch (error: unknown) {
       amiClient.disconnect();
-      console.error('Erro ao processar QueueStatus:', error.message);
+      if (error instanceof Error) {
+        console.error('Erro ao processar QueueStatus:', error.message);
+        return NextResponse.json(
+          { error: 'Erro ao obter status da fila' },
+          { status: 500 }
+        );
+      }
       return NextResponse.json(
         { error: 'Erro ao obter status da fila' },
         { status: 500 }
       );
     }
-  } catch (error: Error) {
+  } catch (error: unknown) {
     console.error('Erro ao processar requisição GET:', error);
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: 'Erro interno no servidor' },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
       { error: 'Erro interno no servidor' },
       { status: 500 }
     );
   }
-}
-
-// Definir a interface AsteriskEvent
-interface AsteriskEvent {
-  event: string;
-  stateinterface?: string;
-  paused?: string;
-  // Adicionar outras propriedades conforme necessário
 }

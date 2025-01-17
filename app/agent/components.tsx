@@ -71,7 +71,9 @@ export const AgentHeader = ({id}: {id?: number}) => {
       }
     } catch (error) {
       toast.error('Erro ao alterar o estado da interface.');
-    } 
+    } finally {
+      onOpenChange(false);
+    }
   };
 
   return (

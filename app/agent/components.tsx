@@ -31,7 +31,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
   const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const session = useSession()
-  const { data: pauseData, error: pauseError } = useSWR('/api/phone/pauseUser', fetchPauseStatus);
+  const { data: pauseData, error: pauseError, mutate } = useSWR('/api/phone/pauseUser', fetchPauseStatus);
 
   let statusColor = 'red';
   if (pauseError) {
@@ -41,7 +41,34 @@ export const AgentHeader = ({id}: {id?: number}) => {
   } else if (pauseData && pauseData.paused === false) {
     statusColor = 'green';
   }
-  
+
+  const handlePause = async (reason: string) => {
+    try {
+      const response = await fetch('/api/phone/pauseUser', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          interfaceName: 'SuaInterfaceNome', // Substitua pelo valor correto
+          paused: true,
+          reason: reason,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message);
+        mutate('/api/phone/pauseUser'); // Revalida os dados usando SWR
+      } else {
+        toast.error(data.error);
+      }
+    } catch (error) {
+      toast.error('Erro ao pausar a interface.');
+    } finally {
+      onClose();
+    }
+  };
+
   return (
     <div className='grid grid-cols-12'>
       <div className='flex flex-row gap-4 col-span-3 pl-4'>
@@ -82,18 +109,15 @@ export const AgentHeader = ({id}: {id?: number}) => {
               <ModalHeader className="flex flex-col gap-1 text-black">Pausar</ModalHeader>
               <ModalBody>
                 <div className='flex flex-col gap-1 text-black text-lg'>
-                  <Button color="primary" className='text-lg'>10 Minutos</Button>
-                  <Button color="primary" className='text-lg'>15 Minutos</Button>
-                  <Button color="primary" className='text-lg'>Treinamento</Button>
-                  <Button color="primary" className='text-lg'>Feedback</Button>
+                  <Button color="primary" className='text-lg' onPress={() => handlePause('10 Minutos')}>10 Minutos</Button>
+                  <Button color="primary" className='text-lg' onPress={() => handlePause('15 Minutos')}>15 Minutos</Button>
+                  <Button color="primary" className='text-lg' onPress={() => handlePause('Treinamento')}>Treinamento</Button>
+                  <Button color="primary" className='text-lg' onPress={() => handlePause('Feedback')}>Feedback</Button>
                 </div>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
                   Fechar
-                </Button>
-                <Button color="primary" onPress={onClose}>
-                  Pausar
                 </Button>
               </ModalFooter>
             </>

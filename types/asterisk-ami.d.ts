@@ -24,7 +24,7 @@ declare module 'asterisk-ami' {
     constructor(options: AmiClientOptions);
     connect(callback: (err: Error | null) => void): void;
     disconnect(): void;
-    send(action: AmiAction, callback: AmiCallback): void;
+    send(action: AmiAction, callback?: AmiCallback): void;
     on(event: string, listener: (data: Record<string, any>) => void): void;
     off(event: string, listener: (data: Record<string, any>) => void): void;
   }

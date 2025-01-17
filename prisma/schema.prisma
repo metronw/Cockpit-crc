@@ -81,8 +81,8 @@ model Procedure_item {
 
 model Procedures {
   id             Int    @id @default(autoincrement())
-  ticket_type_id Int?
-  company_id     Int?
+  ticket_type_id Int
+  company_id     Int
   items          String @db.LongText
 
   @@unique([company_id, ticket_type_id])

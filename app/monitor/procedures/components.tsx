@@ -3,7 +3,7 @@
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { Autocomplete, AutocompleteItem, RadioGroup, Radio, Input, Button, useDisclosure, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Checkbox } from "@nextui-org/react";
 import { toast } from "react-hot-toast";
-import {  createProcedureItem, deleteProcedureItem, saveProcedure } from "@/app/actions/procedures";
+import {  createProcedureItem, deleteProcedure, deleteProcedureItem, saveProcedure } from "@/app/actions/procedures";
 import { useProcedureContext } from "./providers";
 import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
@@ -18,9 +18,9 @@ export function InputPicker(){
   const {setSelectedCompany, setSelectedTicketType, ticketTypes, companies, setIsLoadingProceds} = useProcedureContext()
   
   useEffect(()=>{
-    setIsLoadingProceds(true)
-    setSelectedCompany(company ? parseInt(company): null)
     setSelectedTicketType(ticketType ? parseInt(ticketType) : null)
+    setSelectedCompany(company ? parseInt(company): null)
+    setIsLoadingProceds(true)
   }, [company, ticketType])
 
   return (
@@ -325,7 +325,7 @@ export const InfoModal = ({title, body, className}:{title:string, body:JsonValue
 
 export function ProceduresTable(){
 
-  const { procedures, setIsLoadingProceds, setEditProcedure} = useProcedureContext()
+  const { procedures, setIsLoadingProceds, setEditProcedure, selectedCompany, selectedTicketType} = useProcedureContext()
   const [ready, setReady] = useState<boolean>(false) 
   const [procedure, setProcedure] = useState(procedures)
 
@@ -402,16 +402,28 @@ export function ProceduresTable(){
           </Table>
         )
       }
+      <div className="flex flex-row gap-2"  >
         <Button
           className='w-60' 
-          onPress={() => saveProcedure(procedure)
-            .then(() => {
+          onPress={() => saveProcedure({company_id: selectedCompany ?? 0, ticket_type_id: selectedTicketType ?? 0, items: procedure.items})
+          .then(() => {
               toast.success('salvo com sucesso')
               setIsLoadingProceds(true)
           })
             .catch(() => toast.error('deu algo de errado'))} >
             Ordenar Procedimentos
         </Button>
+        <Button
+          className='w-60' 
+          onPress={() => deleteProcedure(procedure.id)
+            .then(() => {
+              toast.success('excluido com sucesso')
+              setIsLoadingProceds(true)
+          })
+            .catch(() => toast.error('deu algo de errado'))} >
+            Excluir Ordenamento
+        </Button>
+      </div>
     </>
   );
 }

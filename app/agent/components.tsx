@@ -10,6 +10,9 @@ import { createTicket, updateTicket } from '../actions/ticket';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import {toast} from 'react-hot-toast';
+import useSWR from 'swr';
+
+const fetchPauseStatus = (url: string) => fetch(url).then((res) => res.json());
 
 export const PerformanceChart = () => {
   const data = [{name: 'Dia 1', uv: 400, pv: 2400, amt: 2400}, {name: 'Dia 2', uv: 200, pv: 3000, amt: 2400}, {name: 'Dia 3', uv: 700, pv: 3000, amt: 2400}];
@@ -28,7 +31,51 @@ export const AgentHeader = ({id}: {id?: number}) => {
   const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const session = useSession()
+  const { data: pauseData, error: pauseError, mutate } = useSWR('/api/phone/pauseUser', fetchPauseStatus);
   
+
+  let statusColor = 'red';
+  if (pauseError) {
+    statusColor = 'red';
+  } else if (pauseData?.paused) {
+    statusColor = 'orange';
+  } else if (pauseData && pauseData.paused === false) {
+    statusColor = 'green';
+  }
+
+  const handlePause = async (reason: string) => {
+    try {
+      const response = await fetch('/api/phone/user', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const userData = await response.json();
+
+      const pauseResponse = await fetch('/api/phone/pauseUser', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          interfaceName: `PJSIP/${userData.sip_extension}`,
+          paused: !pauseData.paused,
+          reason: reason,
+        }),
+      });
+
+      const data = await pauseResponse.json();
+
+      if (pauseResponse.ok) {
+        toast.success(data.message || 'Estado da interface atualizado com sucesso.');
+        mutate('/api/phone/pauseUser');
+      } else {
+        toast.error(data.error || 'Erro ao atualizar o estado da interface.');
+      }
+    } catch (error) {
+      toast.error('Erro ao alterar o estado da interface.');
+    } finally {
+      onClose();
+    }
+  };
+
   return (
     <div className='grid grid-cols-12'>
       <div className='flex flex-row gap-4 col-span-3 pl-4'>
@@ -48,6 +95,16 @@ export const AgentHeader = ({id}: {id?: number}) => {
         <ClockIcon className="h-10" />
         <div>00:00</div>      
         <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary"/></Button>
+        <div
+          style={{
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            border: '1px solid #000',
+            backgroundColor: statusColor,
+            marginLeft: '8px'
+          }}
+        />
       </div>
       <Button isIconOnly color="primary" aria-label="logout" onPress={() => signOut()}>
       <ArrowRightStartOnRectangleIcon className="col-span-1 h-10 "/>
@@ -56,21 +113,57 @@ export const AgentHeader = ({id}: {id?: number}) => {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 text-black">Pausar</ModalHeader>
+              <ModalHeader className="flex flex-col gap-1 text-black">
+                {pauseData?.paused ? "Despausar" : "Pausar"}
+              </ModalHeader>
               <ModalBody>
                 <div className='flex flex-col gap-1 text-black text-lg'>
-                  <Button color="primary" className='text-lg'>10 Minutos</Button>
-                  <Button color="primary" className='text-lg'>15 Minutos</Button>
-                  <Button color="primary" className='text-lg'>Treinamento</Button>
-                  <Button color="primary" className='text-lg'>Feedback</Button>
+                  {pauseData?.paused ? (
+                    <Button
+                      color="primary"
+                      className='text-lg w-full'
+                      onPress={() => handlePause('Despausar')}
+                    >
+                      <PlayPauseIcon className="h-10 text-primary" />
+                      Despausar
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        color="primary"
+                        className='text-lg'
+                        onPress={() => handlePause('10 Minutos')}
+                      >
+                        10 Minutos
+                      </Button>
+                      <Button
+                        color="primary"
+                        className='text-lg'
+                        onPress={() => handlePause('15 Minutos')}
+                      >
+                        15 Minutos
+                      </Button>
+                      <Button
+                        color="primary"
+                        className='text-lg'
+                        onPress={() => handlePause('Treinamento')}
+                      >
+                        Treinamento
+                      </Button>
+                      <Button
+                        color="primary"
+                        className='text-lg'
+                        onPress={() => handlePause('Feedback')}
+                      >
+                        Feedback
+                      </Button>
+                    </>
+                  )}
                 </div>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
                   Fechar
-                </Button>
-                <Button color="primary" onPress={onClose}>
-                  Pausar
                 </Button>
               </ModalFooter>
             </>

@@ -45,31 +45,32 @@ export const AgentHeader = ({id}: {id?: number}) => {
 
   const handlePause = async (reason: string) => {
     try {
-      const userData = await fetch('/api/phone/user', {
+      const response = await fetch('/api/phone/user', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
+      const userData = await response.json();
 
-      const response = await fetch('/api/phone/pauseUser', {
+      const pauseResponse = await fetch('/api/phone/pauseUser', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          interfaceName: `PJSIP/${userData.sip_extension}`, // Substitua pelo valor correto
-          paused: true,
+          interfaceName: `PJSIP/${userData.sip_extension}`,
+          paused: !pauseData.paused,
           reason: reason,
         }),
       });
 
-      const data = await response.json();
+      const data = await pauseResponse.json();
 
-      if (response.ok) {
-        toast.success(data.message);
-        mutate('/api/phone/pauseUser'); // Revalida os dados usando SWR
+      if (pauseResponse.ok) {
+        toast.success(data.message || 'Estado da interface atualizado com sucesso.');
+        mutate('/api/phone/pauseUser');
       } else {
-        toast.error(data.error);
+        toast.error(data.error || 'Erro ao atualizar o estado da interface.');
       }
     } catch (error) {
-      toast.error('Erro ao pausar a interface.');
+      toast.error('Erro ao alterar o estado da interface.');
     } finally {
       onClose();
     }
@@ -112,13 +113,52 @@ export const AgentHeader = ({id}: {id?: number}) => {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 text-black">Pausar</ModalHeader>
+              <ModalHeader className="flex flex-col gap-1 text-black">
+                {pauseData?.paused ? "Despausar" : "Pausar"}
+              </ModalHeader>
               <ModalBody>
                 <div className='flex flex-col gap-1 text-black text-lg'>
-                  <Button color="primary" className='text-lg' onPress={() => handlePause('10 Minutos')}>10 Minutos</Button>
-                  <Button color="primary" className='text-lg' onPress={() => handlePause('15 Minutos')}>15 Minutos</Button>
-                  <Button color="primary" className='text-lg' onPress={() => handlePause('Treinamento')}>Treinamento</Button>
-                  <Button color="primary" className='text-lg' onPress={() => handlePause('Feedback')}>Feedback</Button>
+                  {pauseData?.paused ? (
+                    <Button
+                      color="primary"
+                      className='text-lg w-full'
+                      onPress={() => handlePause('Despausar')}
+                    >
+                      <PlayPauseIcon className="h-10 text-primary" />
+                      Despausar
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        color="primary"
+                        className='text-lg'
+                        onPress={() => handlePause('10 Minutos')}
+                      >
+                        10 Minutos
+                      </Button>
+                      <Button
+                        color="primary"
+                        className='text-lg'
+                        onPress={() => handlePause('15 Minutos')}
+                      >
+                        15 Minutos
+                      </Button>
+                      <Button
+                        color="primary"
+                        className='text-lg'
+                        onPress={() => handlePause('Treinamento')}
+                      >
+                        Treinamento
+                      </Button>
+                      <Button
+                        color="primary"
+                        className='text-lg'
+                        onPress={() => handlePause('Feedback')}
+                      >
+                        Feedback
+                      </Button>
+                    </>
+                  )}
                 </div>
               </ModalBody>
               <ModalFooter>

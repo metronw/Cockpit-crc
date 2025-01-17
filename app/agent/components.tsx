@@ -32,6 +32,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const session = useSession()
   const { data: pauseData, error: pauseError, mutate } = useSWR('/api/phone/pauseUser', fetchPauseStatus);
+  
 
   let statusColor = 'red';
   if (pauseError) {
@@ -44,11 +45,16 @@ export const AgentHeader = ({id}: {id?: number}) => {
 
   const handlePause = async (reason: string) => {
     try {
+      const userData = await fetch('/api/phone/user', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
       const response = await fetch('/api/phone/pauseUser', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          interfaceName: 'SuaInterfaceNome', // Substitua pelo valor correto
+          interfaceName: `PJSIP/${userData.sip_extension}`, // Substitua pelo valor correto
           paused: true,
           reason: reason,
         }),

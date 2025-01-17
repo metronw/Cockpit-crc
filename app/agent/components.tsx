@@ -10,6 +10,9 @@ import { createTicket, updateTicket } from '../actions/ticket';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import {toast} from 'react-hot-toast';
+import useSWR from 'swr';
+
+const fetchPauseStatus = (url: string) => fetch(url).then((res) => res.json());
 
 export const PerformanceChart = () => {
   const data = [{name: 'Dia 1', uv: 400, pv: 2400, amt: 2400}, {name: 'Dia 2', uv: 200, pv: 3000, amt: 2400}, {name: 'Dia 3', uv: 700, pv: 3000, amt: 2400}];
@@ -28,6 +31,16 @@ export const AgentHeader = ({id}: {id?: number}) => {
   const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const session = useSession()
+  const { data: pauseData, error: pauseError } = useSWR('/api/phone/pauseUser', fetchPauseStatus);
+
+  let statusColor = 'red';
+  if (pauseError) {
+    statusColor = 'red';
+  } else if (pauseData?.paused) {
+    statusColor = 'orange';
+  } else if (pauseData && pauseData.paused === false) {
+    statusColor = 'green';
+  }
   
   return (
     <div className='grid grid-cols-12'>
@@ -48,6 +61,16 @@ export const AgentHeader = ({id}: {id?: number}) => {
         <ClockIcon className="h-10" />
         <div>00:00</div>      
         <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary"/></Button>
+        <div
+          style={{
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            border: '1px solid #000',
+            backgroundColor: statusColor,
+            marginLeft: '8px'
+          }}
+        />
       </div>
       <Button isIconOnly color="primary" aria-label="logout" onPress={() => signOut()}>
       <ArrowRightStartOnRectangleIcon className="col-span-1 h-10 "/>

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from '@/app/lib/authOptions';
-import AsteriskAmi, { AmiResponse } from 'asterisk-ami';
+import AsteriskAmi, { AmiResponse, QueuePauseAction, QueueStatusAction } from 'asterisk-ami';
 import prisma from '@/app/lib/localDb';
 
 export async function POST(request: Request) {
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
     try {
       // 2. Envia a ação QueuePause
       try {
-        const action = {
+        const action: QueuePauseAction = {
           action: 'QueuePause',
           Interface: interfaceName,
           Paused: paused ? 'true' : 'false',
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       }
 
       // 3. Agora pedimos o QueueStatus para confirmar a mudança
-      await amiClient.send({ action: 'QueueStatus' });
+      await amiClient.send({ action: 'QueueStatus' } as QueueStatusAction);
       const events = await collectQueueStatusEvents();
 
       // 4. Verificamos se a interface consta nas filas e se ficou pausada/despausada
@@ -238,7 +238,7 @@ export async function GET() {
     await connectAmi();
 
     try {
-      await amiClient.send({ action: 'QueueStatus' });
+      await amiClient.send({ action: 'QueueStatus' } as QueueStatusAction);
       const events = await collectEvents();
 
       amiClient.disconnect();

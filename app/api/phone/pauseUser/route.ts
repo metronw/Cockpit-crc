@@ -50,11 +50,11 @@ export async function POST(request: Request) {
     };
 
     // Função para coletar eventos até 'QueueStatusComplete'
-    const collectQueueStatusEvents = (): Promise<any[]> => {
+    const collectQueueStatusEvents = (): Promise<AsteriskEvent[]> => {
       return new Promise((resolve, reject) => {
-        const events: any[] = [];
+        const events: AsteriskEvent[] = [];
 
-        const onData = (data: any) => {
+        const onData = (data: AsteriskEvent) => {
           events.push(data);
           if (data.event === 'QueueStatusComplete') {
             amiClient.off('ami_data', onData);
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
 
       // 4. Verificamos se a interface consta nas filas e se ficou pausada/despausada
       const isInQueue = events.some(
-        (evt: any) =>
+        (evt: AsteriskEvent) =>
           evt.event === 'QueueMember' && evt.stateinterface === interfaceName
       );
 
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
 
       // Verifica se a interface está com paused=1 nas filas
       const isPaused = events.some(
-        (evt: any) =>
+        (evt: AsteriskEvent) =>
           evt.event === 'QueueMember' &&
           evt.stateinterface === interfaceName &&
           evt.paused === '1'
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
         },
         { status: 200 }
       );
-    } catch (error: any) {
+    } catch (error: Error) {
       console.error("Erro ao processar comando AMI:", error.message);
       amiClient.disconnect();
       return NextResponse.json(
@@ -138,7 +138,7 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: Error) {
     console.error('Erro ao processar requisição POST:', error.message);
     return NextResponse.json(
       { error: 'Erro interno no servidor' },
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     const sessionUser = session?.user.id;
@@ -197,11 +197,11 @@ export async function GET(request: Request) {
     };
 
     // Função para coletar eventos até 'QueueStatusComplete'
-    const collectEvents = (): Promise<any[]> => {
+    const collectEvents = (): Promise<AsteriskEvent[]> => {
       return new Promise((resolve, reject) => {
-        const events: any[] = [];
+        const events: AsteriskEvent[] = [];
 
-        const onData = (data: any) => {
+        const onData = (data: AsteriskEvent) => {
           events.push(data);
           if (data.event === 'QueueStatusComplete') {
             amiClient.off('ami_data', onData);
@@ -230,7 +230,7 @@ export async function GET(request: Request) {
 
       // Primeiro confirmar se a interface se encontra em ao menos uma das filas
       const isInQueue = events.some(
-        (evt: any) =>
+        (evt: AsteriskEvent) =>
           evt.event === 'QueueMember' && evt.stateinterface === interfaceName
       );
 
@@ -242,14 +242,14 @@ export async function GET(request: Request) {
       }
 
       const isPaused = events.some(
-        (evt: any) =>
+        (evt: AsteriskEvent) =>
           evt.event === 'QueueMember' &&
           evt.stateinterface === interfaceName &&
           evt.paused === '1'
       );
 
       return NextResponse.json({ paused: isPaused }, { status: 200 });
-    } catch (error: any) {
+    } catch (error: Error) {
       amiClient.disconnect();
       console.error('Erro ao processar QueueStatus:', error.message);
       return NextResponse.json(
@@ -257,11 +257,19 @@ export async function GET(request: Request) {
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: Error) {
     console.error('Erro ao processar requisição GET:', error);
     return NextResponse.json(
       { error: 'Erro interno no servidor' },
       { status: 500 }
     );
   }
+}
+
+// Definir a interface AsteriskEvent
+interface AsteriskEvent {
+  event: string;
+  stateinterface?: string;
+  paused?: string;
+  // Adicionar outras propriedades conforme necessário
 }

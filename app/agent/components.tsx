@@ -96,6 +96,8 @@ export const AgentHeader = ({ id }: { id?: number }) => {
         <div
           className='h-10'
           style={{
+            width: '2.5rem',
+            height: '2.5rem',
             borderRadius: '50%',
             border: '1px solid #000',
             backgroundColor: statusColor,

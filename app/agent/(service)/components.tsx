@@ -458,9 +458,10 @@ export const TicketSummary = () => {
 
   return(
     <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
-      <p>Nome de Assinante: {company?.fantasy_name}</p>
+      <p>Empresa: {company?.fantasy_name}</p>
+      <p>Nome de Assinante: {ticket?.client_name}</p>
       <p>Tipo de atendimento: {ticket?.communication_type == `phone` ? 'Telefônico' : 'Chat'}</p>
-      <p>Nome do solicitante: {ticket?.client_name}</p>
+      <p>Nome do solicitante: {ticket?.caller_name}</p>
       <p>Endereço: {ticket?.address}</p>
       <p>Problema alegado: {ticket?.subject} </p>
       <p>Procedimentos Realizados:</p>
@@ -469,7 +470,9 @@ export const TicketSummary = () => {
       <p>Melhor horário para retorno:</p>
       <p>Telefone: {ticket?.caller_number}</p>
       <p>Protocolo ERP: {ticket?.erpProtocol}</p>
-      <p>Protocolo Chat: {ticket?.communication_type == `chat` ? ticket.communication_id : ''}</p>
+      {ticket?.communication_type === 'chat' && (
+        <p>Protocolo Chat: {ticket.communication_id}</p>
+      )}
       <p>Atendente: {session?.data?.user.name} </p>
     </Snippet>
   )

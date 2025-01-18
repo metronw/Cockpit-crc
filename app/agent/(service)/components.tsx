@@ -63,6 +63,7 @@ export const TextInput = ({id, fieldName, label, isRequired=false, isLarge=false
   return(    
     <div className="flex flex-col p-1 rounded m-2 gap-2">
       <Input
+        maxLength={99}
         type="text" 
         label={label} 
         color={'primary'}  

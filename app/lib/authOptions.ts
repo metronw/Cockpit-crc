@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { loginSSO } from "@/app/actions/login";
 import bcrypt from 'bcrypt'; // Assuming passwords are hashed in the database
 import prisma  from '@/app/lib/localDb';
-import { syncUserGestor } from "../actions/api";
+import { getMetroId } from "../actions/api";
 
 
 // Defining the authOptions with proper types
@@ -44,7 +44,8 @@ export const authOptions: NextAuthOptions = {
       
       // If user is available, add it to the token
       if (user) {
-        const metro_id = await syncUserGestor(user.email ?? ``)
+
+        const metro_id = await getMetroId(user.email ?? ``)
         const localUser = await loginSSO({email:user.email ?? '', name: user.name ?? '', metro_id })
         
         token.id = localUser.id;

@@ -124,10 +124,11 @@ export async function createMetroTicket(ticketInfo: Ticket | undefined) {
 
           const message =
             `
-        ${companyName}
+        ${companyName} - Tronco ${trunk_name}
         Nome do assinante: ${client_name}
+        Documento: ${identity_document}
         Tipo de atendimento: Telefone
-        Nome do solicitante: ${client_name}
+        Nome do solicitante: ${caller_name}
         Endereço: ${address}
         Problema alegado: ${subject}
         Procedimentos realizados: 
@@ -135,6 +136,7 @@ export async function createMetroTicket(ticketInfo: Ticket | undefined) {
         Data/horários: ${(new Date).toLocaleString()}
         Telefone: ${caller_number}
         Protocolo ERP: ${erpProtocol}
+        Rechamada? ${isRecall ? 'Sim' : 'Não'}
         Nome do atendente: ${session?.user.name}
         `
 

@@ -79,7 +79,7 @@ function formatProcedures(procedures: string) {
 }
 
 
-export async function getMetroId(email: string):Promise<number>{
+export async function getMetroId(email: string): Promise<number> {
 
   const [result] = await connection.query(
     `SELECT * FROM users where email='${email}';`
@@ -89,10 +89,13 @@ export async function getMetroId(email: string):Promise<number>{
     const res = JSON.parse(JSON.stringify(result))
     const metro_id = res[0].id
     console.log('Metro ID: ', metro_id)
-    await prisma.user.update({
-      where: { email },
-      data: { metro_id: metro_id }
-    })
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      await prisma.user.update({
+        where: { email },
+        data: { metro_id },
+      });
+    }
     return metro_id
   }
   return 312

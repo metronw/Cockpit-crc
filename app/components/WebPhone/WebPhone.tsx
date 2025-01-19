@@ -510,6 +510,14 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
           className={`call-button ${isCalling ? 'disabled' : ''}`}
           title="Iniciar Chamada"
           data-tooltip-id="callTooltip"
+          style={{
+            backgroundColor: '#4caf50', // Green background for better contrast
+            color: 'white', // White text
+            border: 'none',
+            padding: '10px',
+            borderRadius: '5px',
+            cursor: 'pointer',
+          }}
         >
           <FiPhoneCall size={20} />
         </button>
@@ -524,10 +532,28 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
             className="hangup-button"
             title="Encerrar Chamada"
             data-tooltip-id="hangUpTooltip"
+            style={{
+              backgroundColor: '#f44336', // Red background for better contrast
+              color: 'white', // White text
+              border: 'none',
+              padding: '10px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+            }}
           >
             <FiPhoneOff size={20} />
           </button>
-          <button onClick={toggleMute}>
+          <button 
+            onClick={toggleMute}
+            style={{
+              backgroundColor: isMuted ? "#ff9800" : "#c03e81", //'#ff9800', // Orange background for better contrast
+              color: 'white', // White text
+              border: 'none',
+              padding: '10px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+            }}
+          >
             {isMuted ? <FiMicOff size={20} /> : <FiMic size={20} />}
           </button>
           </>

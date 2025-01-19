@@ -15,10 +15,8 @@ import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
 
-export const TextInput = ({id, fieldName, label, isRequired=false, isLarge=false}: 
-  {id: string, label: string, isRequired?: boolean, isLarge?:boolean
-    fieldName: 'client_name' | 'caller_number' | 'identity_document' | 'address' | 'erpProtocol' | `caller_name` | `communication_id` | 'subject'    
-  }) => {
+export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = false }:
+  { id: string, label: string, isRequired?: boolean, isLarge?: boolean, fieldName: 'client_name' | 'caller_number' | 'identity_document' | 'address' | 'erpProtocol' | `caller_name` | `communication_id` | 'subject' }) => {
 
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
   const [value, setValue] = useState<string>('')
@@ -48,32 +46,29 @@ export const TextInput = ({id, fieldName, label, isRequired=false, isLarge=false
     }
   }, [value])
 
-  useEffect(()=>{
-    if(isMounted){
-      setTicketContext((prevContext) => { 
+  useEffect(() => {
+    if (isMounted) {
+      setTicketContext((prevContext) => {
         const updatedTickets = prevContext.tickets.map((el) =>
           el.id === parseInt(id) ? { ...el, [fieldName]: debouncedValue } : el
         );
-        return {...prevContext, tickets: updatedTickets} 
+        return { ...prevContext, tickets: updatedTickets }
       });
     }
+  }, [debouncedValue, id, fieldName]);
 
-  }, [debouncedValue, id, fieldName])
-  
-  return(    
-    <div className="flex flex-col p-1 rounded m-2 gap-2">
+  return (
+    <div className="flex flex-col m-1 gap-1">
       <Input
-        maxLength={99}
-        type="text" 
-        label={label} 
-        color={'primary'}  
-        className={`w-80 h-11 ml-4 border border-primary rounded-medium ${isLarge ? 'w-120 h-24' : ''}`}
-        // classNames={{base:`${isLarge ? 'w-144 h-32': 'w-80 h-11'} ml-4 border border-primary rounded-medium`, inputWrapper:`bg-white ${isLarge ? 'w-144 h-32': 'w-80 h-11'}`, input:`${isLarge ? 'w-144 h-32': 'w-80 h-11'}`}}
+        // maxLength={99}
+        type="text"
+        label={label}
+        color={'primary'}
+        className={`border border-primary rounded-md ${isLarge ? 'w-96' : 'w-72'}`}
         value={value}
         onValueChange={setValue}
-        isRequired= {isRequired}
+        isRequired={isRequired}
       />
-
     </div>
   )
 }
@@ -108,11 +103,11 @@ export function BooleanInput({id, fieldName, label}:{id:string, fieldName: "isRe
   }, [value])
 
   return(    
-    <div className="flex flex-col p-1 rounded  items-center">
-      <span className="text-primary" >{label}</span>
+    <div className="flex flex-row items-center gap-2 p-1">
+      <span className="text-primary">{label}</span>
       <Checkbox type="checkbox" 
         color={'primary'} 
-        className={'w-32 h-16 pl-4 text-primary'}
+        className="w-6 h-6 text-primary"
         isSelected={value}
         onValueChange={setValue}
         // onValueChange={(val) => setValue(newLocal ? true : false)}
@@ -301,28 +296,30 @@ export const StagePanel = () => {
    const {company, ticket} = parsePageInfo(path, ticketContext)
 
   return(
-    <div className='col-span-8 bg-white flex flex-row p-2 space-x-4 justify-center'>
+    <div className='col-span-8 bg-white flex flex-row p-1 space-x-2 justify-center'>
         <Card className="border border-primary">
           <CardBody><p className="text-primary">{company?.fantasy_name ?? ''}</p><p className="text-primary text-center font-bold">Ticket #{ticket?.id ?? ''}</p></CardBody>
         </Card>
-        <Card className="border border-primary">
-          <CardBody>
-            <p className="text-center text-primary">Tipo do atendimento:</p> 
-            <p className="text-primary min-w-24 text-center justify-center font-bold text-lg">{ticket?.communication_type == `phone` ? `Telefônico` : ticket?.communication_type ==`chat` ? `Chat` : `` }</p>
-          </CardBody>
-        </Card>
-        <Card className="border border-primary">
-          <CardBody>
-            <p className="text-center text-primary">Etapa do atendimento:</p> 
-            <p className="font-bold text-primary text-center">{stageName.toUpperCase()}</p>
+        <div className="flex flex-row space-x-1">
+          <Card className="border border-primary">
+            <CardBody>
+              <p className="text-center text-primary">Tipo do atendimento:</p> 
+              <p className="text-primary min-w-24 text-center justify-center font-bold text-lg">{ticket?.communication_type == `phone` ? `Telefônico` : ticket?.communication_type ==`chat` ? `Chat` : `` }</p>
             </CardBody>
-        </Card>
-        <Card className="border border-primary">
-          <CardBody>
-            <p className="text-primary text-center">Interação na etapa</p>
-            <p className="text-primary text-center">00:00</p>
-          </CardBody>
-        </Card>
+          </Card>
+          <Card className="border border-primary">
+            <CardBody>
+              <p className="text-center text-primary">Etapa do atendimento:</p> 
+              <p className="font-bold text-primary text-center">{stageName.toUpperCase()}</p>
+              </CardBody>
+          </Card>
+          <Card className="border border-primary">
+            <CardBody>
+              <p className="text-primary text-center">Interação na etapa</p>
+              <p className="text-primary text-center">00:00</p>
+            </CardBody>
+          </Card>
+        </div>
       </div>
   )
 }
@@ -468,7 +465,6 @@ export const TicketSummary = () => {
       <p>Procedimentos Realizados:</p>
       {formatProcedures(ticket?.procedures ?? "")}
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
-      <p>Melhor horário para retorno:</p>
       <p>Telefone: {ticket?.caller_number}</p>
       <p>Protocolo ERP: {ticket?.erpProtocol}</p>
       {ticket?.communication_type === 'chat' && (
@@ -519,16 +515,28 @@ export const Procedures = () =>{
 }
 
 export const NavigateTicket = ({direction, route}: {direction: string, route: string}) => {
-  const {ticketContext} = useTicketContext()
+  const {ticketContext} = useTicketContext();
   const router = useRouter();
-  const path = usePathname()
-  const { ticket } = parsePageInfo(path, ticketContext)
+  const path = usePathname();
+  const { ticket } = parsePageInfo(path, ticketContext);
 
   const onClick = () => {
-    updateTicket({ticket})
-    router.push(route)
-  } 
-
+    if (ticket) {
+      const requiredFields: (keyof typeof ticket)[] = ['caller_name', 'client_name', 'type', 'subject'];
+      const allFilled = requiredFields.every((field: keyof typeof ticket) => {
+        const val = ticket[field];
+        return val !== null && val !== undefined && val !== '';
+      });
+      if (!allFilled) {
+        toast.error('Preencha todos os campos obrigatórios.');
+        return;
+      }
+      if (allFilled){
+        updateTicket({ticket})
+        router.push(route)
+      }
+    }
+  };
   return(
     <div >
       {

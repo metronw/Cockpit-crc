@@ -88,7 +88,7 @@ export async function getMetroId(email: string):Promise<number>{
   if (result) {
     const res = JSON.parse(JSON.stringify(result))
     const metro_id = res[0].id
-
+    console.log('Metro ID: ', metro_id)
     await prisma.user.update({
       where: { email },
       data: { metro_id: metro_id }

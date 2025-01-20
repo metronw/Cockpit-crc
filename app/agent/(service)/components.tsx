@@ -448,7 +448,7 @@ export const FinishButton = () => {
 function formatProcedures(procedures: string){
   if(procedures){
     const resp = JSON.parse(procedures).map((el:IProcedureItemResponse) =>{
-      return <p className="break-words text-wrap w-full" key={el.id}>{'   ' + el.label}:  {el.response == true ? `Sim` : el.response == false ?  'Não' : el.response} </p>
+      return <p className="break-words text-wrap w-64" key={el.id}>{'   ' + el.label}:  {el.response == true ? `Sim` : el.response == false ?  'Não' : el.response} </p>
     })
 
     return resp

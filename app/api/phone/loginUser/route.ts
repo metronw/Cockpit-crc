@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from '@/app/lib/authOptions';
-import AsteriskAmi, { AmiResponse, QueueAddMemberAction, QueueStatusAction, QueueMemberResponse, QueueRemoveAction } from 'asterisk-ami';
+import AsteriskAmi, { AmiResponse, QueueAddMemberAction, QueueStatusAction, QueueRemoveAction } from 'asterisk-ami';
 import prisma from '@/app/lib/localDb';
 
 // Definir amiClient no escopo externo para que esteja acessível nos blocos catch
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
               Queue: queue.asteriskId,
               Interface: interfaceName,
             };
-            await amiClient.send(action as any); // Ajuste necessário se TypeScript ainda reclamar
+            await amiClient.send(action);
             console.log(`Interface ${interfaceName} adicionada à fila ${queue.name}`);
           }
         }

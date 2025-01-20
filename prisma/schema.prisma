@@ -19,13 +19,13 @@ model Ticket {
   client_name        String?
   caller_number      String?
   communication_id   String?
-  communication_type String? @default("chat")
+  communication_type String?  @default("chat")
   trunk_name         String?
-  caller_name        String?  
-  identity_document  String?     
-  address            String? @db.VarChar(500)
-  isRecall           Boolean?  @default(false)
-  solved             Boolean?  @default(true)
+  caller_name        String?
+  identity_document  String?
+  address            String?  @db.VarChar(500)
+  isRecall           Boolean? @default(false)
+  solved             Boolean? @default(true)
   erpProtocol        String?
   idGestor           Int?
 }
@@ -58,6 +58,7 @@ model Queue {
   asteriskId String?
   name       String
   company_id Int
+  company    Company  @relation(fields: [company_id], references: [id])
   trunk_name String
   createdAt  DateTime @default(now())
 }
@@ -97,18 +98,21 @@ model Speech_suggestion {
 }
 
 model Company {
-  id           Int    @id
+  id           Int          @id
   threshold_1  Int?
   threshold_2  Int?
   fantasy_name String
+  Queue        Queue[]
+  User_assign  User_assign[]
 }
 
 model User_assign {
-  id         Int  @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   company_id Int
   user_id    Int
   queue_type Int?
-  user       User @relation(fields: [user_id], references: [id])
+  user       User    @relation(fields: [user_id], references: [id])
+  company    Company @relation(fields: [company_id], references: [id])
 
   @@unique([company_id, user_id, queue_type])
   @@index([user_id], map: "User_assign_user_id_fkey")

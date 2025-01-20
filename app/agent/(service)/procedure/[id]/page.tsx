@@ -10,7 +10,7 @@ export default function Procedure({params: {id}}: {params: {id: string}}) {
         Vou realizar alguns procedimentos no seu roteador. O sinal pode ficar indisponível. Um momento, por gentileza.
       </p>      
         <div className=" grid grid-cols-12">
-          <div className="col-span-6">
+          <div className="col-span-9">
             <Procedures />
             <TextInput id={id} fieldName={'erpProtocol'} label={'Protocolo ERP'} isRequired={true}/>
             {/* <TextInput id={id} fieldName={'complement'} label={'Informações complementares'}/> */}

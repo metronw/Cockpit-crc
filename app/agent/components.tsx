@@ -43,7 +43,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
     statusColor = 'green';
   }
 
-  const handlePause = async (reason: string) => {
+  const handlePause = async (reason: string, onClose: ()=>void) => {
     try {
       const response = await fetch('/api/phone/user', {
         method: 'GET',
@@ -120,7 +120,7 @@ export const AgentHeader = ({id}: {id?: number}) => {
                     <Button
                       color="primary"
                       className='text-lg w-full'
-                      onPress={() => handlePause('Despausar')}
+                      onPress={() => handlePause('Despausar', onClose)}
                     >
                       <PlayPauseIcon className="h-10 text-primary" />
                       Despausar
@@ -130,28 +130,28 @@ export const AgentHeader = ({id}: {id?: number}) => {
                       <Button
                         color="primary"
                         className='text-lg'
-                        onPress={() => handlePause('10 Minutos')}
+                        onPress={() => handlePause('10 Minutos', onClose)}
                       >
                         10 Minutos
                       </Button>
                       <Button
                         color="primary"
                         className='text-lg'
-                        onPress={() => handlePause('15 Minutos')}
+                        onPress={() => handlePause('15 Minutos', onClose)}
                       >
                         15 Minutos
                       </Button>
                       <Button
                         color="primary"
                         className='text-lg'
-                        onPress={() => handlePause('Treinamento')}
+                        onPress={() => handlePause('Treinamento', onClose)}
                       >
                         Treinamento
                       </Button>
                       <Button
                         color="primary"
                         className='text-lg'
-                        onPress={() => handlePause('Feedback')}
+                        onPress={() => handlePause('Feedback', onClose)}
                       >
                         Feedback
                       </Button>

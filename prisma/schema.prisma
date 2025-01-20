@@ -25,7 +25,9 @@ model Ticket {
   identity_document  String?     
   address            String? @db.VarChar(500)
   isRecall           Boolean?  @default(false)
+  solved             Boolean?  @default(true)
   erpProtocol        String?
+  idGestor           Int?
 }
 
 model User {
@@ -52,7 +54,8 @@ model User_phone {
 }
 
 model Queue {
-  id         Int      @id
+  id         Int      @id @default(autoincrement())
+  asteriskId String?
   name       String
   company_id Int
   trunk_name String

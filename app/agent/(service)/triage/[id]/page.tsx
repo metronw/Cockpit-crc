@@ -1,4 +1,4 @@
-import { BooleanInput, IssueSelector, NavigateTicket } from "../../components"
+import { BooleanInput, IssueSelector, NavigateTicket, PhoneInput } from "../../components"
 import { TextInput } from "../../components";
 import { getCrcTicketTypes } from '@/app/actions/api';
 import { getTicket } from "@/app/actions/ticket";
@@ -43,7 +43,7 @@ export default function Triage({params: {id}}: {params: {id: string}}) {
             <TextInput id={id} fieldName={'identity_document'} label={'CPF/CNPJ'} />
           </div>
           <div className="flex flex row pr-4">
-            <TextInput id={id} fieldName={'caller_number'} label={'Telefone'} />
+            <PhoneInput id={id} fieldName={'caller_number'} label={'Telefone'} />
           </div>
           {/* <div className="flex flex row pr-4">
             <IssueSelector items={issueItems} placeholder={'Status do Contrato'}/>

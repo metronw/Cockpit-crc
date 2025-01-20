@@ -88,9 +88,9 @@ export async function getMetroId(email: string): Promise<number> {
   if (result) {
     const res = JSON.parse(JSON.stringify(result))
     const metro_id = res[0].id
-    console.log('Metro ID: ', metro_id)
+    // console.log('Metro ID: ', metro_id)
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    console.log('Usuário encontrado: ', existingUser)
+    // console.log('Usuário encontrado: ', existingUser)
     if (existingUser) {
       await prisma.user.update({
         where: { email },
@@ -100,7 +100,7 @@ export async function getMetroId(email: string): Promise<number> {
     return metro_id
   }
   return 312
-} 
+}
 
 export async function createMetroTicket(ticketInfo: Ticket | undefined) {
 
@@ -124,6 +124,8 @@ export async function createMetroTicket(ticketInfo: Ticket | undefined) {
           `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner, call_id, chat_protocol ) ` +
           `VALUES (${company_id}, 4, '${subjectCRC}', 2, ${origin}, ${type}, ${session?.user.metro_id ?? 312}, '${erp_protocol}', '${caller_number_insert}', NOW(), NOW(), ${session?.user.metro_id ?? 312}, ${call_id}, '${chat_protocol}' )`
         )
+
+        let idGestor = 0;
 
         if (result) {
           const res = JSON.parse(JSON.stringify(result))
@@ -150,14 +152,14 @@ export async function createMetroTicket(ticketInfo: Ticket | undefined) {
             `INSERT INTO ticket_response (id_ticket, response, type, id_user, created_at, updated_at) ` +
             `VALUES (${res.insertId}, '${message}', 'N', ${session?.user.metro_id ?? 312}, NOW(), NOW() )`
           )
-
+          idGestor = res.insertId;
         }
 
         await prisma.ticket.update({
           where: {
             id: ticketInfo.id,
           },
-          data: { status: 'closed' },
+          data: { status: 'closed', idGestor },
         })
 
         // TODO - colocar o id do ticket gerado no Gestor na tabela de tickets

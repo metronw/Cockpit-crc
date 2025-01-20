@@ -10,7 +10,7 @@ export default function Finishing({params: {id}}: {params: {id: string}}) {
       <div className="grid grid-cols-12 h-full">
         <div className="col-span-6 flex flex-col mx-4 gap-4">
           <p className='bg-purple-700 text-white rounded content-center px-2 my-1 py-1'>
-            {`Solicitante, foi aberto um atendimento de protocolo ${ticket?.erpProtocol} para o setor responsável.  `}
+            <strong>{ticket?.caller_name}</strong>, foi aberto o protocolo <strong>{ticket?.erpProtocol}</strong> para o setor responsável.
           </p>
           {/* <div className="border rounded border-warning p-2 my-2">
             <p className="text-warning">Prazo Financeiro/Comercial: Até proximo dia útil</p>

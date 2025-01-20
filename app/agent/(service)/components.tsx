@@ -50,13 +50,13 @@ export const TextInput = ({id, fieldName, label, isRequired=false, isLarge=false
     }
   }, [value])
 
-  useEffect(()=>{
-    if(isMounted){
-      setTicketContext((prevContext) => { 
+  useEffect(() => {
+    if (isMounted) {
+      setTicketContext((prevContext) => {
         const updatedTickets = prevContext.tickets.map((el) =>
           el.id === parseInt(id) ? { ...el, [fieldName]: debouncedValue } : el
         );
-        return {...prevContext, tickets: updatedTickets} 
+        return { ...prevContext, tickets: updatedTickets }
       });
     }
 
@@ -78,7 +78,6 @@ export const TextInput = ({id, fieldName, label, isRequired=false, isLarge=false
         isRequired= {isRequired}
         validate={validate}
       />
-
     </div>
   )
 }
@@ -113,11 +112,11 @@ export function BooleanInput({id, fieldName, label}:{id:string, fieldName: "isRe
   }, [value])
 
   return(    
-    <div className="flex flex-col p-1 rounded  items-center">
-      <span className="text-primary" >{label}</span>
+    <div className="flex flex-row items-center gap-2 p-1">
+      <span className="text-primary">{label}</span>
       <Checkbox type="checkbox" 
         color={'primary'} 
-        className={'w-32 h-16 pl-4 text-primary'}
+        className="w-6 h-6 text-primary"
         isSelected={value}
         onValueChange={setValue}
         // onValueChange={(val) => setValue(newLocal ? true : false)}
@@ -306,28 +305,30 @@ export const StagePanel = () => {
    const {company, ticket} = parsePageInfo(path, ticketContext)
 
   return(
-    <div className='col-span-8 bg-white flex flex-row p-2 space-x-4 justify-center'>
+    <div className='col-span-8 bg-white flex flex-row p-1 space-x-2 justify-center'>
         <Card className="border border-primary">
           <CardBody><p className="text-primary">{company?.fantasy_name ?? ''}</p><p className="text-primary text-center font-bold">Ticket #{ticket?.id ?? ''}</p></CardBody>
         </Card>
-        <Card className="border border-primary">
-          <CardBody>
-            <p className="text-center text-primary">Tipo do atendimento:</p> 
-            <p className="text-primary min-w-24 text-center justify-center font-bold text-lg">{ticket?.communication_type == `phone` ? `Telefônico` : ticket?.communication_type ==`chat` ? `Chat` : `` }</p>
-          </CardBody>
-        </Card>
-        <Card className="border border-primary">
-          <CardBody>
-            <p className="text-center text-primary">Etapa do atendimento:</p> 
-            <p className="font-bold text-primary text-center">{stageName.toUpperCase()}</p>
+        <div className="flex flex-row space-x-1">
+          <Card className="border border-primary">
+            <CardBody>
+              <p className="text-center text-primary">Tipo do atendimento:</p> 
+              <p className="text-primary min-w-24 text-center justify-center font-bold text-lg">{ticket?.communication_type == `phone` ? `Telefônico` : ticket?.communication_type ==`chat` ? `Chat` : `` }</p>
             </CardBody>
-        </Card>
-        <Card className="border border-primary">
-          <CardBody>
-            <p className="text-primary text-center">Interação na etapa</p>
-            <p className="text-primary text-center">00:00</p>
-          </CardBody>
-        </Card>
+          </Card>
+          <Card className="border border-primary">
+            <CardBody>
+              <p className="text-center text-primary">Etapa do atendimento:</p> 
+              <p className="font-bold text-primary text-center">{stageName.toUpperCase()}</p>
+              </CardBody>
+          </Card>
+          <Card className="border border-primary">
+            <CardBody>
+              <p className="text-primary text-center">Interação na etapa</p>
+              <p className="text-primary text-center">00:00</p>
+            </CardBody>
+          </Card>
+        </div>
       </div>
   )
 }
@@ -462,20 +463,30 @@ export const TicketSummary = () => {
   const {company, ticket} = parsePageInfo(path, ticketContext)
   const session = useSession()
 
+  function formatPhoneNumber(raw: string) {
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length <= 10) {
+      return digits.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+    return digits.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  }
+
   return(
     <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
-      <p>Nome de Assinante: {company?.fantasy_name}</p>
+      <p>Empresa: {company?.fantasy_name}</p>
+      <p>Nome de Assinante: {ticket?.client_name}</p>
       <p>Tipo de atendimento: {ticket?.communication_type == `phone` ? 'Telefônico' : 'Chat'}</p>
-      <p>Nome do solicitante: {ticket?.client_name}</p>
+      <p>Nome do solicitante: {ticket?.caller_name}</p>
       <p>Endereço: {ticket?.address}</p>
       <p className="break-words text-wrap w-full">Problema alegado: {ticket?.subject} </p>
       <p>Procedimentos Realizados:</p>
       {formatProcedures(ticket?.procedures ?? "")}
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
-      <p>Melhor horário para retorno:</p>
-      <p>Telefone: {ticket?.caller_number}</p>
+      <p>Telefone: {ticket?.caller_number ? formatPhoneNumber(ticket.caller_number) : ''}</p>
       <p>Protocolo ERP: {ticket?.erpProtocol}</p>
-      <p>Protocolo Chat: {ticket?.communication_type == `chat` ? ticket.communication_id : ''}</p>
+      {ticket?.communication_type === 'chat' && (
+        <p>Protocolo Chat: {ticket.communication_id}</p>
+      )}
       <p>Atendente: {session?.data?.user.name} </p>
     </Snippet>
   )
@@ -545,7 +556,7 @@ const validateTriageForm = (ticket:Ticket ) =>{
 
 
 export const NavigateTicket = ({direction, route}: {direction: string, route: string}) => {
-  const {ticketContext} = useTicketContext()
+  const {ticketContext} = useTicketContext();
   const router = useRouter();
   const path = usePathname()
   const { ticket } = parsePageInfo(path, ticketContext)
@@ -576,4 +587,53 @@ export const NavigateTicket = ({direction, route}: {direction: string, route: st
       }
     </div>
   )
+}
+
+export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: keyof ILocalData['tickets'][0]; label: string }) {
+  const { ticketContext, setTicketContext, isMounted } = useTicketContext();
+  const [maskedValue, setMaskedValue] = useState('');
+
+  useEffect(() => {
+    if (isMounted) {
+      const ticket = ticketContext.tickets.find((t) => t.id === parseInt(id));
+      if (ticket?.[fieldName]) {
+        setMaskedValue(formatPhone(ticket[fieldName] as string));
+      }
+    }
+  }, [JSON.stringify(ticketContext.tickets), isMounted]);
+
+  function formatPhone(raw: string) {
+    const digits = raw.replace(/\D/g, '');
+    const localDigits = digits.length > 11 ? digits.slice(-11) : digits;
+    if (localDigits.length <= 10) {
+      return localDigits.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+    return localDigits.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  }
+
+  const handleChange = (val: string) => {
+    const onlyDigits = val.replace(/\D/g, '');
+    const localDigits = onlyDigits.length > 11 ? onlyDigits.slice(-11) : onlyDigits;
+    setMaskedValue(formatPhone(localDigits));
+    setTicketContext((prev) => {
+      const updatedTickets = prev.tickets.map((t) =>
+        t.id === parseInt(id) ? { ...t, [fieldName]: localDigits } : t
+      );
+      return { ...prev, tickets: updatedTickets };
+    });
+  };
+
+  return (
+    <div className="flex flex-col m-1 gap-1">
+      <Input
+        type="text"
+        label={label}
+        color="primary"
+        className="border border-primary rounded-md w-72"
+        value={maskedValue}
+        onValueChange={handleChange}
+        maxLength={20}
+      />
+    </div>
+  );
 }

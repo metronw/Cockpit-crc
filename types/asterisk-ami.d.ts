@@ -23,7 +23,20 @@ declare module 'asterisk-ami' {
     action: 'QueueStatus';
   }
 
-  type AmiAction = QueuePauseAction | QueueStatusAction;
+  interface QueueAddMemberAction extends BaseAmiAction {
+    action: 'QueueAdd';
+    Queue: string;
+    Interface: string;
+  }
+
+  interface QueueRemoveAction extends BaseAmiAction {
+    action: 'QueueRemove';
+    ActionID: string;
+    Queue: string;
+    Interface: string;
+  }
+
+  type AmiAction = QueuePauseAction | QueueStatusAction | QueueAddMemberAction | QueueRemoveAction;
 
   interface BaseAmiResponse {
     response: string;
@@ -33,7 +46,8 @@ declare module 'asterisk-ami' {
 
   interface QueueMemberResponse extends BaseAmiResponse {
     event: 'QueueMember';
-    stateinterface: string;
+    Queue: string; // Adicionada a propriedade Queue
+    Interface: string; // Adicionada a propriedade Interface
     paused: '1' | '0';
   }
 

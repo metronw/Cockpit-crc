@@ -455,31 +455,31 @@ export const TicketSummary = () => {
   const session = useSession()
 
   function formatPhoneNumber(raw: string) {
-    const digits = raw.replace(/\D/g, '');
-    if (digits.length <= 10) {
-      return digits.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-    }
-    return digits.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length <= 10) {
+    return digits.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  }
+  return digits.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   }
 
   return(
-    <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
-      <p>Empresa: {company?.fantasy_name}</p>
-      <p>Nome de Assinante: {ticket?.client_name}</p>
-      <p>Tipo de atendimento: {ticket?.communication_type == `phone` ? 'Telefônico' : 'Chat'}</p>
-      <p>Nome do solicitante: {ticket?.caller_name}</p>
-      <p>Endereço: {ticket?.address}</p>
-      <p>Problema alegado: {ticket?.subject} </p>
-      <p>Procedimentos Realizados:</p>
-      {formatProcedures(ticket?.procedures ?? "")}
-      <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
-      <p>Telefone: {ticket?.caller_number ? formatPhoneNumber(ticket.caller_number) : ''}</p>
-      <p>Protocolo ERP: {ticket?.erpProtocol}</p>
-      {ticket?.communication_type === 'chat' && (
-        <p>Protocolo Chat: {ticket.communication_id}</p>
-      )}
-      <p>Atendente: {session?.data?.user.name} </p>
-    </Snippet>
+  <Snippet size="md" symbol={""} classNames={{ base: 'border border-primary px-4 text-primary py-3 whitespace-pre-wrap break-words max-w-full overflow-wrap' }}>
+    <p>Empresa: {company?.fantasy_name}</p>
+    <p>Nome de Assinante: {ticket?.client_name}</p>
+    <p>Tipo de atendimento: {ticket?.communication_type == `phone` ? 'Telefônico' : 'Chat'}</p>
+    <p>Nome do solicitante: {ticket?.caller_name}</p>
+    <p>Endereço: {ticket?.address}</p>
+    <p>Problema alegado: {ticket?.subject} </p>
+    <p>Procedimentos Realizados:</p>
+    {formatProcedures(ticket?.procedures ?? "")}
+    <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
+    <p>Telefone: {ticket?.caller_number ? formatPhoneNumber(ticket.caller_number) : ''}</p>
+    <p>Protocolo ERP: {ticket?.erpProtocol}</p>
+    {ticket?.communication_type === 'chat' && (
+    <p>Protocolo Chat: {ticket.communication_id}</p>
+    )}
+    <p>Atendente: {session?.data?.user.name} </p>
+  </Snippet>
   )
 }
 

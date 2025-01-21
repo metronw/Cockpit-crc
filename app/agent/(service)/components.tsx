@@ -543,7 +543,7 @@ const schema = z.object({
 const validateTriageForm = (ticket:Ticket ) =>{
 
   try{
-    const parsed = schema.parse(ticket)
+    schema.parse(ticket)
     return true
   }catch(err){
     if (err instanceof z.ZodError) {

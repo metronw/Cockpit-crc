@@ -25,7 +25,7 @@ model Ticket {
   identity_document  String?
   address            String?  @db.VarChar(500)
   isRecall           Boolean? @default(false)
-  solved             Boolean? @default(true)
+  isSolved           Boolean? @default(true)
   erpProtocol        String?
   idGestor           Int?
 }

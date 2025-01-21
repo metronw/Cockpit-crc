@@ -259,7 +259,6 @@ export const AgentHeader = ({ id }: { id?: number }) => {
                   </div>
                 )}
                 <div className='flex flex-col gap-1 text-black text-lg'>
-<<<<<<< HEAD
                   {pauseData?.paused ? (
                     <Button
                       color="primary"
@@ -315,15 +314,6 @@ export const AgentHeader = ({ id }: { id?: number }) => {
                       </Button>
                     </>
                   )}
-=======
-                  <Button
-                    color="danger"
-                    className='text-lg'
-                    onPress={() => handleLogout()}
-                  >
-                    Logout
-                  </Button>
->>>>>>> fff67c7 (adiciona funcionalidades de login e logout para a interface nas filas)
                 </div>
               </ModalBody>
               <ModalFooter>

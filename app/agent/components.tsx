@@ -114,39 +114,39 @@ export const AgentHeader = ({ id }: { id?: number }) => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      // Obter dados do usuário
-      const userDataResponse = await fetch('/api/phone/user', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const userData = await userDataResponse.json();
+  // const handleLogout = async () => {
+  //   try {
+  //     // Obter dados do usuário
+  //     const userDataResponse = await fetch('/api/phone/user', {
+  //       method: 'GET',
+  //       headers: { 'Content-Type': 'application/json' },
+  //     });
+  //     const userData = await userDataResponse.json();
 
-      // Requisição DELETE para deslogar a interface das filas
-      const logoutResponse = await fetch('/api/phone/loginUser', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          interfaceName: `PJSIP/${userData.sip_extension}`,
-        }),
-      });
+  //     // Requisição DELETE para deslogar a interface das filas
+  //     const logoutResponse = await fetch('/api/phone/loginUser', {
+  //       method: 'DELETE',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       credentials: 'include',
+  //       body: JSON.stringify({
+  //         interfaceName: `PJSIP/${userData.sip_extension}`,
+  //       }),
+  //     });
 
-      const data = await logoutResponse.json();
+  //     const data = await logoutResponse.json();
 
-      if (logoutResponse.ok) {
-        toast.success(data.message || 'Deslogado das filas com sucesso.');
-        setTimeout(() => {
-          mutate('/api/phone/pauseUser');
-          }, 2000);
-      } else {
-        toast.error(data.error || 'Erro ao deslogar das filas.');
-      }
-    } catch (error) {
-      toast.error('Erro ao executar deslogout.');
-    }
-  };
+  //     if (logoutResponse.ok) {
+  //       toast.success(data.message || 'Deslogado das filas com sucesso.');
+  //       setTimeout(() => {
+  //         mutate('/api/phone/pauseUser');
+  //         }, 2000);
+  //     } else {
+  //       toast.error(data.error || 'Erro ao deslogar das filas.');
+  //     }
+  //   } catch (error) {
+  //     toast.error('Erro ao executar deslogout.');
+  //   }
+  // };
 
   return (
     <div className='grid grid-cols-12'>

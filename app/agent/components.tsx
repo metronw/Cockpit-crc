@@ -34,7 +34,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
   const { data: pauseData, error: pauseError, mutate } = useSWR('/api/phone/pauseUser', fetchPauseStatus);
 
   const isLoggedIn = !(pauseData?.error === 'Interface não encontrada em nenhuma fila');
-  
+
   console.log('pauseData', pauseData);
   console.log('pauseError', pauseError);
   console.log('isLoggedIn', isLoggedIn);
@@ -71,7 +71,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
       if (pauseResponse.ok) {
         toast.success(data.message || 'Estado da interface atualizado com sucesso.');
         setTimeout(() => {
-        mutate('/api/phone/pauseUser');
+          mutate('/api/phone/pauseUser');
         }, 2000);
       } else {
         toast.error(data.error || 'Erro ao atualizar o estado da interface.');
@@ -105,7 +105,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
         toast.success(data.message || 'Logado nas filas com sucesso.');
         setTimeout(() => {
           mutate('/api/phone/pauseUser');
-          }, 2000);
+        }, 2000);
       } else {
         toast.error(data.error || 'Erro ao logar nas filas.');
       }
@@ -114,39 +114,39 @@ export const AgentHeader = ({ id }: { id?: number }) => {
     }
   };
 
-  // const handleLogout = async () => {
-  //   try {
-  //     // Obter dados do usuário
-  //     const userDataResponse = await fetch('/api/phone/user', {
-  //       method: 'GET',
-  //       headers: { 'Content-Type': 'application/json' },
-  //     });
-  //     const userData = await userDataResponse.json();
+  const handleLogout = async () => {
+    try {
+      // Obter dados do usuário
+      const userDataResponse = await fetch('/api/phone/user', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const userData = await userDataResponse.json();
 
-  //     // Requisição DELETE para deslogar a interface das filas
-  //     const logoutResponse = await fetch('/api/phone/loginUser', {
-  //       method: 'DELETE',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       credentials: 'include',
-  //       body: JSON.stringify({
-  //         interfaceName: `PJSIP/${userData.sip_extension}`,
-  //       }),
-  //     });
+      // Requisição DELETE para deslogar a interface das filas
+      const logoutResponse = await fetch('/api/phone/loginUser', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          interfaceName: `PJSIP/${userData.sip_extension}`,
+        }),
+      });
 
-  //     const data = await logoutResponse.json();
+      const data = await logoutResponse.json();
 
-  //     if (logoutResponse.ok) {
-  //       toast.success(data.message || 'Deslogado das filas com sucesso.');
-  //       setTimeout(() => {
-  //         mutate('/api/phone/pauseUser');
-  //         }, 2000);
-  //     } else {
-  //       toast.error(data.error || 'Erro ao deslogar das filas.');
-  //     }
-  //   } catch (error) {
-  //     toast.error('Erro ao executar deslogout.');
-  //   }
-  // };
+      if (logoutResponse.ok) {
+        toast.success(data.message || 'Deslogado das filas com sucesso.');
+        setTimeout(() => {
+          mutate('/api/phone/pauseUser');
+        }, 2000);
+      } else {
+        toast.error(data.error || 'Erro ao deslogar das filas.');
+      }
+    } catch (error) {
+      toast.error('Erro ao executar deslogout.');
+    }
+  };
 
   return (
     <div className='grid grid-cols-12'>
@@ -256,65 +256,15 @@ export const AgentHeader = ({ id }: { id?: number }) => {
                         </Button>
                       </>
                     )}
+                    <Button
+                      color="danger"
+                      className='text-lg'
+                      onPress={() => handleLogout()}
+                    >
+                      Logout
+                    </Button>
                   </div>
                 )}
-                <div className='flex flex-col gap-1 text-black text-lg'>
-                  {pauseData?.paused ? (
-                    <Button
-                      color="primary"
-                      className='text-lg w-full'
-                      onPress={() => handlePause('Despausar')}
-                    >
-                      <PlayPauseIcon className="h-10 text-primary" />
-                      Despausar
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        color="primary"
-                        className='text-lg'
-                        onPress={() => handlePause('10 Minutos')}
-                      >
-                        10 Minutos
-                      </Button>
-                      <Button
-                        color="primary"
-                        className='text-lg'
-                        onPress={() => handlePause('15 Minutos')}
-                      >
-                        15 Minutos
-                      </Button>
-                      <Button
-                        color="primary"
-                        className='text-lg'
-                        onPress={() => handlePause('Treinamento')}
-                      >
-                        Treinamento
-                      </Button>
-                      <Button
-                        color="primary"
-                        className='text-lg'
-                        onPress={() => handlePause('Feedback')}
-                      >
-                        Feedback
-                      </Button>
-                      <Button
-                        color="primary"
-                        className='text-lg'
-                        onPress={() => handlePause('Banheiro')}
-                      >
-                        Banheiro
-                      </Button>
-                      <Button
-                        color="primary"
-                        className='text-lg'
-                        onPress={() => handlePause('Atendimento Chat')}
-                      >
-                        Atendimento Chat
-                      </Button>
-                    </>
-                  )}
-                </div>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>

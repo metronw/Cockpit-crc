@@ -485,7 +485,7 @@ export const TicketSummary = () => {
       <p>Telefone: {ticket?.caller_number ? formatPhoneNumber(ticket.caller_number) : ''}</p>
       <p>Protocolo ERP: {ticket?.erpProtocol}</p>
       {ticket?.communication_type === 'chat' && (
-        <p>Protocolo Chat: {ticket.communication_id}</p>
+      <p>Protocolo Chat: {ticket.communication_id}</p>
       )}
       <p>Atendente: {session?.data?.user.name} </p>
     </Snippet>

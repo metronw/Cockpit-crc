@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Snippet } from "@nextui-org/react";
+import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox } from "@nextui-org/react";
 import Link from 'next/link'
 import { ILocalData, IProcedureItemResponse, useTicketContext } from "@/app/agent/providers"
 import { useState, useEffect, useCallback } from 'react'

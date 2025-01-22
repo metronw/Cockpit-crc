@@ -541,6 +541,13 @@ export function ProcedureEditor() {
               Salvar item de procedimento
             </Button>
             <Button  
+            className='w-60' 
+            onPress={() => {
+              setProcedureId(undefined)
+            }}>
+              Copiar
+            </Button>
+            <Button  
             className='w-60 bg-danger' 
             onPress={() => deleteProcedureItem( [procedureId ?? 0])
               .then(() => {
@@ -550,7 +557,7 @@ export function ProcedureEditor() {
             })
               .catch(() => toast.error('deu algo de errado'))} >
               Deletar Procedimento
-          </Button>
+            </Button>            
             <Button  
             className='w-60' 
             onPress={() => {

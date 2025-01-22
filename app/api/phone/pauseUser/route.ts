@@ -204,7 +204,7 @@ export async function GET() {
           if (err) {
             reject(new Error("Erro ao conectar ao AMI"));
           } else {
-           // console.info("Conexão ao AMI estabelecida");
+            // console.info("Conexão ao AMI estabelecida");
             resolve();
           }
         });

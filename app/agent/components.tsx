@@ -33,6 +33,11 @@ export const AgentHeader = ({ id }: { id?: number }) => {
   const session = useSession()
   const { data: pauseData, error: pauseError, mutate } = useSWR('/api/phone/pauseUser', fetchPauseStatus);
 
+  const isLoggedIn = !(pauseData?.error === 'Interface não encontrada em nenhuma fila');
+
+  console.log('pauseData', pauseData);
+  console.log('pauseError', pauseError);
+  console.log('isLoggedIn', isLoggedIn);
 
   let statusColor = 'red';
   if (pauseError) {
@@ -65,12 +70,81 @@ export const AgentHeader = ({ id }: { id?: number }) => {
 
       if (pauseResponse.ok) {
         toast.success(data.message || 'Estado da interface atualizado com sucesso.');
-        mutate('/api/phone/pauseUser');
+        setTimeout(() => {
+          mutate('/api/phone/pauseUser');
+        }, 2000);
       } else {
         toast.error(data.error || 'Erro ao atualizar o estado da interface.');
       }
     } catch (error) {
       toast.error('Erro ao alterar o estado da interface.');
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      // Obter dados do usuário
+      const userDataResponse = await fetch('/api/phone/user', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const userData = await userDataResponse.json();
+
+      // Requisição POST para logar a interface nas filas
+      const loginResponse = await fetch('/api/phone/loginUser', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          interfaceName: `PJSIP/${userData.sip_extension}`, // Substitua conforme necessário
+        })
+      });
+
+      const data = await loginResponse.json();
+
+      if (loginResponse.ok) {
+        toast.success(data.message || 'Logado nas filas com sucesso.');
+        setTimeout(() => {
+          mutate('/api/phone/pauseUser');
+        }, 2000);
+      } else {
+        toast.error(data.error || 'Erro ao logar nas filas.');
+      }
+    } catch (error) {
+      toast.error('Erro ao executar login.');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Obter dados do usuário
+      const userDataResponse = await fetch('/api/phone/user', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const userData = await userDataResponse.json();
+
+      // Requisição DELETE para deslogar a interface das filas
+      const logoutResponse = await fetch('/api/phone/loginUser', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          interfaceName: `PJSIP/${userData.sip_extension}`,
+        }),
+      });
+
+      const data = await logoutResponse.json();
+
+      if (logoutResponse.ok) {
+        toast.success(data.message || 'Deslogado das filas com sucesso.');
+        setTimeout(() => {
+          mutate('/api/phone/pauseUser');
+        }, 2000);
+      } else {
+        toast.error(data.error || 'Erro ao deslogar das filas.');
+      }
+    } catch (error) {
+      toast.error('Erro ao executar deslogout.');
     }
   };
 
@@ -90,21 +164,29 @@ export const AgentHeader = ({ id }: { id?: number }) => {
       </div>
       <div className="flex flex-row col-span-8 space-x-4 items-center ">
         <span className="font-bold">{`${session.data?.user.name || "Carregando suas informações!"}`}</span>
-        <ClockIcon className="h-10" />
-        <div>00:00</div>
-        <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary" /></Button>
-        <div
-          className='h-10'
-          style={{
-            width: '2.5rem',
-            height: '2.5rem',
-            borderRadius: '50%',
-            border: '1px solid #000',
-            backgroundColor: statusColor,
-            marginLeft: '8px'
-          }}
-          title="Status do Agente"
-        />
+        {isLoggedIn ? (
+          <>
+            <ClockIcon className="h-10" />
+            <div>00:00</div>
+            <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary" /></Button>
+            <div
+              className='h-10'
+              style={{
+                width: '2.5rem',
+                height: '2.5rem',
+                borderRadius: '50%',
+                border: '1px solid #000',
+                backgroundColor: statusColor,
+                marginLeft: '8px'
+              }}
+              title="Status do Agente"
+            />
+          </>
+        ) : (
+          <Button onPress={handleLogin}>
+            LOGAR
+          </Button>
+        )}
       </div>
       <Button isIconOnly color="primary" aria-label="logout" onPress={() => signOut()}>
         <ArrowRightStartOnRectangleIcon className="col-span-1 h-10 " />
@@ -117,49 +199,72 @@ export const AgentHeader = ({ id }: { id?: number }) => {
                 {pauseData?.paused ? "Despausar" : "Pausar"}
               </ModalHeader>
               <ModalBody>
-                <div className='flex flex-col gap-1 text-black text-lg'>
-                  {pauseData?.paused ? (
+                {isLoggedIn && (
+                  <div className='flex flex-col gap-1 text-black text-lg'>
+                    {pauseData?.paused ? (
+                      <Button
+                        color="primary"
+                        className='text-lg w-full'
+                        onPress={() => handlePause('Despausar')}
+                      >
+                        <PlayPauseIcon className="h-10 text-primary" />
+                        Despausar
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          color="primary"
+                          className='text-lg'
+                          onPress={() => handlePause('10 Minutos')}
+                        >
+                          10 Minutos
+                        </Button>
+                        <Button
+                          color="primary"
+                          className='text-lg'
+                          onPress={() => handlePause('15 Minutos')}
+                        >
+                          15 Minutos
+                        </Button>
+                        <Button
+                          color="primary"
+                          className='text-lg'
+                          onPress={() => handlePause('Treinamento')}
+                        >
+                          Treinamento
+                        </Button>
+                        <Button
+                          color="primary"
+                          className='text-lg'
+                          onPress={() => handlePause('Feedback')}
+                        >
+                          Feedback
+                        </Button>
+                        <Button
+                          color="primary"
+                          className='text-lg'
+                          onPress={() => handlePause('Banheiro')}
+                        >
+                          Banheiro
+                        </Button>
+                        <Button
+                          color="primary"
+                          className='text-lg'
+                          onPress={() => handlePause('Atendimento Chat')}
+                        >
+                          Atendimento Chat
+                        </Button>
+                      </>
+                    )}
                     <Button
-                      color="primary"
-                      className='text-lg w-full'
-                      onPress={() => handlePause('Despausar')}
+                      color="danger"
+                      className='text-lg'
+                      onPress={() => handleLogout()}
                     >
-                      <PlayPauseIcon className="h-10 text-primary" />
-                      Despausar
+                      Logout
                     </Button>
-                  ) : (
-                    <>
-                      <Button
-                        color="primary"
-                        className='text-lg'
-                        onPress={() => handlePause('10 Minutos')}
-                      >
-                        10 Minutos
-                      </Button>
-                      <Button
-                        color="primary"
-                        className='text-lg'
-                        onPress={() => handlePause('15 Minutos')}
-                      >
-                        15 Minutos
-                      </Button>
-                      <Button
-                        color="primary"
-                        className='text-lg'
-                        onPress={() => handlePause('Treinamento')}
-                      >
-                        Treinamento
-                      </Button>
-                      <Button
-                        color="primary"
-                        className='text-lg'
-                        onPress={() => handlePause('Feedback')}
-                      >
-                        Feedback
-                      </Button>
-                    </>
-                  )}
-                </div>
+                  </div>
+                )}
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>

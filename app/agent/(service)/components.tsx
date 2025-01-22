@@ -14,9 +14,13 @@ import { toast } from "react-hot-toast";
 import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
 import {ChevronRightIcon, ChevronLeftIcon} from "@heroicons/react/24/solid"
+import {z} from 'zod'
+import { Ticket } from "@prisma/client";
 
-export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = false }:
-  { id: string, label: string, isRequired?: boolean, isLarge?: boolean, fieldName: 'client_name' | 'caller_number' | 'identity_document' | 'address' | 'erpProtocol' | `caller_name` | `communication_id` | 'subject' }) => {
+export const TextInput = ({id, fieldName, label, isRequired=false, isLarge=false, validate= ()=> ''}: 
+  {id: string, label: string, isRequired?: boolean, isLarge?:boolean, validate?:(value:string)=> string
+    fieldName: 'client_name' | 'caller_number' | 'identity_document' | 'address' | 'erpProtocol' | `caller_name` | `communication_id` | 'subject'    
+  }) => {
 
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()  
   const [value, setValue] = useState<string>('')
@@ -33,7 +37,7 @@ export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = 
       setIsCtxLoaded(true)
     }
     
-  }, [JSON.stringify(ticketContext.tickets), fieldName,id, isCtxLoaded, isMounted])
+  }, [JSON.stringify(ticketContext.tickets), fieldName,id, isCtxLoaded, isMounted]) 
 
   useEffect(()=>{
     if(isMounted){
@@ -55,19 +59,24 @@ export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = 
         return { ...prevContext, tickets: updatedTickets }
       });
     }
-  }, [debouncedValue, id, fieldName]);
 
-  return (
-    <div className="flex flex-col m-1 gap-1">
+  }, [debouncedValue, id, fieldName])
+  
+  return(    
+    <div className="flex flex-col rounded m-1">
       <Input
-        // maxLength={99}
-        type="text"
-        label={label}
-        color={'primary'}
-        className={`border border-primary rounded-md ${isLarge ? 'w-96' : 'w-72'}`}
+        type="text" 
+        maxLength={99}
+        label={label} 
+        color={'primary'}  
+        classNames={{
+          base:`h-18 ${isLarge ? 'w-144': 'w-80'} ml-4 `, 
+          inputWrapper:`bg-white justify-start ${isLarge ? 'w-140': 'w-76'} border border-primary rounded-medium`, 
+        }}
         value={value}
         onValueChange={setValue}
-        isRequired={isRequired}
+        isRequired= {isRequired}
+        validate={validate}
       />
     </div>
   )
@@ -169,8 +178,8 @@ export const ProcedureTextInput = ({ label, Modal, id= 0 }: {isInteractive?: boo
           type="text" 
           label={label} 
           color={'primary'}  
-          className={'w-80 h-11 ml-4 border border-primary rounded-medium'}
-          value={value}
+          classNames={{base:`w-144 h-16 ml-4 border border-primary rounded-medium`, inputWrapper:`bg-white justify-start w-144 h-16`, input:`w-144 h-16 `}}
+        value={value}
           onValueChange={setValue}
         />
 
@@ -268,7 +277,7 @@ function parsePageInfo(path:string, ticketCtx:ILocalData){
   const pathName = path.split('/')
   const ticketId = parseInt(pathName[pathName.length -1])
 
-  const ticket = ticketCtx.tickets.find(el => el.id == ticketId)
+  const ticket:Ticket | undefined = ticketCtx.tickets.find(el => el.id == ticketId)
   const company = ticketCtx.companies.find(el => el.id == ticket?.company_id)
 
   return({company, ticket})
@@ -353,7 +362,7 @@ export const ServiceNavBar = () => {
   )
 }
 
-export const IssueSelector = ({id, fieldName, placeholder, dataSource, isRequired}: {id: string, fieldName: 'type' | 'status', placeholder: string, dataSource:  () => Promise<string>, isRequired: boolean }) => {
+export const IssueSelector = ({id, fieldName, placeholder, dataSource, isRequired=true}: {id: string, fieldName: 'type' | 'status', placeholder: string, dataSource:  () => Promise<string>, isRequired: boolean }) => {
 
   const [items, setItems ] = useState([])
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()
@@ -439,7 +448,7 @@ export const FinishButton = () => {
 function formatProcedures(procedures: string){
   if(procedures){
     const resp = JSON.parse(procedures).map((el:IProcedureItemResponse) =>{
-      return <p key={el.id}>{'   ' + el.label}:  {el.response == true ? `Sim` : el.response == false ?  'Não' : el.response} </p>
+      return <p className="break-words text-wrap w-64" key={el.id}>{'   ' + el.label}:  {el.response == true ? `Sim` : el.response == false ?  'Não' : el.response} </p>
     })
 
     return resp
@@ -454,6 +463,14 @@ export const TicketSummary = () => {
   const {company, ticket} = parsePageInfo(path, ticketContext)
   const session = useSession()
 
+  function formatPhoneNumber(raw: string) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length <= 10) {
+    return digits.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  }
+  return digits.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  }
+
   return(
     <Snippet  size="md" symbol={""} classNames={{base: 'border border-primary px-4 text-priamry py-3'}}>
       <p>Empresa: {company?.fantasy_name}</p>
@@ -461,11 +478,11 @@ export const TicketSummary = () => {
       <p>Tipo de atendimento: {ticket?.communication_type == `phone` ? 'Telefônico' : 'Chat'}</p>
       <p>Nome do solicitante: {ticket?.caller_name}</p>
       <p>Endereço: {ticket?.address}</p>
-      <p>Problema alegado: {ticket?.subject} </p>
+      <p className="break-words text-wrap w-full">Problema alegado: {ticket?.subject} </p>
       <p>Procedimentos Realizados:</p>
       {formatProcedures(ticket?.procedures ?? "")}
       <p>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</p>
-      <p>Telefone: {ticket?.caller_number}</p>
+      <p>Telefone: {ticket?.caller_number ? formatPhoneNumber(ticket.caller_number) : ''}</p>
       <p>Protocolo ERP: {ticket?.erpProtocol}</p>
       {ticket?.communication_type === 'chat' && (
         <p>Protocolo Chat: {ticket.communication_id}</p>
@@ -493,7 +510,7 @@ export const Procedures = () =>{
   }, [])
   
   return(
-    <div className="max-h-120 overflow-auto my-2">
+    <div className="w-full max-h-96 overflow-auto my-2">
       {
         procedures ?
         procedures.map(el => {
@@ -514,41 +531,109 @@ export const Procedures = () =>{
   )
 }
 
+const schema = z.object({
+  type: z.number().positive('Selecione um tipo de ticket'),
+  client_name: z.string().min(3, 'Insira um nome de cliente valido'),
+  communication_id: z.string().min(3, 'Insira um protocolo de chat valido'  ),
+  caller_number: z.string().min(3, 'Insira um protocolo de chat valido'  ),
+  identity_document: z.string().min(3, 'Insira um cpf/cnpj valido'  ),
+
+})
+
+const validateTriageForm = (ticket:Ticket ) =>{
+
+  try{
+    schema.parse(ticket)
+    return true
+  }catch(err){
+    if (err instanceof z.ZodError) {
+      console.log(err.errors.map(el => ({message: el.message, item: el.path[0]})))
+    }
+  }
+  return false
+}
+
+
+
 export const NavigateTicket = ({direction, route}: {direction: string, route: string}) => {
   const {ticketContext} = useTicketContext();
   const router = useRouter();
-  const path = usePathname();
-  const { ticket } = parsePageInfo(path, ticketContext);
+  const path = usePathname()
+  const { ticket } = parsePageInfo(path, ticketContext)
+
 
   const onClick = () => {
-    if (ticket) {
-      const requiredFields: (keyof typeof ticket)[] = ['caller_name', 'client_name', 'type', 'subject'];
-      const allFilled = requiredFields.every((field: keyof typeof ticket) => {
-        const val = ticket[field];
-        return val !== null && val !== undefined && val !== '';
-      });
-      if (!allFilled) {
-        toast.error('Preencha todos os campos obrigatórios.');
-        return;
-      }
-      if (allFilled){
-        updateTicket({ticket})
-        router.push(route)
+    if(direction == `forwards` && ticket){
+      const isValid = validateTriageForm(ticket)
+      if(!isValid){
+        return
       }
     }
-  };
+    updateTicket({ticket})
+    router.push(route)
+  }
+
   return(
     <div >
       {
         direction == `backwards` ?
         <Button onPress={onClick} className="text-primary p-4">
-          <ChevronLeftIcon width='40' /> Anterior
-        </Button>
+        <ChevronLeftIcon width='40' /> Anterior
+      </Button>
         :
-        <Button onPress={onClick} className="text-primary p-4 " >
-          Próximo <ChevronRightIcon width='40' />
-        </Button>
-      }      
+      <Button type='submit' onPress={onClick} className="text-primary p-4 " >
+        Próximo <ChevronRightIcon width='40' />
+      </Button>
+      }
     </div>
   )
+}
+
+export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: keyof ILocalData['tickets'][0]; label: string }) {
+  const { ticketContext, setTicketContext, isMounted } = useTicketContext();
+  const [maskedValue, setMaskedValue] = useState('');
+
+  useEffect(() => {
+    if (isMounted) {
+      const ticket = ticketContext.tickets.find((t) => t.id === parseInt(id));
+      if (ticket?.[fieldName]) {
+        setMaskedValue(formatPhone(ticket[fieldName] as string));
+      }
+    }
+  }, [JSON.stringify(ticketContext.tickets), isMounted]);
+
+  function formatPhone(raw: string) {
+    const digits = raw.replace(/\D/g, '');
+    const localDigits = digits.length > 11 ? digits.slice(-11) : digits;
+    if (localDigits.length <= 10) {
+      return localDigits.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    }
+    return localDigits.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  }
+
+  const handleChange = (val: string) => {
+    const onlyDigits = val.replace(/\D/g, '');
+    const localDigits = onlyDigits.length > 11 ? onlyDigits.slice(-11) : onlyDigits;
+    setMaskedValue(formatPhone(localDigits));
+    setTicketContext((prev) => {
+      const updatedTickets = prev.tickets.map((t) =>
+        t.id === parseInt(id) ? { ...t, [fieldName]: localDigits } : t
+      );
+      return { ...prev, tickets: updatedTickets };
+    });
+  };
+
+  return (
+    <div className="flex flex-col m-1 gap-1">
+      <Input
+        type="text"
+        label={label}
+        color="primary"
+        className="border border-primary rounded-md w-72"
+        value={maskedValue}
+        onValueChange={handleChange}
+        maxLength={20}
+      />
+    </div>
+  );
 }

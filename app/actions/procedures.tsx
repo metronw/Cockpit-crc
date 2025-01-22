@@ -99,7 +99,6 @@ export async function createProcedure({company_id, ticket_type_id, items='[]'}:{
 
 export async function getProcedure({company_id=null, ticket_type_id=null}:{company_id:number | null, ticket_type_id:number | null}): Promise<IProcedure>{
   const items = await getProcedureItems({company_id, ticket_type_id})
-
   let proc
   
   if(company_id && ticket_type_id ){
@@ -110,31 +109,30 @@ export async function getProcedure({company_id=null, ticket_type_id=null}:{compa
       },
     }) 
   } 
-
+  
   if(!proc && ticket_type_id){
     proc = await prisma.procedures.findFirst({
       where: {
-        company_id: null,
+        company_id: 0,
         ticket_type_id: ticket_type_id
       },
-    })  
+    })
   }
   
   if(!proc){
     proc = await prisma.procedures.findFirst({
       where:{
-        company_id: null, ticket_type_id: null, items:`[]`
+        company_id: 0, ticket_type_id: 0, items:`[]`
       }
     })
   }
   if(!proc){
     proc = await prisma.procedures.create({
       data:{
-        company_id: null, ticket_type_id: null, items:`[]`
+        company_id: 0, ticket_type_id: 0, items:`[]`
       }
     })
   }
-
 
   const procItems = JSON.parse(proc?.items+'')
   const alloc = procItems.map((el:number) => items.find(it => it.id == el)).filter((el:number) => !!el).map((el:IProcedureItem)=>({...el, checked: true}))
@@ -143,14 +141,30 @@ export async function getProcedure({company_id=null, ticket_type_id=null}:{compa
   return {...proc, items: [...alloc, ...unalloc]}
 }
 
-export async function saveProcedure(procedure:IProcedure){ 
+export async function saveProcedure({ company_id, ticket_type_id, items}:{ company_id:number, ticket_type_id: number,  items: IProcedureItem[]}){ 
+
+  const data = {company_id, ticket_type_id, items: JSON.stringify(items.filter(el => el.checked).map(el => el.id))}
 
   return await prisma.procedures.upsert({
     where:{
-      id: procedure.id
+      company_id_ticket_type_id: {
+        ticket_type_id: ticket_type_id ? ticket_type_id : 0,
+        company_id: company_id ? company_id : 0
+      }
     },
-    update: { company_id: procedure.company_id, ticket_type_id: procedure.ticket_type_id, items: JSON.stringify(procedure.items.filter(el => el.checked).map(el => el.id))},
-    create: {company_id: procedure.company_id, ticket_type_id: procedure.ticket_type_id, items: JSON.stringify(procedure.items.filter(el => el.checked).map(el => el.id))}
+    update: data,
+    create: data
+  }) 
+
+}
+
+
+export async function deleteProcedure(procedure_id: number){ 
+
+  return await prisma.procedures.delete({
+    where:{
+      id: procedure_id
+    },
   })
 }
 

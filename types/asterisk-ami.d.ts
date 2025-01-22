@@ -67,7 +67,8 @@ declare module 'asterisk-ami' {
 
   interface QueueMemberResponse extends BaseAmiResponse {
     event: 'QueueMember';
-    stateinterface: string;
+    Queue: string; // Adicionada a propriedade Queue
+    Interface: string; // Adicionada a propriedade Interface
     paused: '1' | '0';
   }
 

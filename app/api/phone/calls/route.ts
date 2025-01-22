@@ -58,7 +58,7 @@ export async function GET() {
       return new Promise((resolve, reject) => {
         const channels: AmiResponse[] = [];
         const onData = (data: AmiResponse) => {
-          if (data.ActionID === actionId) {
+          if (data.actionid === actionId) {
             channels.push(data);
             if (data.eventlist === 'Complete') {
               amiClient.off('ami_data', onData);
@@ -80,26 +80,48 @@ export async function GET() {
     try {
       const actionId = `CoreShowChannels-${Date.now()}`;
       await amiClient.send({ action: 'CoreShowChannels', ActionID: actionId });
-      const activeChannels = await coreShowChannels(actionId);
+      const channels = await coreShowChannels(actionId);
+
+      const activeChannels = channels.filter(
+        (c) => c.event === "CoreShowChannel"
+      );
 
       amiClient.disconnect();
 
       // Filtrar canais que vieram de filas (exemplo)
       const queueChannels = activeChannels.filter(
-        (c) => c.ChannelVariables?.Queue
+        (c) => c.application === 'Queue' && c.channelstatedesc === 'Up'
       );
 
-      // Obter uniqueids
-      const uniqueids = queueChannels.map((c) => c.Uniqueid || '').filter(Boolean);
+      // Agrupar canais por bridgeid para evitar duplicação
+      const uniqueQueueChannels = queueChannels.reduce((acc, channel) => {
+        if (channel.bridgeid && !acc.some(c => c.bridgeid === channel.bridgeid)) {
+          acc.push(channel);
+        }
+        return acc;
+      }, []);
 
+      // Obter uniqueids
+      const uniqueids = uniqueQueueChannels.map((c) => c.uniqueid || '').filter(Boolean);
+      
+      console.log('ActiveChannels:', activeChannels);
+      console.log('UniqueQueueChannels:', uniqueQueueChannels);
+      console.log('Uniqueids:', uniqueids);
+
+      if (uniqueids.length === 0) {
+        return NextResponse.json(
+          { activeChannels, queueChannels: uniqueQueueChannels, queueLog: [] },
+          { status: 200 }
+        );
+      }
       // Consultar queue_log na base do phoneDb
       const [rows] = await phoneConnection.query(
-        'SELECT * FROM queue_log WHERE uniqueid IN (?)',
+        'SELECT * FROM queue_log WHERE callid IN (?)',
         [uniqueids]
       );
 
       return NextResponse.json(
-        { activeChannels, queueChannels, queueLog: rows },
+        { activeChannels, queueChannels: uniqueQueueChannels, queueLog: rows },
         { status: 200 }
       );
     } catch (err: unknown) {

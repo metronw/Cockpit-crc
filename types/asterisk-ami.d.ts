@@ -23,7 +23,41 @@ declare module 'asterisk-ami' {
     action: 'QueueStatus';
   }
 
-  type AmiAction = QueuePauseAction | QueueStatusAction;
+  interface QueueAddMemberAction extends BaseAmiAction {
+    action: 'QueueAdd';
+    Queue: string;
+    Interface: string;
+  }
+
+  interface QueueRemoveAction extends BaseAmiAction {
+    action: 'QueueRemove';
+    ActionID: string;
+    Queue: string;
+    Interface: string;
+  }
+
+  interface QueueSummaryAction extends BaseAmiAction {
+    action: 'QueueSummary';
+    Queue: string;
+  }
+
+  interface AgentsAction extends BaseAmiAction {
+    action: 'Agents';
+  }
+
+  interface CoreShowChannelsAction extends BaseAmiAction {
+    action: 'CoreShowChannels';
+    ActionID?: string;
+  }
+
+  type AmiAction =
+    | QueuePauseAction
+    | QueueStatusAction
+    | QueueAddMemberAction
+    | QueueRemoveAction
+    | QueueSummaryAction
+    | AgentsAction
+    | CoreShowChannelsAction;
 
   interface BaseAmiResponse {
     response: string;
@@ -41,7 +75,81 @@ declare module 'asterisk-ami' {
     event: 'QueueStatusComplete';
   }
 
-  type AmiResponse = QueueMemberResponse | QueueStatusCompleteResponse | BaseAmiResponse;
+  interface QueueSummaryResponse extends BaseAmiResponse {
+    event: 'QueueSummary';
+    Queue: string;
+    LoggedIn: string;
+    Available: string;
+    Callers: string;
+    HoldTime: string;
+    TalkTime: string;
+    LongestHoldTime: string;
+  }
+
+  interface QueueEntryResponse extends BaseAmiResponse {
+    event: 'QueueEntry';
+    Queue: string;
+    Position: string;
+    Channel: string;
+    Uniqueid: string;
+    CallerIDNum: string;
+    CallerIDName: string;
+    ConnectedLineNum: string;
+    ConnectedLineName: string;
+    Wait: string;
+    Priority: string;
+    ActionID: string;
+  }
+
+  interface AgentsResponse extends BaseAmiResponse {
+    event: 'Agents';
+    Agent: string;
+    Name: string;
+    Status: 'AGENT_LOGGEDOFF' | 'AGENT_IDLE' | 'AGENT_ONCALL' | 'AGENT_RINGING' | 'AGENT_BUSY';
+    TalkingToChan?: string;
+    CallStarted?: string;
+    LoggedInTime?: string;
+    Channel?: string;
+    ChannelState?: string;
+    ChannelStateDesc?: string;
+    CallerIDNum?: string;
+    CallerIDName?: string;
+    ConnectedLineNum?: string;
+    ConnectedLineName?: string;
+    Language?: string;
+    AccountCode?: string;
+    Context?: string;
+    Exten?: string;
+    Priority?: string;
+    Uniqueid?: string;
+    Linkedid?: string;
+    ActionID?: string;
+  }
+
+  interface CoreShowChannelEvent extends BaseAmiResponse {
+    event: 'CoreShowChannel';
+    Channel: string;
+    Uniqueid: string;
+    ChannelVariables?: {
+      Queue?: string; // Propriedade opcional para evitar erro no TS
+      [key: string]: unknown;
+    };
+  }
+
+  interface CoreShowChannelsCompleteEvent extends BaseAmiResponse {
+    event: 'CoreShowChannelsComplete';
+    eventlist?: 'Complete';
+  }
+
+  type AmiResponse =
+    | QueueMemberResponse
+    | QueueStatusCompleteResponse
+    | QueueSummaryResponse
+    | QueueEntryResponse
+    | AgentsResponse
+    | CoreShowChannelEvent
+    | CoreShowChannelsCompleteEvent
+    | BaseAmiResponse;
 
   type AmiCallback = (err: Error | null, response: AmiResponse) => void;
 

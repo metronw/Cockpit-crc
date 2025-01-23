@@ -94,7 +94,7 @@ export function Scheduler(){
 const assignColumns= [
   {
     key: 'companyName',
-    label: 'empresa'
+    label: 'Empresa'
   },
   {
     key: 'queue_type',
@@ -102,7 +102,7 @@ const assignColumns= [
   },
   {
     key: 'userName',
-    label: ' usuário'
+    label: 'Nome do Agente'
   },
 ]
 

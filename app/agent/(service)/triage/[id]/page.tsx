@@ -1,21 +1,19 @@
 import { BooleanInput, IssueSelector, NavigateTicket, PhoneInput } from "../../components"
 import { TextInput } from "../../components";
 import { getCrcTicketTypes } from '@/app/actions/api';
-import { getTicket } from "@/app/actions/ticket";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { use } from "react";
 
-async function nextPage(formData: FormData) {
+async function nextPage() {
   'use server'
-  console.log(formData)
   return
 }
 
 export default function Triage({ params: { id } }: { params: { id: string } }) {
 
   const session = use(getServerSession(authOptions));
-  const ticket = use(getTicket(parseInt(id)))
+  // const ticket = use(getTicket(parseInt(id)))
 
   return (
     <form action={nextPage} className="flex flex-col flex-stretch px-4 pt-3 mt-4 h-full grow justify-around">

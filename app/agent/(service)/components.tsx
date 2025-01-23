@@ -136,9 +136,8 @@ export function BooleanInput({ id, fieldName, label }: { id: string, fieldName: 
       <Checkbox type="checkbox"
         color={'primary'}
         classNames={{
-          base: "w-6 h-6 text-primary",
-          hiddenInput: "text-primary bg-primary",
-          icon: "text-primary bg-primary",
+          base: "w-6 h-6 text-primary ",
+          wrapper: "border border-primary rounded-lg"
         }}
         isSelected={value}
         onValueChange={setValue}
@@ -460,7 +459,10 @@ export const IssueSelector = ({ id, fieldName, placeholder, dataSource, isRequir
   );
 }
 
-
+const finishSchema = z.object({
+  erpProtocol: z.string().min(3, 'O ticket deve ter um protocolo ERP'),
+  communication_id: z.string().min(3, 'O ticket deve ter um protocolo de chat')
+})
 
 export const FinishButton = () => {
 
@@ -470,19 +472,28 @@ export const FinishButton = () => {
   const router = useRouter();
 
   const finishAction = useCallback(async () => {
-    const resp = await createMetroTicket(ticket)
-    if (resp.status === 200 && ticket) {
-      const newCtx = { ...ticketContext, tickets: ticketContext.tickets.filter(el => el.id !== ticket.id) }
-      toast.success('Ticket criado no gestor com sucesso')
-      setTicketContext(newCtx)
-      router.push('/agent/' + ticket.user_id)
-    } else {
-      toast.error(resp.message)
+
+    try{
+      finishSchema.parse(ticket)
+
+      const resp = await createMetroTicket(ticket)
+      if (resp.status === 200 && ticket) {
+        const newCtx = { ...ticketContext, tickets: ticketContext.tickets.filter(el => el.id !== ticket.id) }
+        toast.success('Ticket criado no gestor com sucesso')
+        setTicketContext(newCtx)
+        router.push('/agent/' + ticket.user_id)
+      } else {
+        toast.error(resp.message)
+      }
+      
+    }catch(err){
+      console.log(err)
     }
+
   }, [JSON.stringify(ticket)])
 
   return (
-    <Button onPress={finishAction}>
+    <Button onPress={finishAction} type={"submit"}>
       Finalizar
     </Button>
   )
@@ -589,19 +600,18 @@ export const Procedures = () => {
   )
 }
 
-const schema = z.object({
+const triageSchema = z.object({
   type: z.number().positive('Selecione um tipo de ticket'),
   client_name: z.string().min(3, 'Insira um nome de cliente valido'),
-  communication_id: z.string().min(3, 'Insira um protocolo de chat valido'),
+  // communication_id: z.string().min(3, 'Insira um protocolo de chat valido'),
   caller_number: z.string().min(3, 'Insira um protocolo de chat valido'),
   identity_document: z.string().min(3, 'Insira um cpf/cnpj valido'),
-
 })
 
 const validateTriageForm = (ticket: Ticket) => {
 
   try {
-    schema.parse(ticket)
+    triageSchema.parse(ticket)
     return true
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -685,6 +695,7 @@ export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: ke
   return (
     <div className="flex flex-col m-1 gap-1">
       <Input
+        isRequired
         type="text"
         label={label}
         color="primary"

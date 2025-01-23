@@ -24,21 +24,12 @@ export default function Triage({ params: { id } }: { params: { id: string } }) {
         <div className="flex flex row pr-4">
           <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{`Bom dia. Sou ${session?.user.name}, com quem falo?`}</span>
           <TextInput id={id} fieldName={'caller_name'} label={'Nome do solicitante'} isRequired={true} />
-          {
-            ticket?.communication_type == `phone` ?
-              null :
-              <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de chat'} isRequired={true} />
-          }
 
         </div>
         <div className="flex flex row pr-4">
-
           <TextInput id={id} fieldName={'subject'} label={'Problema alegado'} isLarge={true} isRequired={true} />
           <BooleanInput id={id} fieldName={"isRecall"} label={`Rechamado?`} />
-
-
         </div>
-        {/* <Input type="checkbox" label="Rechamado?" color={'primary'} className={'w-32 h-16 pl-4'}/> */}
         <div className="flex flex row pr-4">
           <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{`Pode me informar o nome do titular do contrato?`}</span>
           <TextInput id={id} fieldName={'client_name'} label={'Nome do cliente'} isRequired={true} />

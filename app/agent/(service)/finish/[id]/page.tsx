@@ -1,4 +1,4 @@
-import { FinishButton, TicketSummary, NavigateTicket } from "../../components";
+import { FinishButton, TicketSummary, NavigateTicket, TextInput } from "../../components";
 import { use } from "react";
 import { getTicket } from '@/app/actions/ticket';
 
@@ -10,8 +10,14 @@ export default function Finishing({ params: { id } }: { params: { id: string } }
       <div className="grid grid-cols-12 h-full">
         <div className="col-span-6 flex flex-col mx-4 gap-4">
           <p className='bg-purple-700 text-white rounded content-center px-2 my-1 py-1'>
+          <TextInput id={id} fieldName={'erpProtocol'} label={'Protocolo ERP'} isRequired={true} />
             <strong>{ticket?.caller_name}</strong>, foi aberto o protocolo <strong>{ticket?.erpProtocol}</strong> para o setor responsável.
           </p>
+          {
+            ticket?.communication_type == `phone` ?
+              null :
+              <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de chat'} isRequired={true} />
+          }
           {/* <div className="border rounded border-warning p-2 my-2">
             <p className="text-warning">Prazo Financeiro/Comercial: Até proximo dia útil</p>
             <p className="text-warning">Prazo técnico: Dois dias úteis para retorno telefônico</p>

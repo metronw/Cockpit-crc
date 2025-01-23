@@ -420,7 +420,7 @@ export function ProceduresTable(){
               toast.success('excluido com sucesso')
               setIsLoadingProceds(true)
           })
-            .catch((err) => toast.error('A combinação Empresa/Tipo de ticket selecionada não possui ordenamento'))} >
+            .catch(() => toast.error('A combinação Empresa/Tipo de ticket selecionada não possui ordenamento'))} >
             Excluir Ordenamento
         </Button>
       </div>

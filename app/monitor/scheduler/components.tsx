@@ -10,9 +10,10 @@ import { useSchedulerContext } from "./provider";
 import { ICompany } from "@/app/agent/providers";
 
 const queueTypes= [
-  {id: '1', name: 'telefônico'},
-  {id: '2', name: 'chat'}
+  {id: '1', name: 'Telefônico'},
+  {id: '2', name: 'Chat'}
 ]
+
 
 export function Scheduler(){
 
@@ -25,67 +26,69 @@ export function Scheduler(){
 
   return(
     <>
-        <Autocomplete
-          variant={'bordered'}
-          aria-label={'Empresa'}
-          label={'Usuários'}
-          defaultSelectedKey=""
-          // @ts-expect-error: library has wrong type
-          onSelectionChange={setUser}
-          selectedKey={user}
-          className="flex h-11 max-w-xs my-1"
-          classNames={{
-            popoverContent: 'bg-zinc-500 ',
-            base: 'flex shrink '
-          }}
-        >
-          {users.map((item:{id:number, name: string}) => <AutocompleteItem key={item.id} textValue={item.name}>{item.name}</AutocompleteItem>)}
-        </Autocomplete>
+        <div className="flex flex-row gap-2 my-2">
+          <Autocomplete
+            variant={'bordered'}
+            aria-label={'Empresa'}
+            label={'Usuários'}
+            defaultSelectedKey=""
+            // @ts-expect-error: library has wrong type
+            onSelectionChange={setUser}
+            selectedKey={user}
+            className="flex h-11 max-w-xs my-1"
+            classNames={{
+              popoverContent: 'bg-zinc-500 ',
+              base: 'flex shrink '
+            }}
+          >
+            {users.map((item:{id:number, name: string}) => <AutocompleteItem key={item.id} textValue={item.name}>{item.name}</AutocompleteItem>)}
+          </Autocomplete>
 
-        <Autocomplete
-          variant={'bordered'}
-          aria-label={'Empresa'}
-          label={'Empresa'}
-          defaultSelectedKey=""
-          // @ts-expect-error: library has wrong type
-          onSelectionChange={setCompany}
-          selectedKey={company}
-          className="flex h-11 max-w-xs my-1"
-          classNames={{
-            popoverContent: 'bg-zinc-500 ',
-            base: 'flex shrink '
-          }}
-        >
-          {companies.map((item:{id:number, fantasy_name: string}) => <AutocompleteItem key={item.id} textValue={item.fantasy_name}>{item.fantasy_name}</AutocompleteItem>)}
-        </Autocomplete>
+          <Autocomplete
+            variant={'bordered'}
+            aria-label={'Empresa'}
+            label={'Empresa'}
+            defaultSelectedKey=""
+            // @ts-expect-error: library has wrong type
+            onSelectionChange={setCompany}
+            selectedKey={company}
+            className="flex h-11 max-w-xs my-1"
+            classNames={{
+              popoverContent: 'bg-zinc-500 ',
+              base: 'flex shrink '
+            }}
+          >
+            {companies.map((item:{id:number, fantasy_name: string}) => <AutocompleteItem key={item.id} textValue={item.fantasy_name}>{item.fantasy_name}</AutocompleteItem>)}
+          </Autocomplete>
 
-        <Autocomplete
-          variant={'bordered'}
-          aria-label={'Tipo de fila'}
-          label={'Tipo de fila'}
-          defaultSelectedKey=""
-          // @ts-expect-error: library has wrong type
-          onSelectionChange={setQueueType}
-          selectedKey={queueType}
-          className="flex h-11 max-w-xs my-1"
-          classNames={{
-            popoverContent: 'bg-zinc-500 ',
-            base: 'flex shrink '
-          }}
-        >
-          {queueTypes.map((item:{id:string, name: string}) => <AutocompleteItem key={item.id} textValue={item.name}>{item.name}</AutocompleteItem>)}
-        </Autocomplete>
+          <Autocomplete
+            variant={'bordered'}
+            aria-label={'Tipo de fila'}
+            label={'Tipo de fila'}
+            defaultSelectedKey=""
+            // @ts-expect-error: library has wrong type
+            onSelectionChange={setQueueType}
+            selectedKey={queueType}
+            className="flex h-11 max-w-xs my-1"
+            classNames={{
+              popoverContent: 'bg-zinc-500 ',
+              base: 'flex shrink '
+            }}
+          >
+            {queueTypes.map((item:{id:string, name: string}) => <AutocompleteItem key={item.id} textValue={item.name}>{item.name}</AutocompleteItem>)}
+          </Autocomplete>
 
-        <Button  
-          className='w-16' 
-          onPress={() => assignUser(company ? parseInt(company) : company, user ? parseInt(user) : user, parseInt(queueType))
-            .then(() => {
-              toast.success('atribuído com sucesso')
-              setIsLoadingAssigns(true)
-            })
-            .catch(() => toast.error('preencha todos os campos'))} >
-            Atribuir
-        </Button>
+          <Button  
+            className='w-16' 
+            onPress={() => assignUser(company ? parseInt(company) : company, user ? parseInt(user) : user, parseInt(queueType))
+              .then(() => {
+          toast.success('atribuído com sucesso')
+          setIsLoadingAssigns(true)
+              })
+              .catch(() => toast.error('preencha todos os campos'))} >
+              Atribuir
+          </Button>
+        </div>
     </>
 
   )
@@ -97,13 +100,14 @@ const assignColumns= [
     label: 'Empresa'
   },
   {
-    key: 'queue_type',
-    label: 'Tipo de Fila'
-  },
-  {
     key: 'userName',
     label: 'Nome do Agente'
   },
+  {
+    key: 'queue_type',
+    label: 'Tipo de Fila'
+  },
+
 ]
 
 export function AssignmentTable(){
@@ -114,24 +118,42 @@ export function AssignmentTable(){
   const [selectedKeys, setSelectedKeys] = useState(new Set([]));
   const [userFilter, setUserFilter] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
+  const [queueTypeFilter, setQueueTypeFilter] = useState('');
 
-  const [formattedAssignments, setFormattedAssignments] = useState(assignments?.map(el => ({...el, userName:el.user.name})));
+  const [formattedAssignments, setFormattedAssignments] = useState(assignments?.map(el => ({
+    ...el, 
+    userName: el.user.name,
+    queue_type: queueTypes.find(q => q.id === el.queue_type.toString())?.name || el.queue_type
+  })));
   
-  useEffect(()=>{
-    const newAssign = assignments?.filter(el => el.user.name.toLowerCase().includes(userFilter.toLowerCase()) && el.companyName.toLowerCase().includes(companyFilter.toLowerCase()) )
-    setFormattedAssignments(newAssign?.map(el => ({...el, userName:el.user.name})))
-  },[userFilter, companyFilter, assignments])
+  useEffect(()=> {
+    const newAssign = assignments?.filter(el => 
+      el.user.name.toLowerCase().includes(userFilter.toLowerCase()) && 
+      el.companyName.toLowerCase().includes(companyFilter.toLowerCase()) &&
+      (queueTypeFilter === '' || queueTypes.find(q => q.id === el.queue_type.toString())?.name === queueTypeFilter)
+    );
+    setFormattedAssignments(newAssign?.map(el => ({
+      ...el, 
+      userName: el.user.name,
+      queue_type: queueTypes.find(q => q.id === el.queue_type.toString())?.name || el.queue_type 
+    })));
+  }, [userFilter, companyFilter, queueTypeFilter, assignments]);
  
-  useEffect(()=>{
+  useEffect(()=> {
     setReady(true)
-  },[])
+  }, []);
 
   return (
     <>
       <div className="flex flex-row gap-2 my-2">
-        
-        <Input type='text' label='usuário' placeholder='filtro de usuário' value={userFilter} onValueChange={setUserFilter}></Input>
-        <Input type='text' label='empresa' placeholder='filtro de empresa' value={companyFilter} onValueChange={setCompanyFilter}></Input>
+        <Input type='text' label='Empresa' placeholder='Filtrar empresa' value={companyFilter} onValueChange={setCompanyFilter}></Input>
+        <Input type='text' label='Usuário' placeholder='Filtrar usuário' value={userFilter} onValueChange={setUserFilter}></Input>
+        <select value={queueTypeFilter} onChange={(e) => setQueueTypeFilter(e.target.value)} className="flex h-11 max-w-xs my-1">
+          <option value=''>Todos os tipos de fila</option>
+          {queueTypes.map((item) => (
+            <option key={item.id} value={item.name}>{item.name}</option>
+          ))}
+        </select>
       </div>
       {
         ready && (

@@ -101,7 +101,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     uaRef.current.start();
 
     uaRef.current.on('connected', () => {
-      console.log('Conectado ao servidor SIP');
     });
 
     uaRef.current.on('registrationFailed', (e) => {
@@ -122,7 +121,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         setCallStatus('Incoming Call');
         onCallStatusChange('Incoming Call');
 
-        console.log(`User autoanswer ${userData.auto_answer}`);
 
         if (!userData.auto_answer) {
           setIncomingCall(newSession);
@@ -188,21 +186,21 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     }
   }, [prefixesData]);
 
-  useEffect(() => {
-    if (remoteAudioRef.current) {
-      remoteAudioRef.current.onloadeddata = () => {
-        console.log('Dados de áudio carregados.');
-      };
+  // useEffect(() => {
+  //   if (remoteAudioRef.current) {
+  //     remoteAudioRef.current.onloadeddata = () => {
+  //       console.log('Dados de áudio carregados.');
+  //     };
 
-      remoteAudioRef.current.onplay = () => {
-        console.log('Reprodução de áudio iniciada.');
-      };
+  //     remoteAudioRef.current.onplay = () => {
+  //       console.log('Reprodução de áudio iniciada.');
+  //     };
 
-      remoteAudioRef.current.onerror = (e) => {
-        console.error('Erro no elemento de áudio:', e);
-      };
-    }
-  }, [remoteAudioRef]);
+  //     remoteAudioRef.current.onerror = (e) => {
+  //       console.error('Erro no elemento de áudio:', e);
+  //     };
+  //   }
+  // }, [remoteAudioRef]);
 
   const getUserMediaStream = async () => {
     try {
@@ -266,7 +264,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   const setupPeerConnection = async (session: RTCSession) => {
     const pc = session.connection;
 
-    console.log(pc)
 
     if (pc.connectionState === 'connecting' || pc.connectionState === 'connected') {
       return;

@@ -35,10 +35,6 @@ export const AgentHeader = ({ id }: { id?: number }) => {
 
   const isLoggedIn = !(pauseData?.error === 'Interface não encontrada em nenhuma fila');
 
-  console.log('pauseData', pauseData);
-  console.log('pauseError', pauseError);
-  console.log('isLoggedIn', isLoggedIn);
-
   let statusColor = 'red';
   if (pauseError) {
     statusColor = 'red';

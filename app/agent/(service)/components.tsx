@@ -482,7 +482,6 @@ export const FinishButton = () => {
         toast.success('Ticket criado no gestor com sucesso')
         setTicketContext(newCtx)
         router.push('/agent/' + ticket.user_id)
-        router.refresh();
       } else {
         toast.error(resp.message)
       }

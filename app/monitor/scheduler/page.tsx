@@ -13,7 +13,7 @@ export default function CreateCompany() {
   return (
     <SchedulerProvider companies={JSON.parse(companies)} users={JSON.parse(users)} assignments={assignments}>
       <div className="flex flex-col p-2">
-        Atribuir Usuários a empresas
+        Atribuir Usuários a empresas 
         <Scheduler/>
         
         <AssignmentTable />

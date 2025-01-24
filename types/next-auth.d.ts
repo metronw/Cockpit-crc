@@ -24,5 +24,8 @@ declare module "next-auth/jwt" {
     id: number; // Custom field for user ID
     roles?: string[]; // Custom field for user role (optional)
     metro_id?:number;
+    exp: number;
+    email: string;
+    
   }
 }

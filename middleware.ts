@@ -7,7 +7,7 @@ export default withAuth(
     const url = req.nextUrl.clone();
 
     // Redirect to sign-in page if no token
-    if (!token) {
+    if (!token || token.id == 0 ) {
       url.pathname = "/api/auth/signin";
       return NextResponse.redirect(url);
     }

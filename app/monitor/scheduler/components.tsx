@@ -148,7 +148,7 @@ export function AssignmentTable(){
       <div className="flex flex-row gap-2 my-2">
         <Input type='text' label='Empresa' placeholder='Filtrar empresa' value={companyFilter} onValueChange={setCompanyFilter}></Input>
         <Input type='text' label='Usuário' placeholder='Filtrar usuário' value={userFilter} onValueChange={setUserFilter}></Input>
-        <select value={queueTypeFilter} onChange={(e) => setQueueTypeFilter(e.target.value)} className="flex h-11 max-w-xs my-1">
+        <select title="any" value={queueTypeFilter} onChange={(e) => setQueueTypeFilter(e.target.value)} className="flex h-11 max-w-xs my-1">
           <option value=''>Todos os tipos de fila</option>
           {queueTypes.map((item) => (
             <option key={item.id} value={item.name}>{item.name}</option>
@@ -178,7 +178,7 @@ export function AssignmentTable(){
           </Table>
         )
       }
-        <Button  
+        <Button
           className='w-40' 
           onPress={() => deleteUserAssign( Array.from(selectedKeys).map(el => parseInt(el)))
             .then(() => {

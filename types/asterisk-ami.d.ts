@@ -58,6 +58,28 @@ declare module 'asterisk-ami' {
     | QueueSummaryAction
     | AgentsAction
     | CoreShowChannelsAction;
+  interface QueueSummaryAction extends BaseAmiAction {
+    action: 'QueueSummary';
+    Queue: string;
+  }
+
+  interface AgentsAction extends BaseAmiAction {
+    action: 'Agents';
+  }
+
+  interface CoreShowChannelsAction extends BaseAmiAction {
+    action: 'CoreShowChannels';
+    ActionID?: string;
+  }
+
+  type AmiAction =
+    | QueuePauseAction
+    | QueueStatusAction
+    | QueueAddMemberAction
+    | QueueRemoveAction
+    | QueueSummaryAction
+    | AgentsAction
+    | CoreShowChannelsAction;
 
   interface BaseAmiResponse {
     response: string;

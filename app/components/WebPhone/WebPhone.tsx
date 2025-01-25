@@ -5,7 +5,7 @@ import JsSIP from 'jssip';
 import useSWR from 'swr';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FiPhoneCall, FiPhoneOff, FiMicOff, FiMic } from 'react-icons/fi';
+import { FiPhoneCall, FiPhoneOff, FiMicOff, FiMic, FiPhoneForwarded } from 'react-icons/fi';
 import { useRouter } from "next/navigation";
 import { useTicketContext } from '@/app/agent/providers';
 
@@ -64,6 +64,8 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   const [callerName, setCallerName] = useState('');
   const [callerNumber, setCallerNumber] = useState('');
   const [isMuted, setIsMuted] = useState(false);
+  const [transferNumber, setTransferNumber] = useState('');
+  const [showTransferInput, setShowTransferInput] = useState(false);
 
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -160,6 +162,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         setCallerName('');
         setCallerNumber('');
         releaseStream();
+        setShowTransferInput(false);
         toast.info('Chamada encerrada por: ' + (e.originator === 'local' ? 'Local' : 'Remoto'));
       });
 
@@ -169,6 +172,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         setIncomingCall(null);
         setCallerName('');
         setCallerNumber('');
+        setShowTransferInput(false);
         toast.error('Chamada falhou.');
         releaseStream();
       });
@@ -426,6 +430,22 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     setIsMuted(!isMuted);
   };
 
+  const handleTransferCall = () => {
+    if (session && session.isEstablished() && transferNumber) {
+      const dtmfSequence = `*1${transferNumber}`;
+      for (const digit of dtmfSequence) {
+        session.sendDTMF(digit);
+      }
+      toast.info(`Transferência iniciada para ${transferNumber}`);
+    } else {
+      toast.error('Nenhuma chamada ativa para transferir ou número de transferência inválido.');
+    }
+  };
+
+  const handleShowTransferInput = () => {
+    setShowTransferInput(true);
+  };
+
   useImperativeHandle(ref, () => ({
     handleAnswerCall,
   }));
@@ -434,106 +454,96 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     onCallStatusChange(callStatus);
   }, [callStatus, onCallStatusChange]);
 
+  useEffect(() => {
+    if (callStatus === 'Call Failed' || callStatus === 'Call Ended') {
+      const timer = setTimeout(() => {
+        setCallStatus('Idle');
+      }, 20000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [callStatus]);
+
   if (userError || prefixesError) return <div>Error loading data.</div>;
   if (!userData || !prefixesData) return <div>Loading...</div>;
 
   return (
     <div
       style={{
-      padding: '20px',
-      backgroundColor: '#ffffff',
-      borderRadius: '8px',
-      maxWidth: '400px',
-      margin: 'auto',
-      boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+        padding: '20px',
+        backgroundColor: '#ffffff',
+        borderRadius: '8px',
+        maxWidth: '400px',
+        margin: 'auto',
+        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+        position: 'relative', // Adicionado para garantir que o input fique contido
       }}
     >
       {isReady && (
-      <>
-        <h3 style={{ color: '#000', marginBottom: '15px' }}>WebPhone
-          <span style={{ marginLeft: '10px', fontSize: '14px', color: '#555' }}>
-            {userData?.sip_extension}
-          </span>
-        </h3>
-        {callStatus !== 'Connected' && (
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-          <label style={{ marginRight: '10px', color: '#000', flex: '1' }}>
-          Prefixo:
-          <select
-            value={selectedPrefix}
-            onChange={(e) => setSelectedPrefix(e.target.value)}
-            style={{
-            marginLeft: '5px',
-            padding: '5px',
-            borderRadius: '4px',
-            borderColor: '#ccc',
-            color: '#333',
-            width: '100%',
-            }}
-          >
-            {prefixOptions.map((prefix) => (
-            <option key={prefix.number} value={prefix.number}>
-              {prefix.name} ({prefix.number})
-            </option>
-            ))}
-          </select>
-          </label>
-          <label style={{ marginRight: '10px', color: '#000', flex: '2' }}>
-          Número:
-          <input
-            type="text"
-            value={numberToCall}
-            onChange={(e) => setNumberToCall(e.target.value)}
-            style={{
-            marginLeft: '5px',
-            padding: '5px',
-            borderRadius: '4px',
-            borderColor: '#ccc',
-            color: '#333',
-            width: '100%',
-            }}
-          />
-          </label>
-        </div>
-        )}
-        <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          marginBottom: '15px',
-        }}
-        >
-        <button
-          onClick={handleCall}
-          disabled={isCalling}
-          className={`call-button ${isCalling ? 'disabled' : ''}`}
-          title="Iniciar Chamada"
-          data-tooltip-id="callTooltip"
+        <>
+          <h3 style={{ color: '#000', marginBottom: '15px' }}>WebPhone
+            <span style={{ marginLeft: '10px', fontSize: '14px', color: '#555' }}>
+              {userData?.sip_extension}
+            </span>
+          </h3>
+{/*           {callStatus !== 'Connected' && (
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+            <label style={{ marginRight: '10px', color: '#000', flex: '1' }}>
+            Prefixo:
+            <select
+              value={selectedPrefix}
+              onChange={(e) => setSelectedPrefix(e.target.value)}
+              style={{
+              marginLeft: '5px',
+              padding: '5px',
+              borderRadius: '4px',
+              borderColor: '#ccc',
+              color: '#333',
+              width: '100%',
+              }}
+            >
+              {prefixOptions.map((prefix) => (
+              <option key={prefix.number} value={prefix.number}>
+                {prefix.name} ({prefix.number})
+              </option>
+              ))}
+            </select>
+            </label>
+            <label style={{ marginRight: '10px', color: '#000', flex: '2' }}>
+            Número:
+            <input
+              type="text"
+              value={numberToCall}
+              onChange={(e) => setNumberToCall(e.target.value)}
+              style={{
+              marginLeft: '5px',
+              padding: '5px',
+              borderRadius: '4px',
+              borderColor: '#ccc',
+              color: '#333',
+              width: '100%',
+              }}
+            />
+            </label>
+          </div>
+          )} */}
+          <div
           style={{
-            backgroundColor: '#4caf50', // Green background for better contrast
-            color: 'white', // White text
-            border: 'none',
-            padding: '10px',
-            borderRadius: '5px',
-            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '15px',
           }}
-        >
-          <FiPhoneCall size={20} />
-        </button>
-        {callStatus === 'Connected' && session && (
-          <>
+          >
           <button
-            onClick={() => {
-            session.terminate();
-            setSession(null);
-            setCallStatus('Call Ended');
-            }}
-            className="hangup-button"
-            title="Encerrar Chamada"
-            data-tooltip-id="hangUpTooltip"
+            onClick={handleCall}
+            disabled={isCalling}
+            className={`call-button ${isCalling ? 'disabled' : ''}`}
+            title="Iniciar Chamada"
+            data-tooltip-id="callTooltip"
+            hidden
             style={{
-              backgroundColor: '#f44336', // Red background for better contrast
+              backgroundColor: '#4caf50', // Green background for better contrast
               color: 'white', // White text
               border: 'none',
               padding: '10px',
@@ -541,100 +551,166 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               cursor: 'pointer',
             }}
           >
-            <FiPhoneOff size={20} />
+            <FiPhoneCall size={20} />
           </button>
-          <button 
-            onClick={toggleMute}
-            style={{
-              backgroundColor: isMuted ? "#ff9800" : "#c03e81", //'#ff9800', // Orange background for better contrast
-              color: 'white', // White text
-              border: 'none',
-              padding: '10px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-            }}
-          >
-            {isMuted ? <FiMicOff size={20} /> : <FiMic size={20} />}
-          </button>
-          </>
-        )}
-        </div>
-        {(isCalling || callStatus === 'Connected') && (
-        <div style={{ marginBottom: '15px' }}>
-          <h4>Enviar DTMF:</h4>
-          <div>
-          {['1', '2', '3', 'A', '4', '5', '6', 'B', '7', '8', '9', 'C', '*', '0', '#', 'D'].map((digit) => (
+          {callStatus === 'Connected' && session && (
+            <>
             <button
-            key={digit}
-            onClick={() => sendDTMF(digit)}
+              onClick={() => {
+              session.terminate();
+              setSession(null);
+              setCallStatus('Call Ended');
+              }}
+              className="hangup-button"
+              title="Encerrar Chamada"
+              data-tooltip-id="hangUpTooltip"
+              style={{
+                backgroundColor: '#f44336', // Red background for better contrast
+                color: 'white', // White text
+                border: 'none',
+                padding: '10px',
+                borderRadius: '5px',
+                cursor: 'pointer',
+              }}
+            >
+              <FiPhoneOff size={20} />
+            </button>
+            <button 
+              onClick={toggleMute}
+              style={{
+                backgroundColor: isMuted ? "#ff9800" : "#c03e81", //'#ff9800', // Orange background for better contrast
+                color: 'white', // White text
+                border: 'none',
+                padding: '10px',
+                borderRadius: '5px',
+                cursor: 'pointer',
+              }}
+            >
+              {isMuted ? <FiMicOff size={20} /> : <FiMic size={20} />}
+            </button>
+            <button
+              onClick={handleShowTransferInput}
+              style={{
+                backgroundColor: '#ff9800', // Orange background for better contrast
+                color: 'white', // White text
+                border: 'none',
+                padding: '10px',
+                borderRadius: '5px',
+                cursor: 'pointer',
+              }}
+            >
+              <FiPhoneForwarded size={20} />
+            </button>
+            </>
+          )}
+          </div>
+          {showTransferInput && (
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+              <input
+                type="text"
+                value={transferNumber}
+                onChange={(e) => setTransferNumber(e.target.value)}
+                placeholder="Número de Transferência"
+                style={{
+                  flex: 1,
+                  padding: '5px',
+                  borderRadius: '4px',
+                  borderColor: '#ccc',
+                  color: '#333',
+                }}
+              />
+              <button
+                onClick={handleTransferCall}
+                style={{
+                  backgroundColor: '#4caf50', // Green background for better contrast
+                  color: 'white', // White text
+                  border: 'none',
+                  padding: '10px',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  marginLeft: '10px',
+                }}
+              >
+                Transferir
+              </button>
+            </div>
+          )}
+          {(isCalling || callStatus === 'Connected') && (
+          <div style={{ marginBottom: '15px' }}>
+            <h4>Enviar DTMF:</h4>
+            <div>
+            {['1', '2', '3', 'A', '4', '5', '6', 'B', '7', '8', '9', 'C', '*', '0', '#', 'D'].map((digit) => (
+              <button
+              key={digit}
+              onClick={() => sendDTMF(digit)}
+              style={{
+                margin: '5px',
+                padding: '10px 15px',
+                borderRadius: '5px',
+                border: '1px solid #ccc',
+                cursor: 'pointer',
+                backgroundColor: '#333',
+                color: 'white',
+              }}
+              >
+              {digit}
+              </button>
+            ))}
+            </div>
+          </div>
+          )}
+          {callStatus === 'Incoming Call' && incomingCall && (
+          <div style={{ marginBottom: '15px' }}>
+            <p style={{ color: '#000' }}>
+            <strong>Chamada de:</strong> {callerName} ({callerNumber})
+            </p>
+            <button
+            onClick={handleAnswerCall}
             style={{
-              margin: '5px',
-              padding: '10px 15px',
+              padding: '10px 20px',
               borderRadius: '5px',
-              border: '1px solid #ccc',
-              cursor: 'pointer',
-              backgroundColor: '#333',
+              backgroundColor: '#4caf50',
+              border: 'none',
               color: 'white',
+              cursor: 'pointer',
+              fontSize: '16px',
+              marginRight: '10px',
             }}
             >
-            {digit}
+            Atender
             </button>
-          ))}
+            <button
+            onClick={handleRejectCall}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '5px',
+              backgroundColor: '#f44336',
+              border: 'none',
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: '16px',
+            }}
+            >
+            Recusar
+            </button>
           </div>
-        </div>
-        )}
-        {callStatus === 'Incoming Call' && incomingCall && (
-        <div style={{ marginBottom: '15px' }}>
-          <p style={{ color: '#000' }}>
-          <strong>Chamada de:</strong> {callerName} ({callerNumber})
-          </p>
-          <button
-          onClick={handleAnswerCall}
-          style={{
-            padding: '10px 20px',
-            borderRadius: '5px',
-            backgroundColor: '#4caf50',
-            border: 'none',
-            color: 'white',
-            cursor: 'pointer',
-            fontSize: '16px',
-            marginRight: '10px',
-          }}
-          >
-          Atender
-          </button>
-          <button
-          onClick={handleRejectCall}
-          style={{
-            padding: '10px 20px',
-            borderRadius: '5px',
-            backgroundColor: '#f44336',
-            border: 'none',
-            color: 'white',
-            cursor: 'pointer',
-            fontSize: '16px',
-          }}
-          >
-          Recusar
-          </button>
-        </div>
-        )}
-        {callStatus === 'Connected' && (
-        <div style={{ marginBottom: '15px' }}>
-          <p style={{ color: '#000' }}>
-          <strong>Conectado com:</strong> {callerName} ({callerNumber})
-          </p>
-        </div>
-        )}
-        <div>
-        <strong>Status:</strong> {callStatus}
-        </div>
-        <audio ref={ringAudioRef} src="/audio/ringtone.wav" />
-        <audio ref={answerAudioRef} src="/audio/answer.wav" />
-        <audio ref={dialtoneAudioRef} src="/audio/dialtone.wav" />
-        <audio ref={hangupAudioRef} src="/audio/hangup.wav" />
-        <audio ref={remoteAudioRef} autoPlay controls hidden />
-      </>
+          )}
+          {callStatus === 'Connected' && (
+          <div style={{ marginBottom: '15px' }}>
+            <p style={{ color: '#000' }}>
+            <strong>Conectado com:</strong> {callerName} ({callerNumber})
+            </p>
+          </div>
+          )}
+          <div>
+          <strong>Status:</strong> {callStatus}
+          </div>
+          <audio ref={ringAudioRef} src="/audio/ringtone.wav" />
+          <audio ref={answerAudioRef} src="/audio/answer.wav" />
+          <audio ref={dialtoneAudioRef} src="/audio/dialtone.wav" />
+          <audio ref={hangupAudioRef} src="/audio/hangup.wav" />
+          <audio ref={remoteAudioRef} autoPlay controls hidden />
+        </>
       )}
     </div>
   );

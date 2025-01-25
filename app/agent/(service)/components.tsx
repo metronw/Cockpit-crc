@@ -499,7 +499,10 @@ export const FinishButton = () => {
   }, [JSON.stringify(ticket)]);
 
   return (
-    <Button onPress={finishAction} type={"submit"} title="Finalizar" />
+    <div className="flex space-x-4">
+      <Button onPress={finishAction} type={"submit"} className="bg-green-500 hover:bg-green-600 text-white font-bold" title="Resolvido">Resolvido</Button>
+      <Button onPress={finishAction} type={"submit"} className="bg-red-500 hover:bg-red-600 text-white font-bold" title="Não resolvido">Não Resolvido</Button>
+    </div>
   );
 };
 

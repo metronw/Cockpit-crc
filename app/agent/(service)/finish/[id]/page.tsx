@@ -40,7 +40,7 @@ export default function Finishing({ params: { id } }: { params: { id: string } }
           </div>
         </div>
       </div>
-      <div className="flex flex-row justify-center gap-2">
+      <div className="flex flex-row justify-center gap-2 mt-1">
         <NavigateTicket route={'/agent/procedure/' + id} direction={`backwards`} />
         <FinishButton />
       </div>

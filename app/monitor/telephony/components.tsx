@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button } from "@nextui-org/react";
-import { useRealTimeContext, fetcher } from "./provider";
+import { useRealTimeContext, Channel, Call } from "./provider";
 import { toast } from 'react-hot-toast';
 
 const waitingCallColumns = [
@@ -37,10 +37,6 @@ const connectedCallColumns = [
     key: 'holdTime',
     label: 'TME (seg)'
   },
-  //{
-  // key: 'ringTime',
-  //  label: 'Toque (seg)'
-  //},
   {
     key: 'user',
     label: 'Nome do Usuário'
@@ -55,17 +51,12 @@ const connectedCallColumns = [
   }
 ];
 
-interface Channel {
-  uniqueid: string;
-  calleridnum: string;
-}
 
 function calculateDuration(startTime: string) {
   const start = new Date(startTime).getTime();
   const now = Date.now();
   const diff = now - start;
 
-  const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
   const seconds = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
 
@@ -81,11 +72,10 @@ function mapCallerId(activeChannels: Channel[]) {
 }
 
 export function WaitingCallsTable() {
-  const { waitingCalls, isLoading, error, activeChannels, mutate } = useRealTimeContext();
+  const { waitingCalls, error, activeChannels } = useRealTimeContext();
 
   const callerIdMap = mapCallerId(activeChannels);
 
-  // if (isLoading && !error) return <div>Carregando...</div>;
   if (error) toast.error('Erro ao carregar dados: ' + (error as Error).message);
 
   return (
@@ -97,9 +87,9 @@ export function WaitingCallsTable() {
         {(item) => (
           <TableRow key={item.callid}>
             {(columnKey) => (
-                <TableCell key={item.callid + columnKey.toString()}>
-                {columnKey === 'duration' ? calculateDuration(item.time) : columnKey === 'callerId' ? callerIdMap[item.callid] : columnKey === 'company' ? item.company.fantasy_name : item[columnKey]}
-                </TableCell>
+              <TableCell key={item.callid + columnKey.toString()}>
+                {columnKey === 'duration' ? calculateDuration(item.time) : columnKey === 'callerId' ? callerIdMap[item.callid] : columnKey === 'company' ? item.company.fantasy_name : columnKey === 'user' ? item.user?.name || 'N/A' : String((item as Call)[columnKey as keyof Call])}
+              </TableCell>
             )}
           </TableRow>
         )}
@@ -109,11 +99,10 @@ export function WaitingCallsTable() {
 }
 
 export function ConnectedCallsTable() {
-  const { connectedCalls, isLoading, error, activeChannels, mutate } = useRealTimeContext();
+  const { connectedCalls, error, activeChannels } = useRealTimeContext();
 
   const callerIdMap = mapCallerId(activeChannels);
 
-  // if (isLoading && !error) return <div>Carregando...</div>;
   if (error) toast.error('Erro ao carregar dados: ' + (error as Error).message);
 
   return (
@@ -126,7 +115,7 @@ export function ConnectedCallsTable() {
           <TableRow key={item.callid}>
             {(columnKey) => (
               <TableCell key={item.callid + columnKey.toString()}>
-                {columnKey === 'duration' ? calculateDuration(item.time) : columnKey === 'callerId' ? callerIdMap[item.callid] : columnKey === 'user' ? item.user?.name || 'N/A' : columnKey === 'company' ? item.company.fantasy_name : item[columnKey] }
+                {columnKey === 'duration' ? calculateDuration(item.time) : columnKey === 'callerId' ? callerIdMap[item.callid] : columnKey === 'user' ? item.user?.name || 'N/A' : columnKey === 'company' ? item.company.fantasy_name : String(item[columnKey as keyof Call])}
               </TableCell>
             )}
           </TableRow>

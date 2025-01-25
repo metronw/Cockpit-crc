@@ -8,8 +8,19 @@ import phoneConnection from "@/app/lib/phoneDb";
 /**
  * Interpret the raw queue_log row into a more readable event structure.
  */
-function interpretQueueLogEvent(row: any) {
-  const { time, callid, queuename, agent, event, data1, data2, data3, data4, data5 } = row;
+interface QueueLogRow {
+  time: string;
+  callid: string;
+  queuename: string;
+  agent: string;
+  event: string;
+  data1: string;
+  data2: string;
+  data3: string;
+}
+
+function interpretQueueLogEvent(row: QueueLogRow) {
+  const { time, callid, queuename, agent, event, data1, data2, data3 } = row;
 
   switch (event) {
     case "CONNECT":
@@ -67,7 +78,6 @@ export async function GET() {
     }
 
     // 3. Connect to AMI (only if user phone config exists)
-    const interfaceName = `PJSIP/${userPhone.sip_extension}`;
     const amiClient = new AsteriskAmi({
       host: process.env.ASTERISK_AMI_HOST!,
       port: parseInt(process.env.ASTERISK_AMI_PORT!, 10),
@@ -159,7 +169,7 @@ export async function GET() {
     const [rows] = await phoneConnection.query(
       "SELECT * FROM queue_log WHERE callid IN (?)",
       [uniqueids]
-    );
+    ) as unknown as [QueueLogRow[], unknown];
     if (!Array.isArray(rows) || rows.length === 0) {
       return NextResponse.json(
         {
@@ -176,7 +186,7 @@ export async function GET() {
 
     // 8. Build a map: queueName -> company
     //    Get all unique queueNames from these rows
-    const queueNames = Array.from(new Set(rows.map((r: any) => r.queuename)));
+    const queueNames = Array.from(new Set(rows.map((r: QueueLogRow) => r.queuename)));
     const queueList = await prisma.queue.findMany({
       where: { asteriskId: { in: queueNames } },
       select: {
@@ -194,14 +204,14 @@ export async function GET() {
     // 9. Build a map: sipExtension -> User
     //    We parse the rows for each agent
     const rawSipExtensions = rows
-      .map((r: any) => {
+      .map((r: QueueLogRow) => {
         if (!r.agent) return null;
         // Agent might be PJSIP/101 or SIP/101 or Local/100@...
         const parts = r.agent.split("/");
         return parts?.[1] || null; // e.g. "101"
       })
       .filter((ext: string | null) => ext && /^\d+$/.test(ext)); // keep only numeric
-    const sipExtensions = Array.from(new Set(rawSipExtensions));
+    const sipExtensions = Array.from(new Set(rawSipExtensions.filter((ext): ext is string => ext !== null)));
 
     // If we have any valid sipExtensions, we can look them up in user_phone
     let extensionToUser: Map<string, { id: number; name: string }> = new Map();
@@ -242,7 +252,7 @@ export async function GET() {
     }
 
     // 10. Interpret each row and attach extra info
-    const interpretedQueueLog = rows.map((row: any) => {
+    const interpretedQueueLog = rows.map((row: QueueLogRow) => {
       const eventObj = interpretQueueLogEvent(row);
 
       // attach company
@@ -266,16 +276,16 @@ export async function GET() {
     // 11. Separate waiting calls and connected calls
     const connectedCallIds = new Set(
       interpretedQueueLog
-        .filter((log: any) => log.eventType === "CONNECT")
-        .map((log: any) => log.callid)
+        .filter((log) => log.eventType === "CONNECT")
+        .map((log) => log.callid)
     );
 
-    const waitingCalls = interpretedQueueLog.filter((log: any) =>
+    const waitingCalls = interpretedQueueLog.filter((log) =>
       ["ENTERQUEUE", "RINGNOANSWER"].includes(log.eventType) &&
       !connectedCallIds.has(log.callid)
     );
     const connectedCalls = interpretedQueueLog.filter(
-      (log: any) => log.eventType === "CONNECT"
+      (log) => log.eventType === "CONNECT"
     );
 
     // 12. Return the data

@@ -103,6 +103,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     uaRef.current.start();
 
     uaRef.current.on('connected', () => {
+      console.log('Conectado ao servidor SIP');
     });
 
     uaRef.current.on('registrationFailed', (e) => {
@@ -123,6 +124,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         setCallStatus('Incoming Call');
         onCallStatusChange('Incoming Call');
 
+        console.log(`User autoanswer ${userData.auto_answer}`);
 
         if (!userData.auto_answer) {
           setIncomingCall(newSession);
@@ -190,21 +192,21 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     }
   }, [prefixesData]);
 
-  // useEffect(() => {
-  //   if (remoteAudioRef.current) {
-  //     remoteAudioRef.current.onloadeddata = () => {
-  //       console.log('Dados de áudio carregados.');
-  //     };
+  useEffect(() => {
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.onloadeddata = () => {
+        console.log('Dados de áudio carregados.');
+      };
 
-  //     remoteAudioRef.current.onplay = () => {
-  //       console.log('Reprodução de áudio iniciada.');
-  //     };
+      remoteAudioRef.current.onplay = () => {
+        console.log('Reprodução de áudio iniciada.');
+      };
 
-  //     remoteAudioRef.current.onerror = (e) => {
-  //       console.error('Erro no elemento de áudio:', e);
-  //     };
-  //   }
-  // }, [remoteAudioRef]);
+      remoteAudioRef.current.onerror = (e) => {
+        console.error('Erro no elemento de áudio:', e);
+      };
+    }
+  }, [remoteAudioRef]);
 
   const getUserMediaStream = async () => {
     try {
@@ -268,6 +270,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   const setupPeerConnection = async (session: RTCSession) => {
     const pc = session.connection;
 
+    console.log(pc)
 
     if (pc.connectionState === 'connecting' || pc.connectionState === 'connected') {
       return;
@@ -451,16 +454,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     onCallStatusChange(callStatus);
   }, [callStatus, onCallStatusChange]);
 
-  useEffect(() => {
-    if (callStatus === 'Call Failed' || callStatus === 'Call Ended') {
-      const timer = setTimeout(() => {
-        setCallStatus('Idle');
-      }, 20000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [callStatus]);
-
   if (userError || prefixesError) return <div>Error loading data.</div>;
   if (!userData || !prefixesData) return <div>Loading...</div>;
 
@@ -483,9 +476,9 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               {userData?.sip_extension}
             </span>
           </h3>
-{/*           {callStatus !== 'Connected' && (
+           {callStatus !== 'Connected' && (
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-            <label style={{ marginRight: '10px', color: '#000', flex: '1' }}>
+            <label style={{ marginRight: '10px', color: '#000', flex: '1' }} hidden>
             Prefixo:
             <select
               value={selectedPrefix}
@@ -498,6 +491,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               color: '#333',
               width: '100%',
               }}
+              hidden
             >
               {prefixOptions.map((prefix) => (
               <option key={prefix.number} value={prefix.number}>
@@ -506,7 +500,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               ))}
             </select>
             </label>
-            <label style={{ marginRight: '10px', color: '#000', flex: '2' }}>
+            <label style={{ marginRight: '10px', color: '#000', flex: '2' }} hidden>
             Número:
             <input
               type="text"
@@ -520,10 +514,11 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               color: '#333',
               width: '100%',
               }}
+              hidden
             />
             </label>
           </div>
-          )} */}
+          )}
           <div
           style={{
             display: 'flex',
@@ -587,13 +582,14 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
             </button>
             <button
               onClick={handleShowTransferInput}
+              title="Transferir Chamada"
               style={{
-                backgroundColor: '#ff9800', // Orange background for better contrast
-                color: 'white', // White text
-                border: 'none',
-                padding: '10px',
-                borderRadius: '5px',
-                cursor: 'pointer',
+              backgroundColor: '#ff9800', // Orange background for better contrast
+              color: 'white', // White text
+              border: 'none',
+              padding: '10px',
+              borderRadius: '5px',
+              cursor: 'pointer',
               }}
             >
               <FiPhoneForwarded size={20} />

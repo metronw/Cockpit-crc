@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     // Handling the JWT callback
-    async jwt({ token, user, account }) {      
+    async jwt({ token, user, account }){      
       
       // If user is available, add it to the token
       if (user) {
@@ -69,6 +69,14 @@ export const authOptions: NextAuthOptions = {
     // Handling session callback
     async session({ session, token }) {
       const newSession: Session = {...session, user: {id:token.id, email:token.email ?? '', name: token.name ?? '', roles: token.roles ?? [], metro_id: token.metro_id}}
+      if(token.exp*1000 < Date.now()){
+        newSession.user.id = 0
+        newSession.user.email = ''
+        newSession.user.name = ''
+        newSession.user.metro_id = 0
+        newSession.user.roles = []
+        
+      }
       return newSession;
     },
   },

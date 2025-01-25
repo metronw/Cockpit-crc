@@ -281,6 +281,7 @@ export const Sidebar = () => {
   interface ICompanyList extends ICompany {
     tickets: Array<Ticket>
   }
+  
   const router = useRouter();
   const { ticketContext, setTicketContext, isMounted } = useTicketContext()
   const { tickets, companies } = ticketContext
@@ -299,7 +300,8 @@ export const Sidebar = () => {
   }, [JSON.stringify(ticketContext)])
 
   const refreshList = () => {
-    const list = companies.map<ICompanyList>(el => ({ ...el, tickets: [] }))
+    const list = companies.map<ICompanyList>(el => ({ ...el, tickets: [] })).sort((a, b) => (a.fantasy_name.toLowerCase() < b.fantasy_name.toLowerCase() ? -1 : 1))
+
     const others: ICompanyList = { id: 0, name: 'Outros', fantasy_name: 'Outros', mass: false, tickets: [] }
     list.push(others)
 

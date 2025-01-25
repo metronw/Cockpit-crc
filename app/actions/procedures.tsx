@@ -159,11 +159,14 @@ export async function saveProcedure({ company_id, ticket_type_id, items}:{ compa
 }
 
 
-export async function deleteProcedure(procedure_id: number){ 
+export async function deleteProcedure( {ticket_type_id, company_id}:{ticket_type_id:number, company_id:number}){ 
 
   return await prisma.procedures.delete({
     where:{
-      id: procedure_id
+      company_id_ticket_type_id:{
+        ticket_type_id,
+        company_id
+      }
     },
   })
 }

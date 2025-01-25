@@ -88,9 +88,7 @@ export async function getMetroId(email: string): Promise<number> {
   if (result) {
     const res = JSON.parse(JSON.stringify(result))
     const metro_id = res[0].id
-    // console.log('Metro ID: ', metro_id)
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    // console.log('Usuário encontrado: ', existingUser)
     if (existingUser) {
       await prisma.user.update({
         where: { email },

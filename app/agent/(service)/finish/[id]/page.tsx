@@ -1,14 +1,25 @@
-import { FinishButton, TicketSummary, NavigateTicket } from "../../components";
+import { FinishButton, TicketSummary, NavigateTicket, TextInput } from "../../components";
 import { use } from "react";
 import { getTicket } from '@/app/actions/ticket';
 
 export default function Finishing({ params: { id } }: { params: { id: string } }) {
   const ticket = use(getTicket(parseInt(id)));
 
+  async function nextPage() {
+    'use server'
+    return
+  }
+
   return (
-    <div className="flex flex-col pt-3 h-full">
+    <form action={nextPage} className="flex flex-col pt-3 h-full">
       <div className="grid grid-cols-12 h-full">
         <div className="col-span-6 flex flex-col mx-4 gap-4">
+          {
+            ticket?.communication_type == `phone` ?
+              null :
+              <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de chat'} isRequired={true} />
+          }
+          <TextInput id={id} fieldName={'erpProtocol'} label={'Protocolo ERP'} isRequired={true} />
           <p className='bg-purple-700 text-white rounded content-center px-2 my-1 py-1'>
             <strong>{ticket?.caller_name}</strong>, foi aberto o protocolo <strong>{ticket?.erpProtocol}</strong> para o setor responsável.
           </p>
@@ -33,6 +44,6 @@ export default function Finishing({ params: { id } }: { params: { id: string } }
         <NavigateTicket route={'/agent/procedure/' + id} direction={`backwards`} />
         <FinishButton />
       </div>
-    </div>
+    </form>
   );
 }

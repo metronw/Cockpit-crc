@@ -9,7 +9,8 @@ export interface IUserAssign {
   company_id:number;
   user_id: number;
   user:IUser;
-  companyName:string
+  companyName:string;
+  queue_type:number;
 }
 
 export interface IUser {
@@ -47,10 +48,13 @@ export async function getUserAssignments() : Promise<Array<IUserAssign>> {
   const companies = JSON.parse(await getCompaniesList()) 
   const assigns =  await prisma.user_assign.findMany({include: {user: true }})
 
-
   return assigns.map((el) => {
     const comp = companies.find((item:ICompany) => el.company_id == item.id)
-    return {...el, companyName:comp?.fantasy_name ?? ``}
+    return {
+      ...el, 
+      companyName: comp?.fantasy_name ?? ``,
+      queue_type: el.queue_type ?? 1 // Garantir que queue_type não seja null
+    }
   })
 }
 

@@ -415,12 +415,12 @@ export function ProceduresTable(){
         </Button>
         <Button
           className='w-60' 
-          onPress={() => deleteProcedure(procedure.id)
+          onPress={() => deleteProcedure({company_id: selectedCompany ?? 0, ticket_type_id: selectedTicketType ?? 0 } )
             .then(() => {
               toast.success('excluido com sucesso')
               setIsLoadingProceds(true)
           })
-            .catch(() => toast.error('deu algo de errado'))} >
+            .catch(() => toast.error('A combinação Empresa/Tipo de ticket selecionada não possui ordenamento'))} >
             Excluir Ordenamento
         </Button>
       </div>
@@ -541,6 +541,13 @@ export function ProcedureEditor() {
               Salvar item de procedimento
             </Button>
             <Button  
+            className='w-60' 
+            onPress={() => {
+              setProcedureId(undefined)
+            }}>
+              Copiar
+            </Button>
+            <Button  
             className='w-60 bg-danger' 
             onPress={() => deleteProcedureItem( [procedureId ?? 0])
               .then(() => {
@@ -550,7 +557,7 @@ export function ProcedureEditor() {
             })
               .catch(() => toast.error('deu algo de errado'))} >
               Deletar Procedimento
-          </Button>
+            </Button>            
             <Button  
             className='w-60' 
             onPress={() => {

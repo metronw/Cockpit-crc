@@ -78,7 +78,6 @@ export async function POST(request: Request) {
               Interface: interfaceName,
             };
             await amiClient.send(action);
-            console.log(`Interface ${interfaceName} adicionada à fila ${queue.name}`);
           }
         }
       }
@@ -212,7 +211,6 @@ export async function GET() {
         }
       });
 
-      console.log(events)
       // Recupera as filas atribuídas ao usuário
       const userAssigns = await prisma.user_assign.findMany({
         where: {
@@ -227,9 +225,6 @@ export async function GET() {
           },
         },
       });
-
-      console.log('Filas atribuídas:', userAssigns);
-      console.log('Mapeamento de membros:', queueMembersMap);
 
       // Construir a resposta correlacionando filas atribuídas e status da interface
       const responseData = userAssigns.map(assign => {
@@ -349,7 +344,6 @@ export async function DELETE(request: Request) {
               Interface: interfaceName,
             };
             await amiClient.send(action);
-            console.log(`Interface ${interfaceName} removida da fila ${queue.name}`);
           }
         }
       }

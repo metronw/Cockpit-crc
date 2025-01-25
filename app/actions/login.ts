@@ -35,8 +35,6 @@ export async function loginSSO({email, name, metro_id=312} :{email:string, name?
     where: { email },
   });
 
-  console.log("Usuário encontrado: ", JSON.stringify( user))
-
   if(user){
     await prisma.user.update({
       where:{email},

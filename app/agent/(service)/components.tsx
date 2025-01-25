@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox } from "@nextui-org/react";
+import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Textarea } from "@nextui-org/react";
 import Link from 'next/link'
 import { ILocalData, IProcedureItemResponse, useTicketContext } from "@/app/agent/providers"
 import { useState, useEffect, useCallback } from 'react'
@@ -65,20 +65,38 @@ export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = 
 
   return (
     <div className="flex flex-col rounded m-1">
-      <Input
-        type="text"
-        maxLength={99}
-        label={label}
-        color={'primary'}
-        classNames={{
-          base: `h-18 ${isLarge ? 'w-144' : 'w-80'} ml-4 `,
-          inputWrapper: `bg-white justify-start ${isLarge ? 'w-140' : 'w-76'} border border-primary rounded-medium`,
-        }}
-        value={value}
-        onValueChange={setValue}
-        isRequired={isRequired}
-        validate={validate}
-      />
+      {
+        !isLarge ?
+          <Input
+            type="text"
+            maxLength={30}
+            label={label}
+            color={'primary'}
+            classNames={{
+              base: `h-18 w-80 ml-4 `,
+              inputWrapper: `bg-white justify-start w-76 border border-primary rounded-medium`,
+            }}
+            value={value}
+            onValueChange={setValue}
+            isRequired={isRequired}
+            validate={validate}
+          />
+        :
+        <Textarea
+          type="text"
+          maxLength={99}
+          label={label}
+          color={'primary'}
+          classNames={{
+            base: `h-18 w-144 ml-4 `,
+            inputWrapper: `bg-white justify-start w-76 border border-primary rounded-medium`,
+          }}
+          value={value}
+          onValueChange={setValue}
+          isRequired={isRequired}
+          validate={validate}
+        />
+      }
     </div>
   )
 }
@@ -117,7 +135,10 @@ export function BooleanInput({ id, fieldName, label }: { id: string, fieldName: 
       <span className="text-primary">{label}</span>
       <Checkbox type="checkbox"
         color={'primary'}
-        className="w-6 h-6 text-primary"
+        classNames={{
+          base: "w-6 h-6 text-primary ",
+          wrapper: "border border-primary rounded-lg"
+        }}
         isSelected={value}
         onValueChange={setValue}
       // onValueChange={(val) => setValue(newLocal ? true : false)}
@@ -127,7 +148,7 @@ export function BooleanInput({ id, fieldName, label }: { id: string, fieldName: 
   )
 }
 
-export const ProcedureTextInput = ({ label, Modal, id = 0 }: { isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number }) => {
+export const ProcedureTextInput = ({ label, Modal, id = 0, isLarge=false }: { isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number, isLarge?:boolean }) => {
 
   const [value, setValue] = useState<string>('')
   const [response, setResponse] = useState<string>('')
@@ -175,14 +196,32 @@ export const ProcedureTextInput = ({ label, Modal, id = 0 }: { isInteractive?: b
       <span className="bg-purple-700 text-white px-2">{label}</span>
       <div className="flex flex-row">
         {Modal}
-        <Input
-          type="text"
-          label={label}
-          color={'primary'}
-          classNames={{ base: `w-144 h-16 ml-4 border border-primary rounded-medium`, inputWrapper: `bg-white justify-start w-144 h-16`, input: `w-144 h-16 ` }}
-          value={value}
-          onValueChange={setValue}
+        {
+          isLarge ?
+          <Input
+            type="text"
+            label={label}
+            color={'primary'}
+            classNames={{ base: `w-144 h-16 ml-4 border border-primary rounded-medium`, 
+              inputWrapper: `bg-white justify-start w-144 h-16`, input: `w-144 h-16 ` 
+            }}
+            value={value}
+            onValueChange={setValue}
+          />
+          :
+          <Textarea
+            type="text"
+            maxLength={500}
+            label={label}
+            color={'primary'}
+            classNames={{
+              base: `h-18 w-144 ml-4 `,
+              inputWrapper: `bg-white justify-start w-76 border border-primary rounded-medium`,
+            }}
+            value={value}
+            onValueChange={setValue}
         />
+        }
 
       </div>
 
@@ -420,7 +459,10 @@ export const IssueSelector = ({ id, fieldName, placeholder, dataSource, isRequir
   );
 }
 
-
+const finishSchema = z.object({
+  erpProtocol: z.string().min(3, 'O ticket deve ter um protocolo ERP'),
+  communication_id: z.string().min(3, 'O ticket deve ter um protocolo de chat')
+})
 
 export const FinishButton = () => {
 
@@ -430,19 +472,28 @@ export const FinishButton = () => {
   const router = useRouter();
 
   const finishAction = useCallback(async () => {
-    const resp = await createMetroTicket(ticket)
-    if (resp.status === 200 && ticket) {
-      const newCtx = { ...ticketContext, tickets: ticketContext.tickets.filter(el => el.id !== ticket.id) }
-      toast.success('Ticket criado no gestor com sucesso')
-      setTicketContext(newCtx)
-      router.push('/agent/' + ticket.user_id)
-    } else {
-      toast.error(resp.message)
+
+    try{
+      finishSchema.parse(ticket)
+
+      const resp = await createMetroTicket(ticket)
+      if (resp.status === 200 && ticket) {
+        const newCtx = { ...ticketContext, tickets: ticketContext.tickets.filter(el => el.id !== ticket.id) }
+        toast.success('Ticket criado no gestor com sucesso')
+        setTicketContext(newCtx)
+        router.push('/agent/' + ticket.user_id)
+      } else {
+        toast.error(resp.message)
+      }
+      
+    }catch(err){
+      console.log(err)
     }
+
   }, [JSON.stringify(ticket)])
 
   return (
-    <Button onPress={finishAction}>
+    <Button onPress={finishAction} type={"submit"}>
       Finalizar
     </Button>
   )
@@ -538,7 +589,7 @@ export const Procedures = () => {
               )
             } else if (el.input_type == 2) {
               return (
-                <ProcedureTextInput key={el.id} label={el.label} id={el.id} Modal={<InfoModal title={el.modal_title ?? ''} body={el.modal_body ?? ''} />} />
+                <ProcedureTextInput key={el.id} label={el.label} id={el.id} isLarge={true} Modal={<InfoModal title={el.modal_title ?? ''} body={el.modal_body ?? ''} />} />
               )
             }
           })
@@ -549,19 +600,18 @@ export const Procedures = () => {
   )
 }
 
-const schema = z.object({
+const triageSchema = z.object({
   type: z.number().positive('Selecione um tipo de ticket'),
   client_name: z.string().min(3, 'Insira um nome de cliente valido'),
-  communication_id: z.string().min(3, 'Insira um protocolo de chat valido'),
+  // communication_id: z.string().min(3, 'Insira um protocolo de chat valido'),
   caller_number: z.string().min(3, 'Insira um protocolo de chat valido'),
   identity_document: z.string().min(3, 'Insira um cpf/cnpj valido'),
-
 })
 
 const validateTriageForm = (ticket: Ticket) => {
 
   try {
-    schema.parse(ticket)
+    triageSchema.parse(ticket)
     return true
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -641,13 +691,18 @@ export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: ke
     });
   };
 
+  
   return (
     <div className="flex flex-col m-1 gap-1">
       <Input
+        isRequired
         type="text"
         label={label}
         color="primary"
-        className="border border-primary rounded-md w-72"
+        classNames={{
+          base: `h-18 w-80 ml-4 `,
+          inputWrapper: `bg-white justify-start w-76 border border-primary rounded-medium`,
+        }}
         value={maskedValue}
         onValueChange={handleChange}
         maxLength={20}

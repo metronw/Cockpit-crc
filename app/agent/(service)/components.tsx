@@ -481,7 +481,8 @@ export const FinishButton = () => {
         const newCtx = { ...ticketContext, tickets: ticketContext.tickets.filter(el => el.id !== ticket.id) }
         toast.success('Ticket criado no gestor com sucesso')
         setTicketContext(newCtx)
-        router.push('/agent/' + ticket.user_id)
+        const userId = ticket.user_id // try to fix the glitch
+        router.push('/agent/' + userId)
       } else {
         toast.error(resp.message)
       }

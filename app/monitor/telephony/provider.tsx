@@ -1,7 +1,8 @@
 'use client'
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import useSWR from 'swr';
+import { toast } from 'react-toastify';
 
 export async function fetcher(url: string) {
   const response = await fetch(url);
@@ -58,6 +59,14 @@ export const useRealTimeContext = () => {
 
 export function RealTimeProvider({ children }: { children: React.ReactNode }) {
   const { data, error, mutate } = useSWR('/api/phone/calls', fetcher);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (error && !hasError) {
+      toast.error('Erro ao carregar dados: ' + error.message);
+      setHasError(true);
+    }
+  }, [error, hasError]);
 
   const isLoading = !data && !error;
   const activeChannels: Channel[] = data?.activeChannels || [];

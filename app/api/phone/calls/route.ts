@@ -66,17 +66,6 @@ export async function GET() {
       );
     }
 
-    // 2. Check user phone config
-    const userPhone = await prisma.user_phone.findUnique({
-      where: { user_id: sessionUser },
-    });
-    if (!userPhone) {
-      return NextResponse.json(
-        { error: "Configurações de telefone não encontradas para o usuário" },
-        { status: 404 }
-      );
-    }
-
     // 3. Connect to AMI (only if user phone config exists)
     const amiClient = new AsteriskAmi({
       host: process.env.ASTERISK_AMI_HOST!,

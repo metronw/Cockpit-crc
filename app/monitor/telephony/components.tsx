@@ -73,10 +73,16 @@ function mapCallerId(activeChannels: Channel[]) {
 
 export function WaitingCallsTable() {
   const { waitingCalls, error, activeChannels } = useRealTimeContext();
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (error && !hasError) {
+      toast.error('Erro ao carregar dados: ' + error.message);
+      setHasError(true);
+    }
+  }, [error, hasError]);
 
   const callerIdMap = mapCallerId(activeChannels);
-
-  if (error) toast.error('Erro ao carregar dados: ' + (error as Error).message);
 
   return (
     <Table aria-label="Chamadas Aguardando" classNames={{ wrapper: 'overflow-auto' }}>
@@ -100,10 +106,16 @@ export function WaitingCallsTable() {
 
 export function ConnectedCallsTable() {
   const { connectedCalls, error, activeChannels } = useRealTimeContext();
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (error && !hasError) {
+      toast.error('Erro ao carregar dados: ' + error.message);
+      setHasError(true);
+    }
+  }, [error, hasError]);
 
   const callerIdMap = mapCallerId(activeChannels);
-
-  if (error) toast.error('Erro ao carregar dados: ' + (error as Error).message);
 
   return (
     <Table aria-label="Chamadas em Atendimento" classNames={{ wrapper: 'overflow-auto' }}>

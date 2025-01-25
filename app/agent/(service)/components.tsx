@@ -465,40 +465,43 @@ const finishSchema = z.object({
 })
 
 export const FinishButton = () => {
-
-  const { ticketContext, setTicketContext } = useTicketContext()
-  const path = usePathname()
-  const { ticket } = parsePageInfo(path, ticketContext)
+  const { ticketContext, setTicketContext } = useTicketContext();
+  const path = usePathname();
+  const { ticket } = parsePageInfo(path, ticketContext);
   const router = useRouter();
 
   const finishAction = useCallback(async () => {
+    try {
+      finishSchema.parse(ticket);
+      console.log("Ticket validado:", ticket);
 
-    try{
-      finishSchema.parse(ticket)
+      const resp = await createMetroTicket(ticket);
+      console.log("Resposta da criação do ticket:", resp);
 
-      const resp = await createMetroTicket(ticket)
       if (resp.status === 200 && ticket) {
-        const newCtx = { ...ticketContext, tickets: ticketContext.tickets.filter(el => el.id !== ticket.id) }
-        toast.success('Ticket criado no gestor com sucesso')
-        setTicketContext(newCtx)
-        const userId = ticket.user_id // try to fix the glitch
-        router.push('/agent/' + userId)
-      } else {
-        toast.error(resp.message)
-      }
-      
-    }catch(err){
-      console.log(err)
-    }
+        const newCtx = { ...ticketContext, tickets: ticketContext.tickets.filter(el => el.id !== ticket.id) };
+        toast.success('Ticket criado no gestor com sucesso');
+        setTicketContext(newCtx);
+        console.log("Contexto atualizado:", newCtx);
 
-  }, [JSON.stringify(ticket)])
+        // Wait for the context to update before navigating
+        setTimeout(() => {
+          const userId = ticket.user_id; // try to fix the glitch
+          router.push('/agent/' + userId);
+          console.log("Redirecionando para /agent/" + userId);
+        }, 100);
+      } else {
+        toast.error(resp.message);
+      }
+    } catch (err) {
+      console.log("Erro ao finalizar o ticket:", err);
+    }
+  }, [JSON.stringify(ticket)]);
 
   return (
-    <Button onPress={finishAction} type={"submit"}>
-      Finalizar
-    </Button>
-  )
-}
+    <Button onPress={finishAction} type={"submit"} title="Finalizar" />
+  );
+};
 
 function formatProcedures(procedures: string) {
   if (procedures) {

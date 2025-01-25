@@ -2,7 +2,7 @@
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Accordion, AccordionItem } from "@nextui-org/react"
-import { ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon, MinusIcon } from "@heroicons/react/24/solid"
+import { ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon, MinusIcon, PhoneIcon } from "@heroicons/react/24/solid"
 import { useRouter } from "next/navigation"
 import { ICompany, useTicketContext } from '@/app/agent/providers'
 import { Ticket } from '@prisma/client';
@@ -12,7 +12,22 @@ import { signOut, useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import useSWR from 'swr';
 
-const fetchPauseStatus = (url: string) => fetch(url).then((res) => res.json());
+const fetchPauseStatus = async (url: string) => {
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error === 'Interface não encontrada em nenhuma fila') {
+      return { error: 'Interface não encontrada em nenhuma fila' };
+    }
+    if (!res.ok) {
+      return { error: data.error || 'Erro desconhecido' };
+    }
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar status de pausa:", error);
+    return { error: 'Erro ao buscar status de pausa' };
+  }
+};
 
 export const PerformanceChart = () => {
   const data = [{ name: 'Dia 1', uv: 400, pv: 2400, amt: 2400 }, { name: 'Dia 2', uv: 200, pv: 3000, amt: 2400 }, { name: 'Dia 3', uv: 700, pv: 3000, amt: 2400 }];
@@ -163,26 +178,23 @@ export const AgentHeader = ({ id }: { id?: number }) => {
         <span className="font-bold">{`${session.data?.user.name || "Carregando suas informações!"}`}</span>
         {isLoggedIn ? (
           <>
-            <ClockIcon className="h-10" />
-            <div>00:00</div>
-            <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary" /></Button>
-            <div
-              className='h-10'
-              style={{
-                width: '2.5rem',
-                height: '2.5rem',
-                borderRadius: '50%',
-                border: '1px solid #000',
-                backgroundColor: statusColor,
-                marginLeft: '8px'
-              }}
-              title="Status do Agente"
-            />
+        <ClockIcon className="h-10" />
+        <div>00:00</div>
+        <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary" /></Button>
+        <div
+          className='h-10 w-10 rounded-full border border-black'
+          style={{
+            backgroundColor: statusColor,
+            marginLeft: '8px'
+          }}
+          title="Status do Agente"
+        />
           </>
         ) : (
-          <Button onPress={handleLogin}>
-            LOGAR
-          </Button>
+            <Button onPress={handleLogin}>
+            <PhoneIcon className="h-10 text-primary" />
+            Logar Telefonia
+            </Button>
         )}
       </div>
       <Button isIconOnly color="primary" aria-label="logout" onPress={() => signOut()}>

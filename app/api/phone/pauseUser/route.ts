@@ -108,8 +108,7 @@ export async function POST(request: Request) {
         // Importante: pode ser que o membro não pertença a nenhuma fila, então não foi realmente pausado
         amiClient.disconnect();
         return NextResponse.json(
-          { error: 'Interface não encontrada em nenhuma fila' },
-          { status: 404 }
+          { error: 'Interface não encontrada em nenhuma fila' }
         );
       }
 
@@ -251,8 +250,7 @@ export async function GET() {
 
       if (!isInQueue) {
         return NextResponse.json(
-          { error: 'Interface não encontrada em nenhuma fila' },
-          { status: 404 }
+          { error: 'Interface não encontrada em nenhuma fila' }
         );
       }
 

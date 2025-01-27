@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { IProcedureItem, getProcedure, IProcedure } from '@/app/actions/procedures';
-import { ITIcketType } from '@/app/providers';
 import { getAllCompanies } from '@/app/actions/company';
 import { Company } from '@prisma/client'
 
@@ -15,7 +14,6 @@ interface IProcedureContext {
   setSelectedCompany: Dispatch<SetStateAction<number | null>>
   selectedTicketType: number | null;
   setSelectedTicketType: Dispatch<SetStateAction<number | null>>
-  ticketTypes: ITIcketType[];
   setEditProcedure: (id:number) => void;
   selectedProcedure: IProcedureItem | null
 }
@@ -31,8 +29,8 @@ export const useProcedureContext = () => {
 };
 
 export function ProcedureProvider(
-  {children, companies=[], procedures, ticketTypes=[]}: 
-    { children: React.ReactNode, companies: Company[], procedures:IProcedure, ticketTypes: Array<ITIcketType> }
+  {children, companies=[], procedures, }: 
+    { children: React.ReactNode, companies: Company[], procedures:IProcedure }
   ) {
 
   const [proceds, setProceds] = useState(procedures)
@@ -73,7 +71,7 @@ export function ProcedureProvider(
     <ProcedureContext.Provider value={{
       procedures: proceds, setIsLoadingProceds, companies: comps, setIsLoadingComps, 
       selectedCompany, selectedTicketType, setSelectedCompany, setSelectedTicketType, 
-      ticketTypes, setEditProcedure, selectedProcedure: selectedProc}}>
+      setEditProcedure, selectedProcedure: selectedProc}}>
       {children}
     </ProcedureContext.Provider>
   );

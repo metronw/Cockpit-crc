@@ -2,7 +2,13 @@
 
 import prisma from '@/app/lib/localDb'
 import {z} from 'zod'
-import { Company } from '@prisma/client'
+import { Company, Company_group } from '@prisma/client'
+
+export interface ICompanyGroup {
+  id:number;
+  name:string;
+  company_list: Company[];
+}
 
 export async function getCompany({id}:{id:number}){
   const resp = await prisma.company.findFirst({where:{id}})
@@ -11,6 +17,17 @@ export async function getCompany({id}:{id:number}){
 
 export async function getAllCompanies(){
   return await prisma.company.findMany() as Company[]
+}
+
+function mapCompaniesToGroups(ids: number[], companies: Company[]): Company[]{
+  return ids.map(id => companies.find((el:Company):boolean => el.id === id)).filter((el): el is Company => !!el);
+}
+
+
+export async function getAllCompanyGroups(){
+  const companies = await prisma.company.findMany();
+  const cgs = await prisma.company_group.findMany() as Company_group[]
+  return cgs.map((el:Company_group):ICompanyGroup => ({...el, company_list: mapCompaniesToGroups(JSON.parse(el.company_list), companies) })) 
 }
 
 
@@ -26,16 +43,12 @@ export async function upsertCompany({id, fantasy_name}:{id:number | null, fantas
   
 }
 
-export async function upsertCompanyGroup({name='', companies=[], id=0}:{name:string, companies:number[],id: number}){
-  const list = {name, company_list: JSON.stringify(companies)}
+export async function upsertCompanyGroup({name='', company_list=[], id=0}:{name:string, company_list:Company[],id: number}){
+  const list = {name, company_list: JSON.stringify(company_list.map(el=> el.id))}
   try{
-    const resp = await prisma.company_group.upsert({where:{id},update:{name, company_list: JSON.stringify(companies)}, create:list})
+    const resp = await prisma.company_group.upsert({where:{id},update:{name, company_list: JSON.stringify(company_list)}, create:list})
     return resp
   }catch(err){
     return undefined
   }
 }
-
-// export async function getUserAssignments(){
-//   return await prisma.user_assign.findMany()
-// }

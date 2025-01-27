@@ -404,17 +404,22 @@ export const ServiceNavBar = () => {
   )
 }
 
-export const IssueSelector = ({ id, fieldName, placeholder, dataSource, isRequired = true }: { id: string, fieldName: 'type' | 'status', placeholder: string, dataSource: () => Promise<string>, isRequired: boolean }) => {
+interface IssueSelectorItem {
+  id: number, 
+  label: string
+}
 
-  const [items, setItems] = useState([])
+export const IssueSelector = ({ id, fieldName, placeholder, dataSource, isRequired = true }: { id: string, fieldName: 'type' | 'status', placeholder: string, dataSource: () => Promise<[IssueSelectorItem]>, isRequired: boolean }) => {
+
+  const [items, setItems] = useState<IssueSelectorItem[]>([])
   const { ticketContext, setTicketContext, isMounted } = useTicketContext()
   const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
   const [value, setValue] = useState<string>(ticket ? ticket[fieldName] + '' : '')
   const [isCtxLoaded, setIsCtxLoaded] = useState<boolean>(false)
 
   useEffect(() => {
-    dataSource().then((data: string) => {
-      setItems(JSON.parse(data))
+    dataSource().then((data: IssueSelectorItem[]) => {
+      setItems(data)
     })
   }, [dataSource])
 

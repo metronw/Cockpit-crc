@@ -2,13 +2,14 @@
 
 import { createContext, useContext, useState, useEffect,  Dispatch, SetStateAction } from 'react';
 import { IUser, IUserAssign, getUserAssignments } from '../actions/userAssign';
-import { getAllCompanies } from '../actions/company';
+import { ICompanyGroup, getAllCompanies, getAllCompanyGroups } from '../actions/company';
 import { Company } from '@prisma/client'
 
 interface IMonitorContextData  {
   companies: Company[];
   users: IUser[];
   assignments: IUserAssign[];
+  companyGroups: ICompanyGroup[];
 }
 
 interface IMonitorContext extends IMonitorContextData {
@@ -16,6 +17,7 @@ interface IMonitorContext extends IMonitorContextData {
   setAssignments:Dispatch<SetStateAction<IUserAssign[]>>;
   setIsLoadingAssigns: Dispatch<SetStateAction<boolean>>
   setIsLoadingComps: Dispatch<SetStateAction<boolean>> 
+  setIsLoadingCompanyGroups: Dispatch<SetStateAction<boolean>> 
 }
 
 const MonitorContext = createContext<IMonitorContext|undefined>(undefined); 
@@ -35,12 +37,25 @@ export function MonitorProvider({children, iniContext}: { children: React.ReactN
   const [assignments, setAssignments] = useState(iniContext.assignments)
   const [isLoadingAssigns, setIsLoadingAssigns] = useState(false)
 
+  const [companyGroups, setCompanyGroups] = useState(iniContext.companyGroups)
+  const [isLoadingcompanyGroups, setIsLoadingCompanyGroups] = useState(false)
+
   const [companies, setCompanies] = useState(iniContext.companies)
   const [isLoadingComps, setIsLoadingComps] = useState(false)
   
 
   
   
+  useEffect(() => {
+    if(isLoadingcompanyGroups){
+      getAllCompanyGroups().then(resp => {
+        setCompanyGroups(resp)
+        setIsLoadingCompanyGroups(false)
+      })
+    }
+  }
+  ,[isLoadingAssigns])
+
   useEffect(() => {
     if(isLoadingAssigns){
       getUserAssignments().then(resp => {
@@ -61,7 +76,7 @@ export function MonitorProvider({children, iniContext}: { children: React.ReactN
   ,[isLoadingComps])
 
   return (
-    <MonitorContext.Provider value={{companies, setCompanies, assignments, setAssignments, users: iniContext.users, setIsLoadingAssigns, setIsLoadingComps }}>
+    <MonitorContext.Provider value={{companies, setCompanies, assignments, setAssignments, users: iniContext.users, companyGroups, setIsLoadingCompanyGroups, setIsLoadingAssigns, setIsLoadingComps }}>
       {children}
     </MonitorContext.Provider>
   );

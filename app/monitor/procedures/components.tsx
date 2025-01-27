@@ -8,6 +8,7 @@ import { useProcedureContext } from "./providers";
 import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
 import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
+import { useTicketTypeContext } from "@/app/providers";
 
 const ticketTypeOptions = [{id: 1, label: 'Sim/Não'}, {id: 2, label:'Texto'}, /*{id: 3, label:'options'},*/ /*{id:4, label: 'date'}*/ ]
 
@@ -15,7 +16,8 @@ export function InputPicker(){
   
   const [company, setCompany] = useState(null)
   const [ticketType, setTicketType] = useState(null)
-  const {setSelectedCompany, setSelectedTicketType, ticketTypes, companies, setIsLoadingProceds} = useProcedureContext()
+  const {setSelectedCompany, setSelectedTicketType, companies, setIsLoadingProceds} = useProcedureContext()
+  const {ticketTypeContext} = useTicketTypeContext()
   
   useEffect(()=>{
     setSelectedTicketType(ticketType ? parseInt(ticketType) : null)
@@ -43,7 +45,7 @@ export function InputPicker(){
             base: 'flex shrink border-primary border rounded-medium'
           }}
         >
-          {ticketTypes.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+          {ticketTypeContext.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
         </Autocomplete>
 
         <Autocomplete

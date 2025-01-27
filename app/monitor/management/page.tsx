@@ -1,11 +1,15 @@
-import { CompanySelector } from "./components";
+import { CompanyGroupCreator, CompanyGroupSelector } from "./components";
+import { ManagementProvider } from "./providers";
 
 export default function ManagerDashboard() {
   
   return (
-    <div className="flex flex-col p-2">
-      Dashboard do Gerente
-      <CompanySelector/>
-    </div>
+    <ManagementProvider>
+      <div className="flex flex-col p-2">
+        Dashboard do Gerente        
+        <CompanyGroupSelector />
+        <CompanyGroupCreator />
+      </div>
+    </ManagementProvider>
   );
 }

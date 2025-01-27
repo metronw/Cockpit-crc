@@ -1,21 +1,17 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect,  Dispatch, SetStateAction } from 'react';
-import { IUser, IUserAssign, getUserAssignments } from '@/app/actions/userAssign';
-import { getCompaniesList } from '@/app/actions/api';
-import { Company } from '@prisma/client'
+import { createContext, useContext, useState,  Dispatch, SetStateAction } from 'react';
+import { Company, } from '@prisma/client'
+import { ICompanyGroup } from '@/app/actions/company';
 
 interface IManagementContextData  {
-  companies: Company[];
-  users: IUser[];
-  assignments: IUserAssign[];
+  selectedCompany: Company | null
+  selectedCompanyGroup: ICompanyGroup | null
 }
 
 interface IManagementContext extends IManagementContextData {
-  setCompanies:Dispatch<SetStateAction<Company[]>>;
-  setAssignments:Dispatch<SetStateAction<IUserAssign[]>>;
-  setIsLoadingAssigns: Dispatch<SetStateAction<boolean>>
-  setIsLoadingComps: Dispatch<SetStateAction<boolean>> 
+  setSelectedCompany: Dispatch<SetStateAction<Company | null>> 
+  setSelectedCompanyGroup: Dispatch<SetStateAction<ICompanyGroup | null>> 
 }
 
 const ManagementContext = createContext<IManagementContext|undefined>(undefined); 
@@ -30,25 +26,14 @@ export const useManagementContext = () => {
 
 
 
-export function ManagementProvider({children, iniContext}: { children: React.ReactNode, iniContext:IManagementContextData }) {
+export function ManagementProvider({children}: { children: React.ReactNode }) {
 
-  const [assignments, setAssignments] = useState(iniContext.assignments)
-  const [isLoadingAssigns, setIsLoadingAssigns] = useState(false)
-
-  const [companies, setCompanies] = useState(iniContext.companies)
-  const [isLoadingComps, setIsLoadingComps] = useState(false)
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)  
+  const [selectedCompanyGroup, setSelectedCompanyGroup] = useState<ICompanyGroup | null>(null)  
   
-  useEffect(() => {
-    if(isLoadingComps){
-      getCompaniesList().then(resp => {
-        setCompanies(resp)
-      })
-    }
-  }
-  ,[isLoadingComps])
 
   return (
-    <ManagementContext.Provider value={{companies, setCompanies, assignments, setAssignments, users: iniContext.users, setIsLoadingAssigns, setIsLoadingComps }}>
+    <ManagementContext.Provider value={{selectedCompany, setSelectedCompany, selectedCompanyGroup, setSelectedCompanyGroup }}>
       {children}
     </ManagementContext.Provider>
   );

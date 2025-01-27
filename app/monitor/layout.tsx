@@ -1,9 +1,9 @@
 import { MonitorHeader, MonitorSidebar } from './components';
 import { MonitorProvider } from './providers';
-import {  getCompaniesList, getUsers } from "@/app/actions/api";
+import { getUsers } from "@/app/actions/api";
 import {use} from 'react'
-import { IUser, IUserAssign, getUserAssignments } from '@/app/actions/userAssign';
-import { getAllCompanies } from '../actions/company';
+import {  getUserAssignments } from '@/app/actions/userAssign';
+import { getAllCompanies, getAllCompanyGroups } from '../actions/company';
 
 
 export default function MonitorLayout({
@@ -15,9 +15,10 @@ export default function MonitorLayout({
   const companies = use(getAllCompanies())
   const users = use(getUsers())
   const assignments = use(getUserAssignments())
+  const companyGroups = use(getAllCompanyGroups())
 
   return (
-    <MonitorProvider iniContext={{companies, users, assignments}}>
+    <MonitorProvider iniContext={{companies, users, assignments, companyGroups}}>
       <div className='flex flex-col h-screen'>
         <header className="w-full py-3 border-b-2 border-black bg-primary">
           <MonitorHeader />

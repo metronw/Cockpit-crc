@@ -10,13 +10,14 @@ import { getOpenTickets } from './ticket';
 import { IUser } from './userAssign';
 import { getAllCompanies } from './company';
 import { Company } from '@prisma/client'
+import { ITicketType } from '../providers';
 
 export async function getCrcTicketTypes() {
   const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id FROM ticket_type '
     + 'INNER JOIN ticket_type_product ON ticket_type_product.id_ticket_type=ticket_type.id '
     + 'where ticket_type_product.id_product = 2 '
   );
-  return JSON.stringify(rows);
+  return rows as ITicketType[];
 }
 
 export async function getCrcFatherTicketTypes() {

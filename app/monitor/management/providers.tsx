@@ -1,27 +1,27 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect,  Dispatch, SetStateAction } from 'react';
-import { IUser, IUserAssign, getUserAssignments } from '../actions/userAssign';
-import { getAllCompanies } from '../actions/company';
+import { IUser, IUserAssign, getUserAssignments } from '@/app/actions/userAssign';
+import { getCompaniesList } from '@/app/actions/api';
 import { Company } from '@prisma/client'
 
-interface IMonitorContextData  {
+interface IManagementContextData  {
   companies: Company[];
   users: IUser[];
   assignments: IUserAssign[];
 }
 
-interface IMonitorContext extends IMonitorContextData {
+interface IManagementContext extends IManagementContextData {
   setCompanies:Dispatch<SetStateAction<Company[]>>;
   setAssignments:Dispatch<SetStateAction<IUserAssign[]>>;
   setIsLoadingAssigns: Dispatch<SetStateAction<boolean>>
   setIsLoadingComps: Dispatch<SetStateAction<boolean>> 
 }
 
-const MonitorContext = createContext<IMonitorContext|undefined>(undefined); 
+const ManagementContext = createContext<IManagementContext|undefined>(undefined); 
 
-export const useMonitorContext = () => {
-  const ctx = useContext(MonitorContext)
+export const useManagementContext = () => {
+  const ctx = useContext(ManagementContext)
   if(!ctx){
     throw new Error("useMyContext must be used within a MyContextProvider");
   }
@@ -30,7 +30,7 @@ export const useMonitorContext = () => {
 
 
 
-export function MonitorProvider({children, iniContext}: { children: React.ReactNode, iniContext:IMonitorContextData }) {
+export function ManagementProvider({children, iniContext}: { children: React.ReactNode, iniContext:IManagementContextData }) {
 
   const [assignments, setAssignments] = useState(iniContext.assignments)
   const [isLoadingAssigns, setIsLoadingAssigns] = useState(false)
@@ -38,22 +38,9 @@ export function MonitorProvider({children, iniContext}: { children: React.ReactN
   const [companies, setCompanies] = useState(iniContext.companies)
   const [isLoadingComps, setIsLoadingComps] = useState(false)
   
-
-  
-  
-  useEffect(() => {
-    if(isLoadingAssigns){
-      getUserAssignments().then(resp => {
-        setAssignments(resp)
-        setIsLoadingAssigns(false)
-      })
-    }
-  }
-  ,[isLoadingAssigns])
-
   useEffect(() => {
     if(isLoadingComps){
-      getAllCompanies().then(resp => {
+      getCompaniesList().then(resp => {
         setCompanies(resp)
       })
     }
@@ -61,8 +48,8 @@ export function MonitorProvider({children, iniContext}: { children: React.ReactN
   ,[isLoadingComps])
 
   return (
-    <MonitorContext.Provider value={{companies, setCompanies, assignments, setAssignments, users: iniContext.users, setIsLoadingAssigns, setIsLoadingComps }}>
+    <ManagementContext.Provider value={{companies, setCompanies, assignments, setAssignments, users: iniContext.users, setIsLoadingAssigns, setIsLoadingComps }}>
       {children}
-    </MonitorContext.Provider>
+    </ManagementContext.Provider>
   );
 }

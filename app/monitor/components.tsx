@@ -40,8 +40,6 @@ export function Options ({ placeholder, dataSource, isRequired}: { placeholder: 
   );
 }
 
-// const options = [{id: 1, label: 'bool'}, {id: 2, label:'text'}, /*{id: 3, label:'options'}, */ /*{id:4, label: 'date'}*/ ]
-
 export const MonitorHeader = () => {
 
   const router = useRouter()
@@ -71,11 +69,18 @@ export const MonitorHeader = () => {
 
 export const MonitorSidebar = () =>{
   const router = useRouter()
+  const session = useSession()
+  
+  const isManager = session?.data?.user.roles.includes('3')
 
   return(
     <div className="flex flex-col p-2 gap-2">
       <Button className="" onPress={() => router.push('/monitor/procedures')}>Procedimentos</Button>
       <Button className="" onPress={() => router.push('/monitor/scheduler')}>Agenda</Button>
+      {
+        isManager &&
+        <Button className="" onPress={() => router.push('/monitor/management')}>Gerenciamento</Button>
+      }
     </div>
   )
 }

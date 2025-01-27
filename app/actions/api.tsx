@@ -2,11 +2,14 @@
 
 import connection from '@/app/lib/db';
 import prisma from '@/app/lib/localDb'
-import { ICompany, IProcedureItemResponse } from '../agent/providers';
+import { IProcedureItemResponse } from '../agent/providers';
 import { Ticket } from '@prisma/client';
 import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
 import { getOpenTickets } from './ticket';
+import { IUser } from './userAssign';
+import { getAllCompanies } from './company';
+import { Company } from '@prisma/client'
 
 export async function getCrcTicketTypes() {
   const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id FROM ticket_type '
@@ -41,7 +44,7 @@ export async function getCompaniesList() {
     ' INNER JOIN contract_product ON contract_product.id_contract = contract.id' +
     ' WHERE client.status >= 1 AND contract_product.id_product = 2 '
   )
-  return JSON.stringify(rows)
+  return rows as Company[]
   // $client = Client::leftJoin('contract', 'contract.id_client', '=', 'client.id')
   //   ->leftJoin('contract_product', 'contract_product.id_contract', '=', 'contract.id')
   //   ->select('client.*')
@@ -55,12 +58,12 @@ export async function getCompaniesList() {
 
 
 
-export async function getTicketContext(user_id: number | undefined): Promise<{ companies: ICompany[], tickets: Ticket[] }> {
+export async function getTicketContext(user_id: number | undefined): Promise<{ companies: Company[], tickets: Ticket[] }> {
   if (user_id) {
-    const companies: ICompany[] = JSON.parse(await getCompaniesList())
+    const companies: Company[] = await getAllCompanies()
 
     const userAssignments = await prisma.user_assign.findMany({ where: { user_id } })
-    const filteredComp = companies.filter((el: ICompany) => userAssignments.find(item => item.company_id == el.id))
+    const filteredComp = companies.filter((el: Company) => userAssignments.find(item => item.company_id == el.id))
     const tickets: Ticket[] = await getOpenTickets()
 
     return { companies: filteredComp, tickets }
@@ -183,7 +186,7 @@ export async function getUsers() {
     const filteredUsers = await prisma.user.findMany({
     });
 
-    return JSON.stringify(filteredUsers)
+    return filteredUsers as IUser[]
   }
-  return '[]'
+  return []
 }

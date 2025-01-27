@@ -6,8 +6,8 @@ import { useState, useEffect } from "react"
 import { assignUser, deleteUserAssign } from "@/app/actions/userAssign";
 import {toast} from 'react-hot-toast';
 import { upsertCompany } from "@/app/actions/company";
-import { useSchedulerContext } from "./provider";
-import { ICompany } from "@/app/agent/providers";
+import { useMonitorContext } from "../providers";
+import { Company } from '@prisma/client'
 
 const queueTypes= [
   {id: '1', name: 'Telefônico'},
@@ -17,7 +17,7 @@ const queueTypes= [
 
 export function Scheduler(){
 
-  const {users, companies, setIsLoadingAssigns} = useSchedulerContext()
+  const {users, companies, setIsLoadingAssigns} = useMonitorContext()
 
 
   const [company, setCompany] = useState(null)
@@ -80,7 +80,7 @@ export function Scheduler(){
 
           <Button  
             className='w-16' 
-            onPress={() => assignUser(company ? parseInt(company) : company, user ? parseInt(user) : user, parseInt(queueType))
+            onPress={() => assignUser({company_id: company ? parseInt(company) : company, user_id: user ? parseInt(user) : user, queue_type: parseInt(queueType)})
               .then(() => {
           toast.success('atribuído com sucesso')
           setIsLoadingAssigns(true)
@@ -112,7 +112,7 @@ const assignColumns= [
 
 export function AssignmentTable(){
 
-  const { assignments, setIsLoadingAssigns} = useSchedulerContext()
+  const { assignments, setIsLoadingAssigns} = useMonitorContext()
   const [ready, setReady] = useState<boolean>(false)
 
   const [selectedKeys, setSelectedKeys] = useState(new Set([]));
@@ -192,7 +192,7 @@ export function AssignmentTable(){
   );
 }
 
-export function CompanyConfig({companies}: {companies: Array<ICompany>}){
+export function CompanyConfig({companies}: {companies: Array<Company>}){
 
   const [company, setCompany] = useState(null)
   // const [limit1, setLimit1] = useState(null)

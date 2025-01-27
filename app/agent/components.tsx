@@ -4,13 +4,14 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Accordion, AccordionItem } from "@nextui-org/react"
 import { ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon, MinusIcon, PhoneIcon } from "@heroicons/react/24/solid"
 import { useRouter } from "next/navigation"
-import { ICompany, useTicketContext } from '@/app/agent/providers'
+import { useTicketContext } from '@/app/agent/providers'
 import { Ticket } from '@prisma/client';
 import { createTicket, updateTicket } from '../actions/ticket';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import useSWR from 'swr';
+import { Company } from '@prisma/client'
 
 const fetchPauseStatus = async (url: string) => {
   try {
@@ -290,7 +291,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
 
 export const Sidebar = () => {
 
-  interface ICompanyList extends ICompany {
+  interface ICompanyList extends Company {
     tickets: Array<Ticket>
   }
   
@@ -314,7 +315,7 @@ export const Sidebar = () => {
   const refreshList = () => {
     const list = companies.map<ICompanyList>(el => ({ ...el, tickets: [] })).sort((a, b) => (a.fantasy_name.toLowerCase() < b.fantasy_name.toLowerCase() ? -1 : 1))
 
-    const others: ICompanyList = { id: 0, name: 'Outros', fantasy_name: 'Outros', mass: false, tickets: [] }
+    const others: ICompanyList = { id: 0, fantasy_name: 'Outros', threshold_1: null, threshold_2:null, tickets: [] }
     list.push(others)
 
     tickets.forEach(el => {
@@ -367,7 +368,7 @@ export const Sidebar = () => {
       <Accordion isCompact showDivider selectionMode='multiple' itemClasses={{ base: 'bg-zinc-100 my-1' }} >
         {
           ticketList.map(el =>
-            <AccordionItem key={el.name} aria-label={'Accordion ' + el.name} startContent={<CompanyComponent label={el.fantasy_name} mass={el.mass} count={el.tickets.length} />}>
+            <AccordionItem key={el.fantasy_name} aria-label={'Accordion ' + el.fantasy_name} startContent={<CompanyComponent label={el.fantasy_name} mass={false} count={el.tickets.length} />}>
               {
                 el.id != 0 ? <Client name='+ Novo Atendimento' onClick={() => newTicket(el)} /> : null
               }

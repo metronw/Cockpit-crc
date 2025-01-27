@@ -409,7 +409,7 @@ interface IssueSelectorItem {
   label: string
 }
 
-export const IssueSelector = ({ id, fieldName, placeholder, dataSource, isRequired = true }: { id: string, fieldName: 'type' | 'status', placeholder: string, dataSource: () => Promise<[IssueSelectorItem]>, isRequired: boolean }) => {
+export const IssueSelector = ({ id, fieldName, placeholder, dataSource, isRequired = true }: { id: string, fieldName: 'type' | 'status', placeholder: string, dataSource: () => Promise<IssueSelectorItem[]>, isRequired: boolean }) => {
 
   const [items, setItems] = useState<IssueSelectorItem[]>([])
   const { ticketContext, setTicketContext, isMounted } = useTicketContext()

@@ -177,19 +177,17 @@ export const AgentHeader = ({ id }: { id?: number }) => {
       <div className="flex flex-row col-span-8 space-x-4 items-center ">
         <span className="font-bold">{`${session.data?.user.name || "Carregando suas informações!"}`}</span>
         {isLoggedIn ? (
-          <>
-        <ClockIcon className="h-10" />
-        <div>00:00</div>
-        <Button onPress={onOpen}><PlayPauseIcon className="h-10 text-primary" /></Button>
-        <div
-          className='h-10 w-10 rounded-full border border-black'
-          style={{
-            backgroundColor: statusColor,
-            marginLeft: '8px'
-          }}
-          title="Status do Agente"
-        />
-          </>
+            <div className="flex items-center space-x-2">
+            <ClockIcon className="h-10" />
+            <div>00:00</div>
+            <Button onPress={onOpen}>
+              <PlayPauseIcon className="h-10 text-primary" />
+            </Button>
+            <div
+              className={`h-10 w-10 rounded-full border border-black ${statusColor === 'red' ? 'bg-red-500' : statusColor === 'orange' ? 'bg-orange-500' : 'bg-green-500'}`}
+              title="Status do Agente"
+            />
+            </div>
         ) : (
             <Button onPress={handleLogin}>
             <PhoneIcon className="h-10 text-primary" />

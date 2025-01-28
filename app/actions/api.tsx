@@ -104,7 +104,7 @@ export async function getMetroId(email: string): Promise<number> {
   return 312
 }
 
-export async function createMetroTicket(ticketInfo: Ticket | undefined) {
+export async function createMetroTicket(ticketInfo: Ticket | undefined, isSolved: boolean) {
 
   try {
     if (ticketInfo) {
@@ -121,11 +121,11 @@ export async function createMetroTicket(ticketInfo: Ticket | undefined) {
         const subjectCRC = `Atendimento CRC, ERP #${erpProtocol}`
         const companyName = await prisma.company.findUnique({ where: { id: company_id } }).then(res => res?.fantasy_name)
         const origin = communication_type == 'chat' ? 0 : communication_type == `phone` ? 1 : 0
- 
+        const id_ticket_status = isSolved ? 4 : 6;
 
         const [result] = await connection.query(
           `INSERT INTO ticket (id_client, id_ticket_status, subject, id_product, origem, id_ticket_type, created_by, erp_protocol, phone, created_at, updated_at, user_owner, call_id, chat_protocol ) ` +
-          `VALUES (${company_id}, 4, '${subjectCRC}', 2, ${origin}, ${type}, ${session?.user.metro_id ?? 312}, '${erp_protocol}', '${caller_number_insert}', NOW(), NOW(), ${session?.user.metro_id ?? 312}, ${call_id}, '${chat_protocol}' )`
+          `VALUES (${company_id}, ${id_ticket_status}, '${subjectCRC}', 2, ${origin}, ${type}, ${session?.user.metro_id ?? 312}, '${erp_protocol}', '${caller_number_insert}', NOW(), NOW(), ${session?.user.metro_id ?? 312}, ${call_id}, '${chat_protocol}' )`
         )
 
         let idGestor = 0;

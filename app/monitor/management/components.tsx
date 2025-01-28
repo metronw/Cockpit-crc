@@ -6,6 +6,7 @@ import {useState, useEffect} from 'react'
 import { useManagementContext } from "./providers"
 import { ICompanyGroup, upsertCompanyGroup } from "@/app/actions/company"
 import { Company } from "@prisma/client"
+import { toast } from "react-toastify"
 
 export function CompanySelector({addCompany}:{addCompany:(comp:Company)=>void}){
   const {companies} = useMonitorContext()
@@ -59,7 +60,7 @@ export function CompanyGroupSelector(){
   }, [item])
 
   useEffect(()=>{
-    setItem(selectedCompanyGroup ? selectedCompanyGroup.id+'' : undefined)
+    setItem(selectedCompanyGroup ? selectedCompanyGroup.id+'' : '')
   }, [selectedCompanyGroup])
   
 
@@ -83,8 +84,6 @@ export function CompanyGroupSelector(){
       </Autocomplete>
     </div>
   )
-
-
 }
 
 const iniCG = {id: 0, name:'', company_list: []}
@@ -107,9 +106,15 @@ export function CompanyGroupCreator(){
   }
 
   const save = async () => {
-    await upsertCompanyGroup(newCG)
-    setIsLoadingCompanyGroups(true)
-    setNewCG(iniCG)
+    upsertCompanyGroup(newCG)
+    .then(() => {
+      setSelectedCompanyGroup(null)
+      setNewCG(iniCG)
+      setIsLoadingCompanyGroups(true)
+      toast.success('salvo com sucesso')
+    }).catch(() => {
+      toast.error('deu algo de errado')
+    })
   }
 
   useEffect(()=>{
@@ -129,7 +134,7 @@ export function CompanyGroupCreator(){
           <p>Editar grupo de empresa: {selectedCompanyGroup?.name ?? "Novo Grupo"}</p>
           <Input type="text" className="w-80 " label="Nome do grupo" value={newCG.name} onValueChange={(val) => setNewCG({...newCG, name: val})} />
           <CompanySelector addCompany={addCompany} />
-          <div className="flex flex-row flex-wrap w-120 h-32 border rounded">
+          <div className="flex flex-row flex-wrap w-144 h-40 border rounded p-1">
             {
               newCG.company_list.map(el => 
                 <Chip key={el.id} color="primary" onClose={() => setNewCG({...newCG, company_list: newCG.company_list.filter(it => it.id !== el.id)})}>{el.fantasy_name}</Chip>

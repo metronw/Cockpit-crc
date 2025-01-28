@@ -54,7 +54,7 @@ export function MonitorProvider({children, iniContext}: { children: React.ReactN
       })
     }
   }
-  ,[isLoadingAssigns])
+  ,[isLoadingcompanyGroups])
 
   useEffect(() => {
     if(isLoadingAssigns){

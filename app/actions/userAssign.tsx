@@ -41,7 +41,7 @@ export async function deleteUserAssign(ids: Array<number>){
   return await prisma.user_assign.deleteMany({where:{id:{in: ids}}}) 
 }
 
-export async function batchAssignUser(companies: number[], user_id: number | null, queue_type: number | null){
+export async function batchAssignUser({companies, user_id=0, queue_type=null}: {companies: number[], user_id: number | null, queue_type: number | null}){
   companies.forEach(el => {
     assignUser({company_id: el, user_id, queue_type})
   })

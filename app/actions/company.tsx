@@ -43,10 +43,10 @@ export async function upsertCompany({id, fantasy_name}:{id:number | null, fantas
   
 }
 
-export async function upsertCompanyGroup({name='', company_list=[], id=0}:{name:string, company_list:Company[],id: number}){
+export async function upsertCompanyGroup({name='', company_list=[], id=0}:{name:string, company_list:Company[],id: number}){ 
   const list = {name, company_list: JSON.stringify(company_list.map(el=> el.id))}
   try{
-    const resp = await prisma.company_group.upsert({where:{id},update:{name, company_list: JSON.stringify(company_list)}, create:list})
+    const resp = await prisma.company_group.upsert({where:{id},update:list, create:list})
     return resp
   }catch(err){
     return undefined

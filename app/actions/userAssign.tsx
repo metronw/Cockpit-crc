@@ -21,8 +21,6 @@ export interface IUser {
   email: string
 }
 
-
-
 export async function assignUser({company_id= null, user_id=null, queue_type= null}: {company_id: number | null, user_id: number | null, queue_type: number | null}){
   
   if(company_id && user_id && queue_type){

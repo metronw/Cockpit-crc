@@ -7,6 +7,7 @@ import { batchAssignUser, deleteUserAssign } from "@/app/actions/userAssign";
 import {toast} from 'react-hot-toast';
 import { ICompanyGroup } from "@/app/actions/company";
 import { useMonitorContext } from "../providers";
+import { Company } from "@prisma/client";
 
 const queueTypes= [
   {id: '1', name: 'Telefônico'},
@@ -104,7 +105,7 @@ export function Scheduler(){
 
         <Button  
           className='w-16' 
-          onPress={() => batchAssignUser({companies: isUsingGroup ? (companyGroup.id != 0 ? companyGroup.company_list.map(el=>el.id) : [] ) : [company ?? 0], user_id: user ? parseInt(user) : user, queue_type: parseInt(queueType)})
+          onPress={() => batchAssignUser({companies: isUsingGroup ? (companyGroup.id != 0 ? companyGroup.company_list.map(el=>el.id) : [] ) : [parseInt(company ?? '0')], user_id: user ? parseInt(user) : user, queue_type: parseInt(queueType)})
             .then(() => {
               toast.success('atribuído com sucesso')
               setIsLoadingAssigns(true)
@@ -214,5 +215,58 @@ export function AssignmentTable(){
         </Button>
     </>
   );
+}
+
+export function CompanyConfig({metroCompanies}:{metroCompanies: Company[]}) {
+
+  const { companies,  companyGroups} = useMonitorContext()
+  const [company, setCompany] = useState<Company | undefined>(undefined)
+
+  console.log(metroCompanies)
+
+  const onSelectionChange =  async (val:string) => {
+    if(val){
+      const comp = companies.find(el => el.id == parseInt(val))
+
+
+      setCompany(comp)
+    }
+    setCompany(undefined)
+  }
+
+  const onValueChange = (val:string, field: string) => {
+    console.log(val, company)
+    if(company){
+      setCompany({...company, [field]: parseInt(val)})
+    }
+  }
+
+  return(
+    <div className='flex flex-col'>
+      <p>Configurar Empresa</p>
+      <Autocomplete
+        variant={'bordered'}
+        aria-label={'Empresa'}
+        label={'Empresa'}
+        defaultSelectedKey=""
+        // @ts-expect-error: library has wrong type
+        onSelectionChange={onSelectionChange}
+        selectedKey={company?.id ?? 0}
+        className="flex h-11 max-w-xs my-1"
+        classNames={{
+          popoverContent: 'bg-zinc-500 ',
+          base: 'flex shrink '
+        }}
+      >
+        {metroCompanies.map((item:{id:number, fantasy_name: string}) => <AutocompleteItem key={item.id} textValue={item.fantasy_name}>{item.fantasy_name}</AutocompleteItem>)}
+      </Autocomplete>
+      <div className="flex flex-row gap-2">
+        <Input classNames={{base:'w-32'}} type="number" label='Limite' value={company?.threshold_1+''} onValueChange={(val) => onValueChange(val, 'threshold_1')}/>
+        <Input classNames={{base:'w-32'}} type="number" label='Transbordo' value={company?.threshold_2+''} onValueChange={(val) => onValueChange(val, 'threshold_2')} />
+        <Button >Salvar</Button>
+
+      </div>
+    </div>
+  )
 }
 

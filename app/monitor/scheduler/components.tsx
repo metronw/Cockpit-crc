@@ -219,7 +219,7 @@ export function AssignmentTable(){
 
 export function CompanyConfig({metroCompanies}:{metroCompanies: Company[]}) {
 
-  const { companies,  companyGroups} = useMonitorContext()
+  const { companies} = useMonitorContext()
   const [company, setCompany] = useState<Company | undefined>(undefined)
 
   console.log(metroCompanies)

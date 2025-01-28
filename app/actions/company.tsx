@@ -31,16 +31,17 @@ export async function getAllCompanyGroups(){
 }
 
 
-export async function upsertCompany({id, fantasy_name}:{id:number | null, fantasy_name:string | null}){
+export async function upsertCompany({id, fantasy_name, threshold_1, threshold_2}:{id:number | null, fantasy_name:string | null,  threshold_1: number | null, threshold_2: number | null}){
   
   const schema = z.object({fantasy_name:z.string(), id:z.number()})
   if(fantasy_name && id){
-    const params = {fantasy_name, id}
+    const params = {fantasy_name, id, threshold_1, threshold_2}
     schema.parse(params)
     const resp = await prisma.company.upsert({where:{id},update:params, create:params})
-    return resp
+    if(resp) return {status:200, message: 'saved successfully'}
+    return {status: 500, message: 'there was a problem'}
   }
-  
+  return {status: 400, message: 'there was a problem'}
 }
 
 export async function upsertCompanyGroup({name='', company_list=[], id=0}:{name:string, company_list:Company[],id: number}){ 

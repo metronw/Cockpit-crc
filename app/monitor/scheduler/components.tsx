@@ -5,7 +5,7 @@ import { Autocomplete, AutocompleteItem, Button, Table, TableHeader, TableColumn
 import { useState, useEffect } from "react"
 import { batchAssignUser, deleteUserAssign } from "@/app/actions/userAssign";
 import {toast} from 'react-hot-toast';
-import { ICompanyGroup } from "@/app/actions/company";
+import { ICompanyGroup, upsertCompany } from "@/app/actions/company";
 import { useMonitorContext } from "../providers";
 import { Company } from "@prisma/client";
 
@@ -219,26 +219,40 @@ export function AssignmentTable(){
 
 export function CompanyConfig({metroCompanies}:{metroCompanies: Company[]}) {
 
-  const { companies} = useMonitorContext()
+  const { companies, setIsLoadingComps} = useMonitorContext()
   const [company, setCompany] = useState<Company | undefined>(undefined)
 
-  console.log(metroCompanies)
-
-  const onSelectionChange =  async (val:string) => {
+  const onSelectionChange = (val:string) => {
     if(val){
       const comp = companies.find(el => el.id == parseInt(val))
-
-
-      setCompany(comp)
+      if(comp) {
+        setCompany(comp)
+      }else{
+        const metroComp = metroCompanies.find(el => el.id == parseInt(val))
+        setCompany({id: metroComp?.id ?? 0, fantasy_name: metroComp?.fantasy_name ?? '', threshold_1: 0, threshold_2: 0})
+      }      
+    }else{
+      setCompany(undefined)
     }
-    setCompany(undefined)
   }
 
   const onValueChange = (val:string, field: string) => {
-    console.log(val, company)
     if(company){
       setCompany({...company, [field]: parseInt(val)})
     }
+  }
+
+  const save = async () => {
+    upsertCompany({id: company?.id ?? null, fantasy_name: company?.fantasy_name ?? '', threshold_1: company?.threshold_1 ?? 0, threshold_2: company?.threshold_2 ?? 0}).then((resp) =>{
+      if(resp.status == 200){
+        toast.success('salvo com sucesso')
+      }else{
+        toast.error('algo deu errado')
+      }
+    }).catch(() => {
+      toast.error('algo deu errado')
+    })
+    setIsLoadingComps(true)
   }
 
   return(
@@ -251,7 +265,7 @@ export function CompanyConfig({metroCompanies}:{metroCompanies: Company[]}) {
         defaultSelectedKey=""
         // @ts-expect-error: library has wrong type
         onSelectionChange={onSelectionChange}
-        selectedKey={company?.id ?? 0}
+        selectedKey={company?.id+'' ?? '0'}
         className="flex h-11 max-w-xs my-1"
         classNames={{
           popoverContent: 'bg-zinc-500 ',
@@ -263,7 +277,7 @@ export function CompanyConfig({metroCompanies}:{metroCompanies: Company[]}) {
       <div className="flex flex-row gap-2">
         <Input classNames={{base:'w-32'}} type="number" label='Limite' value={company?.threshold_1+''} onValueChange={(val) => onValueChange(val, 'threshold_1')}/>
         <Input classNames={{base:'w-32'}} type="number" label='Transbordo' value={company?.threshold_2+''} onValueChange={(val) => onValueChange(val, 'threshold_2')} />
-        <Button >Salvar</Button>
+        <Button onPress={save} >Salvar</Button>
 
       </div>
     </div>

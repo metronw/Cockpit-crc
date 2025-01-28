@@ -77,6 +77,7 @@ export const MonitorSidebar = () =>{
     <div className="flex flex-col p-2 gap-2">
       <Button className="" onPress={() => router.push('/monitor/procedures')}>Procedimentos</Button>
       <Button className="" onPress={() => router.push('/monitor/scheduler')}>Agenda</Button>
+      <Button className="" onPress={() => router.push('/monitor/telephonics')}>Telefonia</Button>
       {
         isManager &&
         <Button className="" onPress={() => router.push('/monitor/management')}>Gerenciamento</Button>

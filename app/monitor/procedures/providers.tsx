@@ -1,21 +1,19 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
-import { ICompany } from '@/app/agent/providers';
-import { getCompaniesList } from '@/app/actions/api';
 import { IProcedureItem, getProcedure, IProcedure } from '@/app/actions/procedures';
-import { ITIcketType } from '@/app/providers';
+import { getAllCompanies } from '@/app/actions/company';
+import { Company } from '@prisma/client'
 
 interface IProcedureContext {
   procedures: IProcedure;
   setIsLoadingProceds: Dispatch<SetStateAction<boolean>>
-  companies: Array<ICompany>
+  companies: Array<Company>
   setIsLoadingComps: Dispatch<SetStateAction<boolean>>
   selectedCompany: number | null;
   setSelectedCompany: Dispatch<SetStateAction<number | null>>
   selectedTicketType: number | null;
   setSelectedTicketType: Dispatch<SetStateAction<number | null>>
-  ticketTypes: ITIcketType[];
   setEditProcedure: (id:number) => void;
   selectedProcedure: IProcedureItem | null
 }
@@ -31,8 +29,8 @@ export const useProcedureContext = () => {
 };
 
 export function ProcedureProvider(
-  {children, companies=[], procedures, ticketTypes=[]}: 
-    { children: React.ReactNode, companies: ICompany[], procedures:IProcedure, ticketTypes: Array<ITIcketType> }
+  {children, companies=[], procedures, }: 
+    { children: React.ReactNode, companies: Company[], procedures:IProcedure }
   ) {
 
   const [proceds, setProceds] = useState(procedures)
@@ -62,8 +60,8 @@ export function ProcedureProvider(
 
   useEffect(() => {
     if(isLoadingComps){
-      getCompaniesList().then(resp => {
-        setComps(JSON.parse(resp))
+      getAllCompanies().then(resp => {
+        setComps(resp)
       })
     }
   }
@@ -73,7 +71,7 @@ export function ProcedureProvider(
     <ProcedureContext.Provider value={{
       procedures: proceds, setIsLoadingProceds, companies: comps, setIsLoadingComps, 
       selectedCompany, selectedTicketType, setSelectedCompany, setSelectedTicketType, 
-      ticketTypes, setEditProcedure, selectedProcedure: selectedProc}}>
+      setEditProcedure, selectedProcedure: selectedProc}}>
       {children}
     </ProcedureContext.Provider>
   );

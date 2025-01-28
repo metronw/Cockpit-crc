@@ -2,22 +2,19 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { Ticket } from '@prisma/client';
+import { Company } from '@prisma/client'
 
 // const emptyData= {tickets: [], companies:[]}
 
-const testData = {
-  tickets:[],
-  companies: [
-    {id: 1, name: 'ACEM PRIME', mass: true , fantasy_name: ''},
-    {id: 2, name: 'INFORMAT', mass: false, fantasy_name: '' },
-    {id: 3, name: 'MUVNET', mass: false, fantasy_name: '' },
-    {id: 4, name: 'BRPHONIA', mass: false, fantasy_name: '' },
-  ]
+const TicketContext = createContext<ITicketContext|undefined>(undefined); 
+
+export const useTicketContext = () => {
+  const ctx = useContext(TicketContext)
+  if(!ctx){
+    throw new Error("useMyContext must be used within a MyContextProvider");
+  }
+  return ctx
 };
-
-const TicketContext = createContext<ITicketContext>({ticketContext: testData, setTicketContext: ()=> null, isMounted: false});
-export const useTicketContext = () => useContext(TicketContext);
-
 
 
 export interface IProcedureItemResponse {
@@ -26,21 +23,14 @@ export interface IProcedureItemResponse {
   response: string | boolean | number | null;
 }
 
-export interface ICompany {
-  id: number;
-  name: string;
-  mass: boolean;
-  fantasy_name: string;
-}
-
 export interface ILocalData {
   tickets: Array<Ticket>
-  companies: Array<ICompany>
+  companies: Array<Company>
 }
 
 export interface ITicketContext {
   ticketContext:ILocalData
-  setTicketContext: React.Dispatch<React.SetStateAction<{ tickets: Ticket[], companies: ICompany[] }>>;
+  setTicketContext: React.Dispatch<React.SetStateAction<{ tickets: Ticket[], companies: Company[] }>>;
   isMounted: boolean
 }
 
@@ -55,7 +45,7 @@ function mergeContext(local:ILocalData, server: ILocalData){
 }
 
 
-export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext: {companies: ICompany[], tickets: Ticket[]} }) {
+export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext: {companies: Company[], tickets: Ticket[]} }) {
 
   const [ticketContext, setTicketContext] = useState<ILocalData>(iniContext)
   const [isMounted, setIsMounted] = useState(false)

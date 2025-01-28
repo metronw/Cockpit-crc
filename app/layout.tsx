@@ -35,7 +35,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} vsc-initialized`}>
         <Providers>
-          <TicketTypeProvider iniContext={JSON.parse(iniContext)}>
+          <TicketTypeProvider iniContext={iniContext}>
             {children}
           </TicketTypeProvider>
           <Toaster />

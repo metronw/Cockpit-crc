@@ -1,28 +1,82 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect,  Dispatch, SetStateAction } from 'react';
+import { IUser, IUserAssign, getUserAssignments } from '../actions/userAssign';
+import { ICompanyGroup, getAllCompanies, getAllCompanyGroups } from '../actions/company';
+import { Company } from '@prisma/client'
+
+interface IMonitorContextData  {
+  companies: Company[];
+  users: IUser[];
+  assignments: IUserAssign[];
+  companyGroups: ICompanyGroup[];
+}
+
+interface IMonitorContext extends IMonitorContextData {
+  setCompanies:Dispatch<SetStateAction<Company[]>>;
+  setAssignments:Dispatch<SetStateAction<IUserAssign[]>>;
+  setIsLoadingAssigns: Dispatch<SetStateAction<boolean>>
+  setIsLoadingComps: Dispatch<SetStateAction<boolean>> 
+  setIsLoadingCompanyGroups: Dispatch<SetStateAction<boolean>> 
+}
+
+const MonitorContext = createContext<IMonitorContext|undefined>(undefined); 
+
+export const useMonitorContext = () => {
+  const ctx = useContext(MonitorContext)
+  if(!ctx){
+    throw new Error("useMyContext must be used within a MyContextProvider");
+  }
+  return ctx
+};
 
 
-const MonitorContext = createContext({});
-export const useMonitorContext = () => useContext(MonitorContext);
 
+export function MonitorProvider({children, iniContext}: { children: React.ReactNode, iniContext:IMonitorContextData }) {
 
-export function MonitorProvider({children, iniContext}: { children: React.ReactNode, iniContext:string }) {
+  const [assignments, setAssignments] = useState(iniContext.assignments)
+  const [isLoadingAssigns, setIsLoadingAssigns] = useState(false)
 
-  const [monitorContext, setMonitorContext] = useState(JSON.parse(iniContext))
-  const [isMounted] = useState(false)
+  const [companyGroups, setCompanyGroups] = useState(iniContext.companyGroups)
+  const [isLoadingcompanyGroups, setIsLoadingCompanyGroups] = useState(false)
+
+  const [companies, setCompanies] = useState(iniContext.companies)
+  const [isLoadingComps, setIsLoadingComps] = useState(false)
+  
+
+  
+  
+  useEffect(() => {
+    if(isLoadingcompanyGroups){
+      getAllCompanyGroups().then(resp => {
+        setCompanyGroups(resp)
+        setIsLoadingCompanyGroups(false)
+      })
+    }
+  }
+  ,[isLoadingcompanyGroups])
 
   useEffect(() => {
-    if(isMounted){
-      localStorage.setItem('monitor', JSON.stringify(monitorContext));
+    if(isLoadingAssigns){
+      getUserAssignments().then(resp => {
+        setAssignments(resp)
+        setIsLoadingAssigns(false)
+      })
     }
-    
-  }, [JSON.stringify(monitorContext)]);
-  
-  // const updateContext = (newContext: ILocalData) => setTicketContextState(newContext)
+  }
+  ,[isLoadingAssigns])
+
+  useEffect(() => {
+    if(isLoadingComps){
+      getAllCompanies().then(resp => {
+        setCompanies(resp)
+      })
+    }
+  }
+  ,[isLoadingComps])
 
   return (
-    <MonitorContext.Provider value={{monitorContext, setMonitorContext, isMounted}}>
+    <MonitorContext.Provider value={{companies, setCompanies, assignments, setAssignments, users: iniContext.users, companyGroups, setIsLoadingCompanyGroups, setIsLoadingAssigns, setIsLoadingComps }}>
       {children}
     </MonitorContext.Provider>
   );

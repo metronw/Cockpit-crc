@@ -106,6 +106,12 @@ model Company {
   User_assign  User_assign[]
 }
 
+model Company_group {
+  id          Int   @id @default(autoincrement())
+  name        String
+  company_list  String @db.LongText
+}
+
 model User_assign {
   id         Int     @id @default(autoincrement())
   company_id Int

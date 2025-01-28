@@ -475,26 +475,22 @@ export const FinishButton = () => {
   const { ticket } = parsePageInfo(path, ticketContext);
   const router = useRouter();
 
-  const finishAction = useCallback(async () => {
+  const finishAction = useCallback(async (isSolved: boolean) => {
     try {
       finishSchema.parse(ticket);
-      console.log("Ticket validado:", ticket);
 
-      const resp = await createMetroTicket(ticket);
-      console.log("Resposta da criação do ticket:", resp);
+      const resp = await createMetroTicket(ticket, isSolved);
 
       if (resp.status === 200 && ticket) {
         const newCtx = { ...ticketContext, tickets: ticketContext.tickets.filter(el => el.id !== ticket.id) };
         toast.success('Ticket criado no gestor com sucesso');
         setTicketContext(newCtx);
-        console.log("Contexto atualizado:", newCtx);
 
         // Wait for the context to update before navigating
         setTimeout(() => {
           const userId = ticket.user_id; // try to fix the glitch
           router.push('/agent/' + userId);
-          console.log("Redirecionando para /agent/" + userId);
-        }, 100);
+        }, 500);
       } else {
         toast.error(resp.message);
       }
@@ -505,8 +501,8 @@ export const FinishButton = () => {
 
   return (
     <div className="flex space-x-4">
-      <Button onPress={finishAction} type={"submit"} className="bg-green-500 hover:bg-green-600 text-white font-bold" title="Resolvido">Resolvido</Button>
-      <Button onPress={finishAction} type={"submit"} className="bg-red-500 hover:bg-red-600 text-white font-bold" title="Não resolvido">Não Resolvido</Button>
+      <Button onPress={() => finishAction(true)} type={"submit"} className="bg-green-500 hover:bg-green-600 text-white font-bold" title="Resolvido">Resolvido</Button>
+      <Button onPress={() => finishAction(false)} type={"submit"} className="bg-red-500 hover:bg-red-600 text-white font-bold" title="Não resolvido">Não Resolvido</Button>
     </div>
   );
 };

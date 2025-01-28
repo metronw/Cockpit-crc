@@ -67,6 +67,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   const [isMuted, setIsMuted] = useState(false);
   const [transferNumber, setTransferNumber] = useState('');
   const [showTransferInput, setShowTransferInput] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -348,6 +349,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   // Função para criar ticket
   const createTicket = async (trunk_name: string, callid: string, callernum: string) => {
     console.log(`createTicket chamada com trunk_name: ${trunk_name}, callid: ${callid}`); // Adicionado log
+    setIsLoading(true);
     try {
       const response = await fetch('/api/phone/ticket', {
         method: 'POST',
@@ -373,6 +375,8 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     } catch (error) {
       console.error('Erro ao criar ticket:', error);
       toast.error('Falha ao criar o ticket.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -598,6 +602,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
           <div className="webphone-status">
             <strong>Status:</strong> {callStatus}
           </div>
+          {isLoading && <div className="loading-overlay">Carregando...</div>}
           <audio ref={ringAudioRef} src="/audio/ringtone.wav" />
           <audio ref={answerAudioRef} src="/audio/answer.wav" />
           <audio ref={dialtoneAudioRef} src="/audio/dialtone.wav" />

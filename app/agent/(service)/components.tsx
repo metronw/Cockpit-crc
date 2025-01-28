@@ -84,7 +84,7 @@ export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = 
         :
         <Textarea
           type="text"
-          maxLength={99}
+          maxLength={800}
           label={label}
           color={'primary'}
           classNames={{
@@ -669,7 +669,7 @@ export const NavigateTicket = ({ direction, route }: { direction: string, route:
   )
 }
 
-export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: keyof ILocalData['tickets'][0]; label: string }) {
+export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: keyof ILocalData['tickets'][0]; label: string }) { 
   const { ticketContext, setTicketContext, isMounted } = useTicketContext();
   const [maskedValue, setMaskedValue] = useState('');
 

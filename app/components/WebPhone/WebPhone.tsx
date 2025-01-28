@@ -47,10 +47,6 @@ interface RTCSessionEndedEvent {
   originator: 'local' | 'remote';
 }
 
-// interface RTCSessionFailedEvent {
-//   // Add relevant properties if needed
-// }
-
 const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange }, ref) => {
   const [session, setSession] = useState<RTCSession | null>(null);
   const uaRef = useRef<JsSIP.UA | null>(null);
@@ -284,8 +280,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
       const stream = await getUserMediaStream();
       localStreamRef.current = stream;
 
-      console.log(stream)
-
       const existingTracks: (MediaStreamTrack | null)[] = pc.getSenders().map((sender: RTCRtpSender) => sender.track);
       if (existingTracks.length === 0) {
         stream.getTracks().forEach((track) => {
@@ -345,7 +339,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
 
   // Função para criar ticket
   const createTicket = async (trunk_name: string, callid: string, callernum: string) => {
-    console.log(`createTicket chamada com trunk_name: ${trunk_name}, callid: ${callid}`); // Adicionado log
     try {
       const response = await fetch('/api/phone/ticket', {
         method: 'POST',
@@ -360,7 +353,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         console.log("Resposta da criação do ticket:", data); // Adicionado log
         const ticket = data.ticket;
         const newTickets = [...ticketContext.tickets, ticket];
-        setTicketContext({ ...ticketContext, tickets: newTickets });
+        setTicketContext({ ...ticketContext, tickets: newTickets }); 
         toast.success('Ticket criado com sucesso.');
         router.push(`/agent/triage/${ticket.id}`);
       } else {

@@ -1,6 +1,6 @@
 'use client'
 
-import { Autocomplete, AutocompleteItem, Button, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, getKeyValue, Input, Switch } from "@nextui-org/react"
+import { Autocomplete, AutocompleteItem, Button, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, getKeyValue, Input, Switch, Accordion, AccordionItem } from "@nextui-org/react"
 
 import { useState, useEffect } from "react"
 import { batchAssignUser, deleteUserAssign } from "@/app/actions/userAssign";
@@ -246,41 +246,43 @@ export function CompanyConfig({metroCompanies}:{metroCompanies: Company[]}) {
     upsertCompany({id: company?.id ?? null, fantasy_name: company?.fantasy_name ?? '', threshold_1: company?.threshold_1 ?? 0, threshold_2: company?.threshold_2 ?? 0}).then((resp) =>{
       if(resp.status == 200){
         toast.success('salvo com sucesso')
+        setIsLoadingComps(true)
       }else{
         toast.error('algo deu errado')
       }
     }).catch(() => {
       toast.error('algo deu errado')
     })
-    setIsLoadingComps(true)
+    
   }
 
   return(
-    <div className='flex flex-col'>
-      <p>Configurar Empresa</p>
-      <Autocomplete
-        variant={'bordered'}
-        aria-label={'Empresa'}
-        label={'Empresa'}
-        defaultSelectedKey=""
-        // @ts-expect-error: library has wrong type
-        onSelectionChange={onSelectionChange}
-        selectedKey={company?.id+'' ?? '0'}
-        className="flex h-11 max-w-xs my-1"
-        classNames={{
-          popoverContent: 'bg-zinc-500 ',
-          base: 'flex shrink '
-        }}
-      >
-        {metroCompanies.map((item:{id:number, fantasy_name: string}) => <AutocompleteItem key={item.id} textValue={item.fantasy_name}>{item.fantasy_name}</AutocompleteItem>)}
-      </Autocomplete>
-      <div className="flex flex-row gap-2">
-        <Input classNames={{base:'w-32'}} type="number" label='Limite' value={company?.threshold_1+''} onValueChange={(val) => onValueChange(val, 'threshold_1')}/>
-        <Input classNames={{base:'w-32'}} type="number" label='Transbordo' value={company?.threshold_2+''} onValueChange={(val) => onValueChange(val, 'threshold_2')} />
-        <Button onPress={save} >Salvar</Button>
-
-      </div>
-    </div>
+    <Accordion>
+      <AccordionItem startContent={<p>Configurar Empresa</p>} classNames={{heading: "bg-gray-100 hover:bg-gray-200 rounded px-3"}}>
+        <Autocomplete
+          variant={'bordered'}
+          aria-label={'Empresa do Gestor'}
+          label={'Empresa do Gestor'}
+          placeholder="Empresa do gestor"
+          defaultSelectedKey=""
+          // @ts-expect-error: library has wrong type
+          onSelectionChange={onSelectionChange}
+          selectedKey={company?.id+''}
+          className="flex h-11 max-w-xs my-1"
+          classNames={{
+            popoverContent: 'bg-zinc-500 ',
+            base: 'flex shrink '
+          }}
+        >
+          {metroCompanies.map((item:{id:number, fantasy_name: string}) => <AutocompleteItem key={item.id} textValue={item.fantasy_name}>{item.fantasy_name}</AutocompleteItem>)}
+        </Autocomplete>
+        <div className="flex flex-row gap-2">
+          <Input classNames={{base:'w-32'}} type="number" label='Limite' value={company?.threshold_1+''} onValueChange={(val) => onValueChange(val, 'threshold_1')}/>
+          <Input classNames={{base:'w-32'}} type="number" label='Transbordo' value={company?.threshold_2+''} onValueChange={(val) => onValueChange(val, 'threshold_2')} />
+          <Button onPress={save} >Salvar</Button>
+        </div>  
+      </AccordionItem>
+    </Accordion>
   )
 }
 

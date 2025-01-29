@@ -2,7 +2,7 @@
 
 import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Textarea } from "@nextui-org/react";
 import Link from 'next/link'
-import { ILocalData, IProcedureItemResponse, useTicketContext } from "@/app/agent/providers"
+import { ITicketContextData, IProcedureItemResponse, useTicketContext } from "@/app/agent/providers"
 import { useState, useEffect, useCallback } from 'react'
 import { Input } from "@nextui-org/react"
 import { createMetroTicket } from '@/app/actions/api'
@@ -313,7 +313,7 @@ export const InfoModal = ({ title, body }: { title: string, body: JsonValue }) =
   )
 }
 
-function parsePageInfo(path: string, ticketCtx: ILocalData) {
+function parsePageInfo(path: string, ticketCtx: ITicketContextData) {
   const pathName = path.split('/')
   const ticketId = parseInt(pathName[pathName.length - 1])
 
@@ -665,7 +665,7 @@ export const NavigateTicket = ({ direction, route }: { direction: string, route:
   )
 }
 
-export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: keyof ILocalData['tickets'][0]; label: string }) { 
+export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: keyof ITicketContextData['tickets'][0]; label: string }) { 
   const { ticketContext, setTicketContext, isMounted } = useTicketContext();
   const [maskedValue, setMaskedValue] = useState('');
 

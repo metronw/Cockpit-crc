@@ -1,13 +1,14 @@
 'use client'
 
-import { Autocomplete, AutocompleteItem, Button, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, getKeyValue, Input, Switch, Accordion, AccordionItem } from "@nextui-org/react"
+import { Autocomplete, AutocompleteItem, Button, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Input, Switch, Accordion, AccordionItem, Pagination, } from "@nextui-org/react"
 
 import { useState, useEffect } from "react"
-import { batchAssignUser, deleteUserAssign } from "@/app/actions/userAssign";
+import { IUserAssign, batchAssignUser, deleteUserAssign } from "@/app/actions/userAssign";
 import {toast} from 'react-hot-toast';
 import { ICompanyGroup, upsertCompany } from "@/app/actions/company";
 import { useMonitorContext } from "../providers";
 import { Company } from "@prisma/client";
+import { useSchedulerContext } from "./providers";
 
 const queueTypes= [
   {id: '1', name: 'Telefônico'},
@@ -19,11 +20,10 @@ const emptyCompGroup: ICompanyGroup = {id:0, name:'', company_list:[]}
 export function Scheduler(){
 
   const {users, companies, setIsLoadingAssigns, companyGroups} = useMonitorContext()
+  const {selectedCompany, selectedUser, setSelectedCompany, setSelectedUser} = useSchedulerContext()
 
 
-  const [company, setCompany] = useState(null)
   const [companyGroup, setCompanyGroup] = useState(emptyCompGroup)
-  const [user, setUser] = useState(null)
   const [queueType, setQueueType] = useState('1')
   const [isUsingGroup, setIsUsingGroup] = useState(false)
 
@@ -36,9 +36,8 @@ export function Scheduler(){
           aria-label={'Empresa'}
           label={'Usuários'}
           defaultSelectedKey=""
-          // @ts-expect-error: library has wrong type
-          onSelectionChange={setUser}
-          selectedKey={user}
+          onSelectionChange={(val) => setSelectedUser(users.find(el => el.id == val))}
+          selectedKey={selectedUser?.id+''}
           className="flex h-11 max-w-xs my-1"
           classNames={{
             popoverContent: 'bg-zinc-500 ',
@@ -71,9 +70,8 @@ export function Scheduler(){
               aria-label={'Empresa'}
               label={'Empresa'}
               defaultSelectedKey=""
-              // @ts-expect-error: library has wrong type
-              onSelectionChange={setCompany}
-              selectedKey={company}
+              onSelectionChange={(val) =>  setSelectedCompany(companies.find(el => el.id == val))}
+              selectedKey={selectedCompany?.id+''}
               className="flex h-11 max-w-xs my-1"
               classNames={{
                 popoverContent: 'bg-zinc-500 ',
@@ -105,7 +103,7 @@ export function Scheduler(){
 
         <Button  
           className='w-16' 
-          onPress={() => batchAssignUser({companies: isUsingGroup ? (companyGroup.id != 0 ? companyGroup.company_list.map(el=>el.id) : [] ) : [parseInt(company ?? '0')], user_id: user ? parseInt(user) : user, queue_type: parseInt(queueType)})
+          onPress={() => batchAssignUser({companies: isUsingGroup ? (companyGroup.id != 0 ? companyGroup.company_list.map(el=>el.id) : [] ) : [selectedCompany?.id ?? 0], user_id: selectedUser?.id ?? null , queue_type: parseInt(queueType)})
             .then(() => {
               toast.success('atribuído com sucesso')
               setIsLoadingAssigns(true)
@@ -121,11 +119,11 @@ export function Scheduler(){
 
 const assignColumns= [
   {
-    key: 'companyName',
+    key: 'company.fantasy_name',
     label: 'Empresa'
   },
   {
-    key: 'userName',
+    key: 'user.name',
     label: 'Nome do Agente'
   },
   {
@@ -135,34 +133,42 @@ const assignColumns= [
 
 ]
 
-export function AssignmentTable(){
+function getNestedValue(obj: IUserAssign, path: string): string{
+  //@ts-expect-error : key is not indexing 
+  return path.split(".").reduce((acc, key) => acc?.[key], obj);
+}
 
+
+export function AssignmentTable(){
+  
   const { assignments, setIsLoadingAssigns} = useMonitorContext()
+  const {selectedCompany, selectedUser} = useSchedulerContext()
   const [ready, setReady] = useState<boolean>(false)
 
-  const [selectedKeys, setSelectedKeys] = useState(new Set([]));
-  const [userFilter, setUserFilter] = useState('');
-  const [companyFilter, setCompanyFilter] = useState('');
+  const [selectedKeys, setSelectedKeys] = useState<Set<number> | string>(new Set([]));
   const [queueTypeFilter, setQueueTypeFilter] = useState('');
 
-  const [formattedAssignments, setFormattedAssignments] = useState(assignments?.map(el => ({
-    ...el, 
-    userName: el.user.name,
-    queue_type: queueTypes.find(q => q.id === el.queue_type.toString())?.name || el.queue_type
-  })));
+  const [formattedAssignments, setFormattedAssignments] = useState<Array<IUserAssign[]>>([]);
+  const [filteredAssignments, setFilteredAssignments] = useState<IUserAssign[]>(assignments);
+
+  const [page, setPage] = useState(1)
+  const rowsPerPage = 6
   
   useEffect(()=> {
     const newAssign = assignments?.filter(el => 
-      el.user.name.toLowerCase().includes(userFilter.toLowerCase()) && 
-      el.companyName.toLowerCase().includes(companyFilter.toLowerCase()) &&
-      (queueTypeFilter === '' || queueTypes.find(q => q.id === el.queue_type.toString())?.name === queueTypeFilter)
+      (selectedUser?.id ? el.user_id == selectedUser?.id : true) && 
+      (selectedCompany?.id ? el.company_id == selectedCompany?.id : true ) &&
+      (queueTypeFilter === '' || queueTypes.find(q => q.id === el.queue_type?.toString())?.name === queueTypeFilter)
     );
-    setFormattedAssignments(newAssign?.map(el => ({
-      ...el, 
-      userName: el.user.name,
-      queue_type: queueTypes.find(q => q.id === el.queue_type.toString())?.name || el.queue_type 
-    })));
-  }, [userFilter, companyFilter, queueTypeFilter, assignments]);
+
+    const paginated = Array.from({ length: Math.ceil(newAssign.length / rowsPerPage) }, (_, i) =>
+      newAssign.slice(i * rowsPerPage, i * rowsPerPage + rowsPerPage)
+    );
+
+    setFilteredAssignments(newAssign)
+    setFormattedAssignments(paginated);
+
+  }, [selectedUser, selectedCompany, queueTypeFilter, assignments]);
  
   useEffect(()=> {
     setReady(true)
@@ -171,8 +177,6 @@ export function AssignmentTable(){
   return (
     <>
       <div className="flex flex-row gap-2 my-2">
-        <Input type='text' label='Empresa' placeholder='Filtrar empresa' value={companyFilter} onValueChange={setCompanyFilter}></Input>
-        <Input type='text' label='Usuário' placeholder='Filtrar usuário' value={userFilter} onValueChange={setUserFilter}></Input>
         <select title="any" value={queueTypeFilter} onChange={(e) => setQueueTypeFilter(e.target.value)} className="flex h-11 max-w-xs my-1">
           <option value=''>Todos os tipos de fila</option>
           {queueTypes.map((item) => (
@@ -188,15 +192,26 @@ export function AssignmentTable(){
             selectedKeys={selectedKeys}
             // @ts-expect-error: library has wrong type
             onSelectionChange={setSelectedKeys}
-            classNames={{wrapper:'overflow-auto h-96'}}
+            classNames={{wrapper:'h-96 overflow-auto'}}
+            bottomContent={
+              <Pagination
+              isCompact
+              showControls
+              showShadow
+              color="primary"
+              page={page}
+              total={Math.ceil(formattedAssignments.length)}
+              onChange={(page) => setPage(page)}
+            />
+            }
           >
             <TableHeader columns={assignColumns}>
               {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
             </TableHeader>
-            <TableBody items={formattedAssignments}>
+            <TableBody items={formattedAssignments[page-1] ?? []}>
               {(item) => (
                 <TableRow key={item.id}>
-                  {(columnKey) => <TableCell key={item.id +columnKey.toString()}>{getKeyValue(item, columnKey)}</TableCell>}
+                  {(columnKey) => <TableCell key={item.id +columnKey.toString()}>{getNestedValue(item, columnKey as string)}</TableCell>}
                 </TableRow>
               )}
             </TableBody>
@@ -205,12 +220,14 @@ export function AssignmentTable(){
       }
         <Button
           className='w-40' 
-          onPress={() => deleteUserAssign( Array.from(selectedKeys).map(el => parseInt(el)))
+          onPress={() => deleteUserAssign( selectedKeys == 'all' ? filteredAssignments.map(el => el.id) : [...selectedKeys].map(el => parseInt(el+'')))
             .then(() => {
               toast.success('deletado com sucesso')
               setIsLoadingAssigns(true)
           })
-            .catch(() => toast.error('deu algo de errado'))} >
+            .catch(() => {
+              toast.error('deu algo de errado')
+            })} >
             Deletar Atribuições
         </Button>
     </>
@@ -219,7 +236,7 @@ export function AssignmentTable(){
 
 export function CompanyConfig({metroCompanies}:{metroCompanies: Company[]}) {
 
-  const { companies, setIsLoadingComps} = useMonitorContext()
+  const { companies, setIsLoadingComps} = useMonitorContext()  
   const [company, setCompany] = useState<Company | undefined>(undefined)
 
   const onSelectionChange = (val:string) => {
@@ -257,8 +274,8 @@ export function CompanyConfig({metroCompanies}:{metroCompanies: Company[]}) {
   }
 
   return(
-    <Accordion>
-      <AccordionItem startContent={<p>Configurar Empresa</p>} classNames={{heading: "bg-gray-100 hover:bg-gray-200 rounded px-3"}}>
+    <Accordion isCompact showDivider selectionMode='multiple'>
+      <AccordionItem key={'CompanySettings'} title={'CompanySettings'} startContent={<p>Configurar Empresa</p>} classNames={{heading: "bg-gray-100 hover:bg-gray-200 rounded px-3"}}>
         <Autocomplete
           variant={'bordered'}
           aria-label={'Empresa do Gestor'}

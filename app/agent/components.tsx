@@ -255,13 +255,6 @@ export const AgentHeader = ({ id }: { id?: number }) => {
                         >
                           Banheiro
                         </Button>
-                        <Button
-                          color="primary"
-                          className='text-lg'
-                          onPress={() => handlePause('Atendimento Chat')}
-                        >
-                          Atendimento Chat
-                        </Button>
                       </>
                     )}
                     <Button

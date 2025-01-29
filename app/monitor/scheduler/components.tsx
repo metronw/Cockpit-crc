@@ -135,7 +135,14 @@ const assignColumns= [
 
 function getNestedValue(obj: IUserAssign, path: string): string{
   //@ts-expect-error : key is not indexing 
-  return path.split(".").reduce((acc, key) => acc?.[key], obj);
+  const value = path.split(".").reduce((acc, key) => acc?.[key], obj);
+  
+  if(path == 'queue_type'){
+    //@ts-expect-error : key is not indexing 
+    return queueTypes[(value ?? 1)-1].name
+  }
+  //@ts-expect-error : key is not indexing 
+  return value
 }
 
 

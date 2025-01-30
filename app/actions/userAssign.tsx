@@ -2,7 +2,6 @@
 
 import prisma from '@/app/lib/localDb'
 import {z} from 'zod'
-import { getAllCompanies } from './company';
 import { Company } from '@prisma/client'
 
 export interface IUserAssign {
@@ -10,8 +9,8 @@ export interface IUserAssign {
   company_id:number;
   user_id: number;
   user:IUser;
-  companyName:string;
-  queue_type:number;
+  company:Company;
+  queue_type:number | null;
 }
 
 export interface IUser {
@@ -46,17 +45,8 @@ export async function batchAssignUser({companies, user_id=0, queue_type=null}: {
 }
 
 export async function getUserAssignments() : Promise<Array<IUserAssign>> {
-  const companies = await getAllCompanies()
-  const assigns =  await prisma.user_assign.findMany({include: {user: true }})
-
-  return assigns.map((el) => {
-    const comp = companies.find((item:Company) => el.company_id == item.id)
-    return {
-      ...el, 
-      companyName: comp?.fantasy_name ?? ``,
-      queue_type: el.queue_type ?? 1 // Garantir que queue_type não seja null
-    }
-  })
+  const assigns: IUserAssign[] =  await prisma.user_assign.findMany({include: {user: true, company: true }})
+  return assigns
 }
 
 

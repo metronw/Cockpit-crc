@@ -277,7 +277,7 @@ export function AgentStatus() {
   const { data, error } = useSWR<Agent[]>('/api/phone/agentAvailable', fetcher);
 
   // Função utilitária para extrair o valor de cada coluna:
-  const getAgentValue = useCallback((agent: Agent, key: string) => {
+  const getAgentValue = useCallback((agent: Agent, key: string): string | number => {
     switch (key) {
       case 'agentName':
         return agent.agentName || '';
@@ -442,7 +442,7 @@ export function AgentStatus() {
                     case 'queues':
                       // Exibir todas as filas em que o agente está, separadas por vírgula
                       const queueNames = Array.from(
-                        new Set(agent.queues?.map((q: any) => q.company_fantasy_name))
+                        new Set(agent.queues?.map((q: { company_fantasy_name: string }) => q.company_fantasy_name))
                       ).sort().join(', ') || '—';
                       return <TableCell className="text-sm">{queueNames}</TableCell>;
                     case 'pausedSince':
@@ -465,8 +465,8 @@ export function AgentStatus() {
                       );
                     default:
                       // 'agentName' ou outro campo genérico
-                      const value = (agent as any)[columnKey] || '—';
-                      return <TableCell>{value}</TableCell>;
+                      const value = (agent as unknown as Record<string, unknown>)[columnKey] || '—';
+                      return <TableCell>{String(value)}</TableCell>;
                   }
                 }}
               </TableRow>

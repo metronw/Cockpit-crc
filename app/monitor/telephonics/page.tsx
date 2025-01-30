@@ -1,5 +1,5 @@
 import { RealTimeProvider } from "./provider";
-import { RealTimeTables, AgentStatus } from "./components";
+import { RealTimeTables } from "./components";
 
 export default function RealTimePage() {
   return (

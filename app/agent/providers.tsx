@@ -1,10 +1,11 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Ticket } from '@prisma/client';
 import { Company } from '@prisma/client'
 import { getTicketContext } from '../actions/api';
 import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 
 // const emptyData= {tickets: [], companies:[]}
 
@@ -52,23 +53,24 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
   const [ticketContext, setTicketContext] = useState<ITicketContextData>(iniContext)
   const [isMounted, setIsMounted] = useState(false)
   const session = useSession()
+  const path = usePathname()
+
+  const merge = useCallback((context:ITicketContextData) => {
+    const savedTickets = localStorage.getItem('tickets');
+    if (savedTickets) {
+      const local = JSON.parse(savedTickets)
+      const ctx = (mergeContext(local, context))
+      setTicketContext(ctx);
+    }
+  }, [JSON.stringify(ticketContext)])
+
+  const revalidate = useCallback( async () => {
+    const ctx: ITicketContextData = await getTicketContext(session?.data?.user.id)
+    merge(ctx)
+  }, [session, merge] )
 
   useEffect(() => {
-    setIsMounted(true)
-
-    const revalidate = async () => {
-      const ctx: ITicketContextData = await getTicketContext(session?.data?.user.id)
-      merge(ctx)
-    }
-    
-    const merge = (context:ITicketContextData) => {
-      const savedTickets = localStorage.getItem('tickets');
-      if (savedTickets) {
-        const local = JSON.parse(savedTickets)
-        const ctx = (mergeContext(local, context))
-        setTicketContext(ctx);
-      }
-    }
+    setIsMounted(true)   
     
     merge(ticketContext)    
     
@@ -78,6 +80,11 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
     };
     
   }, [session]);
+
+  useEffect(() => {
+    if(isMounted)
+    revalidate()
+  }, [path])
 
   useEffect(() => {
     if(isMounted){

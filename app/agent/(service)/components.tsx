@@ -17,9 +17,11 @@ import { ChevronRightIcon, ChevronLeftIcon, ClipboardIcon } from "@heroicons/rea
 import { z } from 'zod'
 import { Ticket } from "@prisma/client";
 
-export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = false, validate = () => '' }:
+
+
+export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = false }:
   {
-    id: string, label: string, isRequired?: boolean, isLarge?: boolean, validate?: (value: string) => string
+    id: string, label: string, isRequired?: boolean, isLarge?: boolean,
     fieldName: 'client_name' | 'caller_number' | 'identity_document' | 'address' | 'erpProtocol' | `caller_name` | `communication_id` | 'subject'
   }) => {
 
@@ -79,7 +81,6 @@ export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = 
             value={value}
             onValueChange={setValue}
             isRequired={isRequired}
-            validate={validate}
           />
         :
         <Textarea
@@ -94,7 +95,6 @@ export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = 
           value={value}
           onValueChange={setValue}
           isRequired={isRequired}
-          validate={validate}
         />
       }
     </div>
@@ -613,7 +613,10 @@ const triageSchema = z.object({
   client_name: z.string().min(3, 'Insira um nome de cliente valido'),
   // communication_id: z.string().min(3, 'Insira um protocolo de chat valido'),
   caller_number: z.string().min(3, 'Insira um protocolo de chat valido'),
+  caller_name: z.string().min(3, 'Insira um protocolo de chat valido'),
   identity_document: z.string().min(3, 'Insira um cpf/cnpj valido'),
+  subject: z.string().min(3, 'Insira um depoimento valido'),
+
 })
 
 const validateTriageForm = (ticket: Ticket) => {

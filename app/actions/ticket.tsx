@@ -5,28 +5,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
 import { Ticket } from '@prisma/client';
 
-// export interface ITicket {
-//   id: number;
-//   client_name: string;
-//   cpf: string;
-//   address: string;
-//   type:string;
-//   erpProtocol: string;
-//   complement:string;
-//   status: string;
-//   user_id: number;
-//   company_id: number;
-//   time: string;
-//   createdAt:Date;
-//   procedures: string;
-//   caller_number: string;
-//   communication_id: string;
-//   communication_type: string;
-//   trunk_name: string;
-//   caller_name: string;
-//   isRecall: boolean;
-//   identity_document?: string;
-// }
 
 export async function createTicket({company_id}:{company_id:number}){
   const session = await getServerSession(authOptions);

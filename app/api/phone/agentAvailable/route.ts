@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import AsteriskAmi, { AmiResponse, QueueStatusAction } from 'asterisk-ami';
 import prisma from '@/app/lib/localDb';
 
+export const dynamic = "force-dynamic";
 /**
  * Mapeia o status retornado pela AMI para saber se o agente está em ligação (InUse, Ringing, etc.).
  * Conforme a documentação do Asterisk:

@@ -13,8 +13,6 @@ async function nextPage() {
 export default function Triage({ params: { id } }: { params: { id: string } }) {
 
   const session = use(getServerSession(authOptions));
-  // const ticket = use(getTicket(parseInt(id)))
-
   return (
     <form action={nextPage} className="flex flex-col flex-stretch px-4 pt-3 mt-4 h-full grow justify-around">
 

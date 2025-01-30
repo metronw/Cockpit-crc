@@ -7,7 +7,6 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FiPhoneCall, FiPhoneOff, FiMicOff, FiMic, FiPhoneForwarded } from 'react-icons/fi';
 import { useRouter } from "next/navigation";
-import { useTicketContext } from '@/app/agent/providers';
 import './WebPhone.css';
 
 JsSIP.debug.enable('');
@@ -76,7 +75,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   const { data: prefixesData, error: prefixesError } = useSWR('/api/phone/prefix', fetcher);
 
   const router = useRouter();
-  const { ticketContext, setTicketContext } = useTicketContext();
 
   useEffect(() => {
     if (!userData) return;
@@ -355,8 +353,6 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         const data = await response.json();
         console.log("Resposta da criação do ticket:", data); // Adicionado log
         const ticket = data.ticket;
-        const newTickets = [...ticketContext.tickets, ticket];
-        setTicketContext({ ...ticketContext, tickets: newTickets }); 
         toast.success('Ticket criado com sucesso.');
         router.push(`/agent/triage/${ticket.id}`);
       } else {

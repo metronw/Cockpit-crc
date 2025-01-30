@@ -51,6 +51,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
 
   const isLoggedIn = !(pauseData?.error === 'Interface não encontrada em nenhuma fila');
 
+  const [currentPauseReason, setCurrentPauseReason] = useState<string | null>(null);
 
   let statusColor = 'red';
   if (pauseError) {
@@ -75,7 +76,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
         body: JSON.stringify({
           interfaceName: `PJSIP/${userData.sip_extension}`,
           paused: !pauseData.paused,
-          reason: reason,
+          reason: pauseData.paused ? currentPauseReason : reason,
         }),
       });
 
@@ -86,6 +87,9 @@ export const AgentHeader = ({ id }: { id?: number }) => {
         setTimeout(() => {
           mutate('/api/phone/pauseUser');
         }, 2000);
+        if (!pauseData.paused) {
+          setCurrentPauseReason(reason);
+        }
       } else {
         toast.error(data.error || 'Erro ao atualizar o estado da interface.');
       }
@@ -188,6 +192,9 @@ export const AgentHeader = ({ id }: { id?: number }) => {
               className={`h-10 w-10 rounded-full border border-black ${statusColor === 'red' ? 'bg-red-500' : statusColor === 'orange' ? 'bg-orange-500' : 'bg-green-500'}`}
               title="Status do Agente"
             />
+            {pauseData?.paused && currentPauseReason && (
+              <div className="text-sm text-gray-500">{currentPauseReason}</div>
+            )}
             </div>
         ) : (
             <Button onPress={handleLogin}>

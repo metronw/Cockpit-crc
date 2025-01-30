@@ -85,7 +85,7 @@ export async function POST(request: Request) {
         };
 
         await amiClient.send(action);
-        console.log("Comando QueuePause enviado com sucesso");
+        //console.log("Comando QueuePause enviado com sucesso");
       } catch (err: unknown) {
         if (err instanceof Error) {
           console.error("Erro ao enviar comando ao AMI:", err.message);
@@ -261,7 +261,10 @@ export async function GET() {
           evt.paused === '1'
       );
 
-      return NextResponse.json({ paused: isPaused }, { status: 200 });
+      return NextResponse.json({
+        interfaceName,
+        paused: isPaused
+      }, { status: 200 });
     } catch (error: unknown) {
       amiClient.disconnect();
       if (error instanceof Error) {

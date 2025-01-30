@@ -17,6 +17,72 @@ export interface Channel {
   calleridnum: string;
 }
 
+export interface Agent {
+  /**
+   * ID do usuário (pode ser string, number ou null).
+   */
+  userId: string | number | null;
+  
+  /**
+   * Nome do agente.
+   */
+  agentName: string;
+  
+  /**
+   * Interface SIP associada ao agente (ex.: 'PJSIP/4044').
+   */
+  interface: string;
+  
+  /**
+   * Lista de filas (queues) às quais o agente está associado.
+   * Cada fila contém:
+   *  - name: nome da fila;
+   *  - company_id: identificador da empresa;
+   *  - company_fantasy_name: nome fantasia da empresa.
+   */
+  queues: Array<{
+    name: string;
+    company_id: number;
+    company_fantasy_name: string;
+  }>;
+  
+  /**
+   * Indica se o agente está pausado (ou seja, temporariamente indisponível).
+   */
+  paused: boolean;
+  
+  /**
+   * Indica se o agente está em uma chamada no momento.
+   */
+  inCall: boolean;
+  
+  /**
+   * Indica se o agente está disponível para atender chamadas (ou seja, não está em pausa e não está em chamada).
+   */
+  available: boolean;
+  
+  /**
+   * Data/hora (ISODate) desde quando o agente está pausado. Caso não esteja pausado, será null.
+   */
+  pausedSince: string | null;
+  
+  /**
+   * Data/hora (ISODate) desde quando o agente está logado no sistema.
+   */
+  loggedInSince: string;
+  
+  /**
+   * Indica se a extensão (telefone SIP) do agente está registrada/online.
+   */
+  extensionOnline: boolean;
+  
+  /**
+   * Latência (em ms) da extensão do agente. Caso a extensão esteja offline, pode ser null.
+   */
+  extensionLatency: number | null;
+}
+
+
 export interface Call {
   time: string;
   callid: string;

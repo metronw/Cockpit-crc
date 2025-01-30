@@ -495,7 +495,7 @@ export const FinishButton = () => {
         toast.error(resp.message);
       }
     } catch (err) {
-      console.log("Erro ao finalizar o ticket:", err);
+      console.error("Erro ao finalizar o ticket:", err);
     }
   }, [JSON.stringify(ticket)]);
 
@@ -623,7 +623,7 @@ const validateTriageForm = (ticket: Ticket) => {
     return true
   } catch (err) {
     if (err instanceof z.ZodError) {
-      console.log(err.errors.map(el => ({ message: el.message, item: el.path[0] })))
+      console.error(err.errors.map(el => ({ message: el.message, item: el.path[0] })))
     }
   }
   return false

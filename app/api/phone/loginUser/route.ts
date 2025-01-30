@@ -239,7 +239,10 @@ export async function GET() {
         });
       }).flat();
 
-      return NextResponse.json({ queues: responseData }, { status: 200 });
+      return NextResponse.json({
+        interfaceName,
+        queues: responseData
+      }, { status: 200 });
     } catch (error: unknown) {
       amiClient.disconnect();
       if (error instanceof Error) {

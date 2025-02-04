@@ -733,7 +733,7 @@ const Timer = () =>{
   const {ticketContext, setTicketContext, isMounted} = useTicketContext()
   const { ticket } = parsePageInfo(path, ticketContext)
   const currentStatus:Ticket_status = path.split('/')[2] as Ticket_status  ?? 'triage' as Ticket_status
-  const [time, setTime] = useState<number>(ticket?.ticket_time.find(el => el.ticket_status == currentStatus)?.time ?? 0)
+  const [time, setTime] = useState<number>(0)
   const [tick, setTick] = useState(false)
   
   const updateTimer = useCallback(() => {

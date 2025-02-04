@@ -647,9 +647,8 @@ export const NavigateTicket = ({ direction, route }: { direction: string, route:
       }
   
       const nextStatus:Ticket_status = route.split('/')[2].includes(status as Ticket_status) ? route.split('/')[2] as Ticket_status : 'triage' as Ticket_status
-      updateTicket({ ticket: {...ticket, status: nextStatus} }).then(()=>{
-        router.push(route)
-      })
+      updateTicket({ ticket: {...ticket, status: nextStatus} })
+      router.push(route)
     }
   }
 
@@ -748,6 +747,7 @@ const Timer = () =>{
 
   useEffect(()=>{
     if(isMounted){
+      
       setTime(ticket?.ticket_time?.find(el => el.ticket_status == currentStatus)?.time ?? 0)
     }
   }, [isMounted, path])

@@ -2,11 +2,11 @@
 
 import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Textarea } from "@nextui-org/react";
 import Link from 'next/link'
-import { ITicketContextData, IProcedureItemResponse, useTicketContext } from "@/app/agent/providers"
+import { ITicketContextData, IProcedureItemResponse, useTicketContext, parsePageInfo } from "@/app/agent/providers"
 import { useState, useEffect, useCallback } from 'react'
 import { Input } from "@nextui-org/react"
 import { createMetroTicket } from '@/app/actions/api'
-import { TicketWithTime, findOrCreateTicketTime, updateTicket } from "@/app/actions/ticket";
+import {  findOrCreateTicketTime, updateTicket } from "@/app/actions/ticket";
 import { usePathname, useRouter } from 'next/navigation'
 import { IProcedureItem, getProcedure } from "@/app/actions/procedures";
 import { useSession } from "next-auth/react";
@@ -313,15 +313,7 @@ export const InfoModal = ({ title, body }: { title: string, body: JsonValue }) =
   )
 }
 
-function parsePageInfo(path: string, ticketCtx: ITicketContextData) {
-  const pathName = path.split('/')
-  const ticketId = parseInt(pathName[pathName.length - 1])
 
-  const ticket: TicketWithTime | undefined = ticketCtx.tickets.find(el => el.id == ticketId)
-  const company = ticketCtx.companies.find(el => el.id == ticket?.company_id)
-
-  return ({ company, ticket })
-}
 
 export const StagePanel = () => {
   const pathName = usePathname().split('/')
@@ -647,7 +639,7 @@ export const NavigateTicket = ({ direction, route }: { direction: string, route:
       }
   
       const nextStatus:Ticket_status = route.split('/')[2].includes(status as Ticket_status) ? route.split('/')[2] as Ticket_status : 'triage' as Ticket_status
-      updateTicket({ ticket: {...ticket, status: nextStatus} })
+      updateTicket({...ticket, status: nextStatus})
       router.push(route)
     }
   }
@@ -735,27 +727,30 @@ const Timer = () =>{
   const [time, setTime] = useState<number>(0)
   const [tick, setTick] = useState(false)
   
-  const updateTimer = useCallback(() => {
-    setTime(time+1)
-    setTicketContext({...ticketContext, 
-      tickets: ticketContext.tickets.map(el => 
-        el.id != ticket?.id ? el : {...el, ticket_time: el.ticket_time?.map(item => 
-          item.ticket_status != currentStatus ? item : {...item, time})
-      })
-    })
-  },[time, ticketContext])
-
-  useEffect(()=>{
-    if(isMounted){
+  const updateTimerContext = useCallback(() => { 
+    if(ticket){
+      const newTicket = {...ticket, ticket_time: ticket.ticket_time ? ticket.ticket_time : []}
+      let isFound = false
+      for(let i=0; i<=ticket.ticket_time?.length; i++){
+        if(!isFound && i == ticket.ticket_time.length ){
+          newTicket.ticket_time.push({ticket_id: ticket.id, ticket_status: currentStatus, time})
+          break
+        }
+        if(newTicket.ticket_time[i]?.ticket_status == currentStatus){
+          isFound = true
+          newTicket.ticket_time[i] = {...newTicket.ticket_time[i], time}
+        }
+      }
       
-      setTime(ticket?.ticket_time?.find(el => el.ticket_status == currentStatus)?.time ?? 0)
-    }
-  }, [isMounted, path])
-
+      setTicketContext({...ticketContext, tickets: ticketContext.tickets.map(el => 
+          el.id != ticket?.id ? el : newTicket)
+      })
+    } 
+  },[time, ticketContext, ticket, currentStatus])
 
   useEffect(() => {
     const timer = ticket?.ticket_time?.find(el => el.ticket_status == currentStatus)
-
+    
     if(timer){
       setTime(timer.time)
     }else{
@@ -763,16 +758,18 @@ const Timer = () =>{
         setTime(el.time)
       })
     }
+    updateTimerContext()
     const intervalId = setInterval(() => setTick(true), 1000)
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [currentStatus])
+  }, [isMounted, path])
 
   useEffect(()=>{
     if(tick){
-      updateTimer()      
+      setTime(time+1)
+      updateTimerContext()      
       setTick(false)
     }
   }, [tick])

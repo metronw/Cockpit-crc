@@ -5,8 +5,7 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDi
 import { ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon, MinusIcon, PhoneIcon } from "@heroicons/react/24/solid"
 import { useRouter } from "next/navigation"
 import { useTicketContext } from '@/app/agent/providers'
-import { Ticket } from '@prisma/client';
-import { createTicket, updateTicket } from '../actions/ticket';
+import { TicketWithTime, createTicket, updateTicket } from '../actions/ticket';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
@@ -290,7 +289,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
 export const Sidebar = () => {
 
   interface ICompanyList extends Company {
-    tickets: Array<Ticket>
+    tickets: Array<TicketWithTime>
   }
   
   const router = useRouter();
@@ -299,7 +298,7 @@ export const Sidebar = () => {
   const [ticketList, setTicketList] = useState<Array<ICompanyList>>([])
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [modalTick, setModalTick] = useState<Ticket | null>(null)
+  const [modalTick, setModalTick] = useState<TicketWithTime | null>(null)
 
   const len = tickets.length
   useEffect(() => {
@@ -344,10 +343,10 @@ export const Sidebar = () => {
 
   }
 
-  const closeTicket = async (ticket: Ticket) => {
-    const newTicket: Ticket = { ...ticket, status: `closed` }
+  const closeTicket = async (ticket: TicketWithTime) => {
+    const newTicket: TicketWithTime = { ...ticket, status: `closed` }
     try {
-      await updateTicket({ ticket: newTicket })
+      await updateTicket( newTicket )
       toast.success(`ticket id:${ticket.id} foi fechado`)
     } catch (err) {
       toast.error(`algo deu errado \n ${err}`)

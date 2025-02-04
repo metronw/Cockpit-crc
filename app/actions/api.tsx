@@ -3,10 +3,10 @@
 import connection from '@/app/lib/db';
 import prisma from '@/app/lib/localDb'
 import { IProcedureItemResponse } from '../agent/providers';
-import { Ticket } from '@prisma/client';
+import { Ticket_status } from '@prisma/client';
 import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
-import { TicketWithTime, getOpenTickets } from './ticket';
+import { TicketWithTime, getOpenTickets, updateTicket } from './ticket';
 import { IUser } from './userAssign';
 import { getAllCompanies } from './company';
 import { Company } from '@prisma/client'
@@ -104,7 +104,7 @@ export async function getMetroId(email: string): Promise<number> {
   return 312
 }
 
-export async function createMetroTicket(ticketInfo: Ticket | undefined, isSolved: boolean) {
+export async function createMetroTicket(ticketInfo: TicketWithTime | undefined, isSolved: boolean) {
 
   try {
     if (ticketInfo) {
@@ -158,14 +158,7 @@ export async function createMetroTicket(ticketInfo: Ticket | undefined, isSolved
           idGestor = res.insertId;
         }
 
-        await prisma.ticket.update({
-          where: {
-            id: ticketInfo.id,
-          },
-          data: { status: 'closed', idGestor },
-        })
-
-        // TODO - colocar o id do ticket gerado no Gestor na tabela de tickets
+        await updateTicket({...ticketInfo, status: 'closed' as Ticket_status, idGestor})
 
         return { status: 200, message: 'ticket criado com sucesso' }
 

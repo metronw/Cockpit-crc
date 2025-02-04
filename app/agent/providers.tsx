@@ -4,7 +4,6 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { Company } from '@prisma/client'
 import { getTicketContext } from '../actions/api';
 import { useSession } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
 import { TicketWithTime } from '../actions/ticket';
 
 // const emptyData= {tickets: [], companies:[]}
@@ -37,6 +36,16 @@ export interface ITicketContext {
   isMounted: boolean
 }
 
+export function parsePageInfo(path: string, ticketCtx: ITicketContextData) {
+  const pathName = path.split('/')
+  const ticketId = parseInt(pathName[pathName.length - 1])
+
+  const ticket: TicketWithTime | undefined = ticketCtx.tickets.find(el => el.id == ticketId)
+  const company = ticketCtx.companies.find(el => el.id == ticket?.company_id)
+
+  return ({ company, ticket })
+}
+
 function mergeContext(local:ITicketContextData, server: ITicketContextData){
 
   const mergedTickets = server.tickets.map((el:TicketWithTime) => {
@@ -47,13 +56,11 @@ function mergeContext(local:ITicketContextData, server: ITicketContextData){
   return {tickets: mergedTickets, companies:server.companies}
 }
 
-
 export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext: {companies: Company[], tickets: TicketWithTime[]} }) {
 
   const [ticketContext, setTicketContext] = useState<ITicketContextData>(iniContext)
   const [isMounted, setIsMounted] = useState(false)
   const session = useSession()
-  const path = usePathname()
 
   const merge = useCallback((context:ITicketContextData) => {
     const savedTickets = localStorage.getItem('tickets');
@@ -69,22 +76,16 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
     merge(ctx)
   }, [session, merge] )
 
-  useEffect(() => {
-    setIsMounted(true)   
-    
-    merge(ticketContext)    
-    
-    const intervalId = setInterval(revalidate, 10000)
-    return () => {
-      clearInterval(intervalId);
-    };
-    
-  }, [session]);
-
-  useEffect(() => {
-    if(isMounted)
-      revalidate()
-  }, [path])
+  useEffect(()=>{
+    if(session.data){
+      setIsMounted(true)
+      merge(ticketContext)
+      const intervalId = setInterval(revalidate, 10000)
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
+  }, [session.data])
 
   useEffect(() => {
     if(isMounted){

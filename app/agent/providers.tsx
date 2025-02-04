@@ -59,7 +59,6 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
     const savedTickets = localStorage.getItem('tickets');
     if (savedTickets) {
       const local = JSON.parse(savedTickets)
-      console.log(local)
       const ctx = (mergeContext(local, context))
       setTicketContext(ctx);
     }

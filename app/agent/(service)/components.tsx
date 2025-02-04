@@ -748,7 +748,7 @@ const Timer = () =>{
 
   useEffect(()=>{
     if(isMounted){
-      setTime(ticket?.ticket_time.find(el => el.ticket_status == currentStatus)?.time ?? 0)
+      setTime(ticket?.ticket_time?.find(el => el.ticket_status == currentStatus)?.time ?? 0)
     }
   }, [isMounted])
 

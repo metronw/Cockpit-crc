@@ -5,6 +5,7 @@ import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button
 import { useRealTimeContext, Channel, Call, Agent } from "./provider";
 import { toast } from 'react-hot-toast';
 import useSWR from 'swr';
+import { FaPowerOff, FaBinoculars, FaCommentDots, FaArrowsAltH, FaUser } from 'react-icons/fa';
 
 /* ==========================================================
    -- COMEÇO: CÓDIGO DAS TABELAS DE CHAMADAS (SEM ALTERAÇÕES) --
@@ -224,6 +225,7 @@ const agentColumns = [
   { key: 'pausedSince', label: 'Pausado Desde', sortable: true, filterable: true },
   { key: 'loggedInSince', label: 'Logado Desde', sortable: true, filterable: true },
   { key: 'queues', label: 'Filas', sortable: false, filterable: true },
+  {    key: 'actions',    label: 'Ações',    sortable: false,    filterable: false  }
 ];
 
 /**
@@ -423,6 +425,29 @@ export function AgentStatus() {
                   }
 
                   switch (columnKey) {
+                    case 'actions': 
+                      return (
+                        <TableCell>
+                          {/* Icons for actions */}
+                          <div className="flex items-center space-x-2">
+                            {/* Logoff Icon */}
+                            <FaPowerOff className="text-gray-400" />
+                            
+                            {/* Spy Icon */}
+                            <FaBinoculars className="text-gray-400" />
+                            
+                            {/* Whisper Icon */}
+                            <FaCommentDots className="text-gray-400" />
+                            
+                            {/* Transfer Icon */}
+                            <FaArrowsAltH className="text-gray-400" />
+                            
+                            {/* Assume Icon */}
+                            <FaUser className="text-gray-400" />
+                          </div>
+                        </TableCell>
+                      );
+                    
                     case 'interface':
                       return (
                         <TableCell>

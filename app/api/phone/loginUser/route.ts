@@ -4,10 +4,9 @@ import { authOptions } from '@/app/lib/authOptions';
 import AsteriskAmi, { AmiResponse, QueueAddMemberAction, QueueStatusAction, QueueRemoveAction } from 'asterisk-ami';
 import prisma from '@/app/lib/localDb';
 
-// Definir amiClient no escopo externo para que esteja acessível nos blocos catch
-let amiClient: AsteriskAmi;
-
 export async function POST(request: Request) {
+  let amiClient: AsteriskAmi | null = null;
+
   try {
     const session = await getServerSession(authOptions);
     const sessionUser = session?.user.id;
@@ -28,8 +27,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Inicializar o cliente AMI
-    const amiClient = new AsteriskAmi({
+    amiClient = new AsteriskAmi({
       host: process.env.ASTERISK_AMI_HOST!,
       port: parseInt(process.env.ASTERISK_AMI_PORT!, 10),
       username: process.env.ASTERISK_AMI_USER!,
@@ -38,10 +36,9 @@ export async function POST(request: Request) {
       events: true,
     });
 
-    // Função para conectar ao AMI
     const connectAmi = (): Promise<void> => {
       return new Promise((resolve, reject) => {
-        amiClient.connect((err: Error | null) => {
+        amiClient?.connect((err: Error | null) => {
           if (err) {
             console.error("Erro ao conectar ao AMI:", err.message);
             return reject(new Error("Erro ao conectar ao AMI"));
@@ -51,10 +48,9 @@ export async function POST(request: Request) {
       });
     };
 
-    await connectAmi(); // Conecta ao AMI
+    await connectAmi();
 
     try {
-      // Após autenticação do usuário
       const userAssigns = await prisma.user_assign.findMany({
         where: {
           user_id: sessionUser,
@@ -104,6 +100,9 @@ export async function POST(request: Request) {
     }
   } catch (error: unknown) {
     console.error('Erro ao processar requisição POST:', error);
+    if (amiClient !== null) {
+      amiClient.disconnect();
+    }
     if (error instanceof Error) {
       return NextResponse.json(
         { error: 'Erro interno no servidor' },
@@ -118,16 +117,18 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
+  let amiClient: AsteriskAmi | null = null;
+
   try {
     const session = await getServerSession(authOptions);
     const sessionUser = session?.user.id;
 
     if (!sessionUser) {
-      return NextResponse.json(
+        return NextResponse.json(
         { error: 'Usuário não está logado' },
         { status: 401 }
-      );
-    }
+        );
+      }
 
     const userPhone = await prisma.user_phone.findUnique({
       where: { user_id: sessionUser },
@@ -142,30 +143,27 @@ export async function GET() {
 
     const interfaceName = 'PJSIP/' + userPhone.sip_extension;
 
-    // Inicializar o cliente asterisk-ami
     amiClient = new AsteriskAmi({
       host: process.env.ASTERISK_AMI_HOST!,
       port: parseInt(process.env.ASTERISK_AMI_PORT!, 10),
       username: process.env.ASTERISK_AMI_USER!,
       password: process.env.ASTERISK_AMI_PASS!,
-      reconnect: false, 
+      reconnect: false,
       events: true,
     });
 
-    // Função para conectar ao AMI
     const connectAmi = (): Promise<void> => {
       return new Promise((resolve, reject) => {
-        amiClient.connect((err) => {
+        amiClient?.connect((err) => {
           if (err) {
             reject(new Error("Erro ao conectar ao AMI"));
           } else {
             resolve();
-          }
+    }
         });
       });
     };
 
-    // Função para coletar eventos até 'QueueStatusComplete'
     const collectEvents = (): Promise<AmiResponse[]> => {
       return new Promise((resolve, reject) => {
         const events: AmiResponse[] = [];
@@ -173,22 +171,20 @@ export async function GET() {
         const onData = (data: AmiResponse) => {
           events.push(data);
           if (data.event === 'QueueStatusComplete') {
-            amiClient.off('ami_data', onData);
+            amiClient?.off('ami_data', onData);
             resolve(events);
           }
         };
 
-        amiClient.on('ami_data', onData);
+        amiClient?.on('ami_data', onData);
 
-        // Timeout para evitar espera indefinida
         setTimeout(() => {
-          amiClient.off('ami_data', onData);
+          amiClient?.off('ami_data', onData);
           reject(new Error('Timeout aguardando QueueStatusComplete'));
-        }, 10000); // 10 segundos
+        }, 10000);
       });
     };
 
-    // Conectar ao AMI
     await connectAmi();
 
     try {
@@ -197,13 +193,12 @@ export async function GET() {
 
       amiClient.disconnect();
 
-      // Atualiza o mapeamento de filas e membros com as propriedades corretas
       const queueMembersMap: { [queueName: string]: string[] } = {};
 
       events.forEach(evt => {
         if (evt.event === 'QueueMember') {
-          const queueName = evt.queue as string; // Asserção de tipo
-          const memberInterface = evt.stateinterface as string; // Asserção de tipo
+          const queueName = evt.queue as string;
+          const memberInterface = evt.stateinterface as string;
           if (!queueMembersMap[queueName]) {
             queueMembersMap[queueName] = [];
           }
@@ -211,7 +206,6 @@ export async function GET() {
         }
       });
 
-      // Recupera as filas atribuídas ao usuário
       const userAssigns = await prisma.user_assign.findMany({
         where: {
           user_id: sessionUser,
@@ -226,40 +220,68 @@ export async function GET() {
         },
       });
 
-      // Construir a resposta correlacionando filas atribuídas e status da interface
       const responseData = userAssigns.map(assign => {
         return assign.company.Queue.map(queue => {
           const isMember = queue.asteriskId
             ? (queueMembersMap[queue.asteriskId as string]?.includes(interfaceName) || false)
             : false;
           return {
-            name: queue.name, // Nome da fila na aplicação
+            name: queue.name,
             isMember,
           };
         });
       }).flat();
 
+      // Calcular duas validações cruciais:
+      // 1. A interface é membro de TODAS as filas atribuídas?
+      // 2. A interface NÃO é membro de nenhuma fila não atribuída?
+      const allAssignedJoined = responseData.every(q => q.isMember);
+
+      // Obter todos os IDs de filas atribuídas (apenas os existentes)
+      const assignedQueueIds = new Set(
+        userAssigns.flatMap(assign => 
+          assign.company.Queue
+            .map(queue => queue.asteriskId)
+            .filter((id): id is string => !!id)  // Type guard para filtrar null/undefined
+        )
+      );
+
+      // Verificar se o membro existe em alguma fila não atribuída
+      let noExtraQueues = true;
+      for (const queueName of Object.keys(queueMembersMap)) {
+        if (!assignedQueueIds.has(queueName) && 
+            queueMembersMap[queueName].includes(interfaceName)) {
+          noExtraQueues = false;
+          break;
+        }
+      }
+
       return NextResponse.json({
         interfaceName,
-        queues: responseData
+        queues: responseData,
+        validation: {
+          allAssignedJoined,
+          noExtraQueues,
+          properlyConfigured: allAssignedJoined && noExtraQueues
+        }
       }, { status: 200 });
     } catch (error: unknown) {
       amiClient.disconnect();
       if (error instanceof Error) {
         console.error('Erro ao processar QueueStatus:', error.message);
-        return NextResponse.json(
+    return NextResponse.json(
           { error: 'Erro ao obter status da fila' },
-          { status: 500 }
-        );
-      }
+      { status: 500 }
+    );
+  }
       return NextResponse.json(
         { error: 'Erro ao obter status da fila' },
         { status: 500 }
       );
-    }
+}
   } catch (error: unknown) {
-    if (amiClient) { // Verificação se amiClient está definido
-      amiClient.disconnect(); // 'amiClient' agora está definido nesse escopo
+    if (amiClient) {
+      amiClient.disconnect();
     }
     console.error('Erro ao processar requisição GET:', error);
     if (error instanceof Error) {
@@ -276,6 +298,8 @@ export async function GET() {
 }
 
 export async function DELETE(request: Request) {
+  let amiClient: AsteriskAmi | null = null;
+
   try {
     const session = await getServerSession(authOptions);
     const sessionUser = session?.user.id;
@@ -296,7 +320,6 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // 1. Inicializar o cliente AMI
     amiClient = new AsteriskAmi({
       host: process.env.ASTERISK_AMI_HOST!,
       port: parseInt(process.env.ASTERISK_AMI_PORT!, 10),
@@ -306,10 +329,9 @@ export async function DELETE(request: Request) {
       events: true,
     });
 
-    // Função para conectar ao AMI
     const connectAmi = (): Promise<void> => {
       return new Promise((resolve, reject) => {
-        amiClient.connect((err: Error | null) => {
+        amiClient?.connect((err: Error | null) => {
           if (err) {
             console.error("Erro ao conectar ao AMI:", err.message);
             return reject(new Error("Erro ao conectar ao AMI"));
@@ -319,35 +341,26 @@ export async function DELETE(request: Request) {
       });
     };
 
-    await connectAmi(); // Conecta ao AMI
+    await connectAmi();
 
     try {
-      // Após autenticação do usuário
-      const userAssigns = await prisma.user_assign.findMany({
-        where: {
-          user_id: sessionUser,
-          queue_type: 1, // Ajuste conforme necessidade
-        },
-        include: {
-          company: {
-            include: {
-              Queue: true,
-            },
-          },
-        },
-      });
+      const action: QueueStatusAction = { action: 'QueueStatus' };
+      await amiClient.send(action);
 
-      for (const assign of userAssigns) {
-        for (const queue of assign.company.Queue) {
-          if (queue.asteriskId) {
-            const action: QueueRemoveAction = {
-              action: 'QueueRemove',
-              ActionID: `remove-${queue.asteriskId}-${interfaceName}`,
-              Queue: queue.asteriskId,
-              Interface: interfaceName,
-            };
-            await amiClient.send(action);
-          }
+      const events = await collectQueueStatusEvents(amiClient);
+
+      for (const event of events) {
+        if (event.event === 'QueueMember' && event.interface === interfaceName) {
+          const queueName = event.queue as string;
+
+          const removeAction: QueueRemoveAction = {
+            action: 'QueueRemove',
+            // add timestamp to ActionID
+            ActionID: `remove-${queueName}-${interfaceName}`,
+            Queue: queueName,
+            Interface: interfaceName,
+          };
+          await amiClient.send(removeAction);
         }
       }
 
@@ -358,7 +371,9 @@ export async function DELETE(request: Request) {
         { status: 200 }
       );
     } catch (error: unknown) {
-      amiClient.disconnect();
+      if (amiClient) {
+        amiClient.disconnect();
+      }
       if (error instanceof Error) {
         console.error("Erro ao processar comando AMI:", error.message);
         return NextResponse.json(
@@ -372,8 +387,8 @@ export async function DELETE(request: Request) {
       );
     }
   } catch (error: unknown) {
-    if (amiClient) { // Verificação se amiClient está definido
-      amiClient.disconnect(); // 'amiClient' agora está definido nesse escopo
+    if (amiClient) {
+      amiClient.disconnect();
     }
     console.error('Erro ao processar requisição DELETE:', error);
     if (error instanceof Error) {
@@ -388,3 +403,24 @@ export async function DELETE(request: Request) {
     );
   }
 }
+
+const collectQueueStatusEvents = (amiClient: AsteriskAmi): Promise<AmiResponse[]> => {
+  return new Promise((resolve, reject) => {
+    const events: AmiResponse[] = [];
+
+    const onData = (data: AmiResponse) => {
+      events.push(data);
+      if (data.event === 'QueueStatusComplete') {
+        amiClient.off('ami_data', onData);
+        resolve(events);
+      }
+    };
+
+    amiClient.on('ami_data', onData);
+
+    setTimeout(() => {
+      amiClient.off('ami_data', onData);
+      reject(new Error('Timeout aguardando QueueStatusComplete'));
+    }, 10000);
+  });
+};

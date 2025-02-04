@@ -324,7 +324,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         const callernum = session.remote_identity.uri.user;
 
         // Chamar a função para criar o ticket
-        
+
         await createTicket(trunk_name, callid, callernum);
       } else {
         console.warn("Regex não correspondeu para Connected. Display Name:", displayName);
@@ -487,14 +487,29 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               </label>
             </div>
           )}
-          <div className="webphone-flex">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              marginBottom: '15px',
+            }}
+          >
             <button
               onClick={handleCall}
               disabled={isCalling}
-              className={`webphone-button ${isCalling ? 'disabled' : ''}`}
+              className={`call-button ${isCalling ? 'disabled' : ''}`}
               title="Iniciar Chamada"
               data-tooltip-id="callTooltip"
               hidden
+              style={{
+                backgroundColor: '#4caf50', // Green background for better contrast
+                color: 'white', // White text
+                border: 'none',
+                padding: '10px',
+                borderRadius: '5px',
+                cursor: 'pointer',
+              }}
             >
               <FiPhoneCall size={20} />
             </button>
@@ -506,22 +521,44 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
                     setSession(null);
                     setCallStatus('Call Ended');
                   }}
-                  className="webphone-hangup-button"
+                  className="hangup-button"
                   title="Encerrar Chamada"
                   data-tooltip-id="hangUpTooltip"
+                  style={{
+                    backgroundColor: '#f44336', // Red background for better contrast
+                    color: 'white', // White text
+                    border: 'none',
+                    padding: '10px',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                  }}
                 >
                   <FiPhoneOff size={20} />
                 </button>
-                <button 
+                <button
                   onClick={toggleMute}
-                  className={isMuted ? 'webphone-unmute-button' : 'webphone-mute-button'}
+                  style={{
+                    backgroundColor: isMuted ? "#ff9800" : "#c03e81", //'#ff9800', // Orange background for better contrast
+                    color: 'white', // White text
+                    border: 'none',
+                    padding: '10px',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                  }}
                 >
                   {isMuted ? <FiMicOff size={20} /> : <FiMic size={20} />}
                 </button>
                 <button
                   onClick={handleShowTransferInput}
-                  className="webphone-transfer-button"
                   title="Transferir Chamada"
+                  style={{
+                    backgroundColor: '#ff9800', // Orange background for better contrast
+                    color: 'white', // White text
+                    border: 'none',
+                    padding: '10px',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                  }}
                 >
                   <FiPhoneForwarded size={20} />
                 </button>
@@ -529,17 +566,31 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
             )}
           </div>
           {showTransferInput && (
-            <div className="webphone-flex">
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
               <input
                 type="text"
                 value={transferNumber}
                 onChange={(e) => setTransferNumber(e.target.value)}
-                className="webphone-transfer-input"
                 placeholder="Número de Transferência"
+                style={{
+                  flex: 1,
+                  padding: '5px',
+                  borderRadius: '4px',
+                  borderColor: '#ccc',
+                  color: '#333',
+                }}
               />
               <button
                 onClick={handleTransferCall}
-                className="webphone-transfer-confirm-button"
+                style={{
+                  backgroundColor: '#4caf50', // Green background for better contrast
+                  color: 'white', // White text
+                  border: 'none',
+                  padding: '10px',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  marginLeft: '10px'
+                }}
               >
                 Transferir
               </button>

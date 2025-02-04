@@ -6,7 +6,7 @@ import { IProcedureItemResponse } from '../agent/providers';
 import { Ticket } from '@prisma/client';
 import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
-import { getOpenTickets } from './ticket';
+import { TicketWithTime, getOpenTickets } from './ticket';
 import { IUser } from './userAssign';
 import { getAllCompanies } from './company';
 import { Company } from '@prisma/client'
@@ -59,13 +59,13 @@ export async function getCompaniesList() {
 
 
 
-export async function getTicketContext(user_id: number | undefined): Promise<{ companies: Company[], tickets: Ticket[] }> {
+export async function getTicketContext(user_id: number | undefined): Promise<{ companies: Company[], tickets: TicketWithTime[] }> {
   if (user_id) {
     const companies: Company[] = await getAllCompanies()
 
     const userAssignments = await prisma.user_assign.findMany({ where: { user_id } })
     const filteredComp = companies.filter((el: Company) => userAssignments.find(item => item.company_id == el.id))
-    const tickets: Ticket[] = await getOpenTickets()
+    const tickets: TicketWithTime[] = await getOpenTickets()
 
     return { companies: filteredComp, tickets }
 

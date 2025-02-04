@@ -6,7 +6,7 @@ import { ITicketContextData, IProcedureItemResponse, useTicketContext } from "@/
 import { useState, useEffect, useCallback } from 'react'
 import { Input } from "@nextui-org/react"
 import { createMetroTicket } from '@/app/actions/api'
-import { updateTicket } from "@/app/actions/ticket";
+import { TicketWithTime, findOrCreateTicketTime, updateTicket } from "@/app/actions/ticket";
 import { usePathname, useRouter } from 'next/navigation'
 import { IProcedureItem, getProcedure } from "@/app/actions/procedures";
 import { useSession } from "next-auth/react";
@@ -15,7 +15,7 @@ import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
 import { ChevronRightIcon, ChevronLeftIcon, ClipboardIcon } from "@heroicons/react/24/solid"
 import { z } from 'zod'
-import { Ticket } from "@prisma/client";
+import { Ticket, Ticket_status } from "@prisma/client";
 
 
 
@@ -317,7 +317,7 @@ function parsePageInfo(path: string, ticketCtx: ITicketContextData) {
   const pathName = path.split('/')
   const ticketId = parseInt(pathName[pathName.length - 1])
 
-  const ticket: Ticket | undefined = ticketCtx.tickets.find(el => el.id == ticketId)
+  const ticket: TicketWithTime | undefined = ticketCtx.tickets.find(el => el.id == ticketId)
   const company = ticketCtx.companies.find(el => el.id == ticket?.company_id)
 
   return ({ company, ticket })
@@ -364,8 +364,7 @@ export const StagePanel = () => {
         </Card>
         <Card className="border border-primary">
           <CardBody>
-            <p className="text-primary text-center">Interação na etapa</p>
-            <p className="text-primary text-center">00:00</p>
+            <Timer />
           </CardBody>
         </Card>
       </div>
@@ -632,24 +631,26 @@ const validateTriageForm = (ticket: Ticket) => {
   return false
 }
 
-
-
 export const NavigateTicket = ({ direction, route }: { direction: string, route: string }) => {
   const { ticketContext } = useTicketContext();
   const router = useRouter();
   const path = usePathname()
   const { ticket } = parsePageInfo(path, ticketContext)
 
-
   const onClick = () => {
-    if (direction == `forwards` && ticket) {
-      const isValid = validateTriageForm(ticket)
-      if (!isValid) {
-        return
+    if(ticket){
+      if (direction == `forwards`) {
+        const isValid = validateTriageForm(ticket)
+        if (!isValid) {
+          return
+        }
       }
+  
+      const nextStatus:Ticket_status = route.split('/')[2].includes(status as Ticket_status) ? route.split('/')[2] as Ticket_status : 'triage' as Ticket_status
+      updateTicket({ ticket: {...ticket, status: nextStatus} }).then(()=>{
+        router.push(route)
+      })
     }
-    updateTicket({ ticket })
-    router.push(route)
   }
 
   return (
@@ -692,11 +693,11 @@ export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: ke
 
   const handleChange = (val: string) => {
     const onlyDigits = val.replace(/\D/g, '');
-    const localDigits = onlyDigits.length > 11 ? onlyDigits.slice(-11) : onlyDigits;
+    const localDigits = onlyDigits.length > 11 ? onlyDigits.slice(0,11) : onlyDigits;
     setMaskedValue(formatPhone(localDigits));
     setTicketContext((prev) => {
       const updatedTickets = prev.tickets.map((t) =>
-        t.id === parseInt(id) ? { ...t, [fieldName]: localDigits } : t
+        t.id === parseInt(id) ? { ...t, [fieldName]: onlyDigits } : t
       );
       return { ...prev, tickets: updatedTickets };
     });
@@ -720,4 +721,68 @@ export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: ke
       />
     </div>
   );
+}
+
+const formatTime = (time: number) => {
+  return `${time/60 < 9 ? '0' + Math.floor(time/60): Math.floor(time/60)}:${time%60 < 10 ? '0'+time%60 : time%60}`
+}
+
+const Timer = () =>{ 
+  
+  const path = usePathname()
+  const {ticketContext, setTicketContext, isMounted} = useTicketContext()
+  const { ticket } = parsePageInfo(path, ticketContext)
+  const currentStatus:Ticket_status = path.split('/')[2] as Ticket_status  ?? 'triage' as Ticket_status
+  const [time, setTime] = useState<number>(ticket?.ticket_time.find(el => el.ticket_status == currentStatus)?.time ?? 0)
+  const [tick, setTick] = useState(false)
+  
+  const updateTimer = useCallback(() => {
+    setTime(time+1)
+    setTicketContext({...ticketContext, 
+      tickets: ticketContext.tickets.map(el => 
+        el.id != ticket?.id ? el : {...el, ticket_time: el.ticket_time?.map(item => 
+          item.ticket_status != currentStatus ? item : {...item, time})
+      })
+    })
+  },[time, ticketContext])
+
+  useEffect(()=>{
+    if(isMounted){
+      setTime(ticket?.ticket_time.find(el => el.ticket_status == currentStatus)?.time ?? 0)
+    }
+  }, [isMounted])
+
+
+  useEffect(() => {
+    const timer = ticket?.ticket_time?.find(el => el.ticket_status == currentStatus)
+
+    if(timer){
+      setTime(timer.time)
+    }else{
+      findOrCreateTicketTime(ticket?.id ?? 0, currentStatus).then(el=>{
+        setTime(el.time)
+      })
+    }
+    const intervalId = setInterval(() => setTick(true), 1000)
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [currentStatus])
+
+  useEffect(()=>{
+    if(tick){
+      updateTimer()      
+      setTick(false)
+    }
+  }, [tick])
+
+
+  return(
+  <div className="flex flex-col">
+    <p className="text-primary text-center">Interação na etapa</p>
+    <p className="text-primary text-center">{formatTime(time)}</p>
+  </div>
+
+  )
 }

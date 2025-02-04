@@ -7,11 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Ticket_status {
+  triage
+  procedure
+  finish
+  closed
+}
+
 model Ticket {
   id                 Int      @id @default(autoincrement())
   subject            String?  @db.VarChar(1000)
   company_id         Int
-  status             String
+  status             Ticket_status
   user_id            Int
   type               Int?
   procedures         String?  @db.LongText
@@ -28,6 +35,15 @@ model Ticket {
   isSolved           Boolean? @default(true)
   erpProtocol        String?
   idGestor           Int?
+  ticket_time         Ticket_time[]
+}
+
+model Ticket_time {
+  time               Int
+  ticket_status     Ticket_status
+  ticket_id         Int 
+  ticket            Ticket @relation(fields: [ticket_id], references:[id])
+  @@id([ticket_id, ticket_status])
 }
 
 model User {

@@ -1,11 +1,11 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Ticket } from '@prisma/client';
 import { Company } from '@prisma/client'
 import { getTicketContext } from '../actions/api';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
+import { TicketWithTime } from '../actions/ticket';
 
 // const emptyData= {tickets: [], companies:[]}
 
@@ -27,19 +27,19 @@ export interface IProcedureItemResponse {
 }
 
 export interface ITicketContextData {
-  tickets: Array<Ticket>
+  tickets: Array<TicketWithTime>
   companies: Array<Company>
 }
 
 export interface ITicketContext {
   ticketContext:ITicketContextData
-  setTicketContext: React.Dispatch<React.SetStateAction<{ tickets: Ticket[], companies: Company[] }>>;
+  setTicketContext: React.Dispatch<React.SetStateAction<ITicketContextData>>;
   isMounted: boolean
 }
 
 function mergeContext(local:ITicketContextData, server: ITicketContextData){
 
-  const mergedTickets = server.tickets.map((el:Ticket) => {
+  const mergedTickets = server.tickets.map((el:TicketWithTime) => {
     const tick = local.tickets.find(item => item.id === el.id)
     return tick ? tick : el
   })
@@ -48,7 +48,7 @@ function mergeContext(local:ITicketContextData, server: ITicketContextData){
 }
 
 
-export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext: {companies: Company[], tickets: Ticket[]} }) {
+export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext: {companies: Company[], tickets: TicketWithTime[]} }) {
 
   const [ticketContext, setTicketContext] = useState<ITicketContextData>(iniContext)
   const [isMounted, setIsMounted] = useState(false)
@@ -59,6 +59,7 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
     const savedTickets = localStorage.getItem('tickets');
     if (savedTickets) {
       const local = JSON.parse(savedTickets)
+      console.log(local)
       const ctx = (mergeContext(local, context))
       setTicketContext(ctx);
     }
@@ -83,7 +84,7 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
 
   useEffect(() => {
     if(isMounted)
-    revalidate()
+      revalidate()
   }, [path])
 
   useEffect(() => {
@@ -93,7 +94,6 @@ export function TicketProvider({children, iniContext}: { children: React.ReactNo
     
   }, [JSON.stringify(ticketContext)]);
   
-  // const updateContext = (newContext: ITicketContextData) => setTicketContextState(newContext)
 
   return (
     <TicketContext.Provider value={{ticketContext, setTicketContext, isMounted}}>

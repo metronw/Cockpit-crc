@@ -20,7 +20,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Metro Crc Cockpit",
+  title: "Metro CRC Cockpit",
   description: "",
 };
 

@@ -5,7 +5,7 @@ import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button
 import { useRealTimeContext, Channel, Call, Agent } from "./provider";
 import { toast } from 'react-hot-toast';
 import useSWR from 'swr';
-import { FaPowerOff, FaBinoculars, FaCommentDots, FaArrowsAltH, FaUser } from 'react-icons/fa';
+import { FaSync, FaPowerOff, FaBinoculars, FaCommentDots, FaArrowsAltH, FaUser } from 'react-icons/fa';
 
 /* ==========================================================
    -- COMEÇO: CÓDIGO DAS TABELAS DE CHAMADAS (SEM ALTERAÇÕES) --
@@ -225,7 +225,7 @@ const agentColumns = [
   { key: 'pausedSince', label: 'Pausado Desde', sortable: true, filterable: true },
   { key: 'loggedInSince', label: 'Logado Desde', sortable: true, filterable: true },
   { key: 'queues', label: 'Filas', sortable: false, filterable: true },
-  {    key: 'actions',    label: 'Ações',    sortable: false,    filterable: false  }
+  { key: 'actions', label: 'Ações', sortable: false, filterable: false }
 ];
 
 /**
@@ -276,7 +276,49 @@ export function AgentStatus() {
   const [showQueues, setShowQueues] = useState(true);
 
   // Busca SWR para status de agentes
-  const { data, error } = useSWR<Agent[]>('/api/phone/agentAvailable', fetcher);
+  const { data, error, mutate } = useSWR<Agent[]>('/api/phone/agentAvailable', fetcher);
+
+  const handleLogoff = async (interfaceName: string) => {
+    try {
+      const response = await fetch('/api/phone/loginUser', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ interfaceName }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao deslogar agente');
+      }
+
+      toast.success('Agente deslogado com sucesso');
+      mutate(); // Atualiza os dados após a ação
+    } catch (error) {
+      toast.error('Erro ao deslogar agente: ' + (error as Error).message);
+    }
+  };
+
+  const handleRefresh = async (interfaceName: string) => {
+    try {
+      const response = await fetch('/api/phone/loginUser', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ interfaceName }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar agente');
+      }
+
+      toast.success('Agente atualizado com sucesso');
+      mutate(); // Atualiza os dados após a ação
+    } catch (error) {
+      toast.error('Erro ao atualizar agente: ' + (error as Error).message);
+    }
+  };
 
   // Função utilitária para extrair o valor de cada coluna:
   const getAgentValue = useCallback((agent: Agent, key: string): string | number => {
@@ -425,29 +467,32 @@ export function AgentStatus() {
                   }
 
                   switch (columnKey) {
-                    case 'actions': 
+                    case 'actions':
                       return (
                         <TableCell>
                           {/* Icons for actions */}
-                          <div className="flex items-center space-x-2">
+                            <div className="flex flex-row space-x-2">
                             {/* Logoff Icon */}
-                            <FaPowerOff className="text-gray-400" />
-                            
-                            {/* Spy Icon */}
-                            <FaBinoculars className="text-gray-400" />
-                            
+                            <FaPowerOff className="text-red-500" size={'20px'} onClick={() => handleLogoff(agent.interface)} />
+                            {/* Refresh Icon */}
+                            <FaSync className="text-blue-500" size={'20px'} onClick={() => handleRefresh(agent.interface)} />
+                            </div>
+
+                          <div className="flex flex-row space-x-2 mt-2">
+                            <FaBinoculars className="text-gray-400 cursor-not-allowed" size={'20px'} />
                             {/* Whisper Icon */}
-                            <FaCommentDots className="text-gray-400" />
-                            
+                            <FaCommentDots className="text-gray-400 cursor-not-allowed" size={'20px'} />
+                            </div>
+
+                            <div className="flex flex-row space-x-2 mt-2">
                             {/* Transfer Icon */}
-                            <FaArrowsAltH className="text-gray-400" />
-                            
+                            <FaArrowsAltH className="text-gray-400 cursor-not-allowed" size={'20px'} />
                             {/* Assume Icon */}
-                            <FaUser className="text-gray-400" />
-                          </div>
+                            <FaUser className="text-gray-400 cursor-not-allowed" size={'20px'} />
+                            </div>
                         </TableCell>
                       );
-                    
+
                     case 'interface':
                       return (
                         <TableCell>
@@ -499,6 +544,6 @@ export function AgentStatus() {
           }}
         </TableBody>
       </Table>
-    </div>
+    </div >
   );
 }

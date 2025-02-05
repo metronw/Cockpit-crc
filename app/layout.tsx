@@ -7,6 +7,7 @@ import { ToastContainer } from 'react-toastify'; // Adicionado
 import { TicketTypeProvider } from "./providers";
 import { getCrcTicketTypes } from "@/app/actions/api";
 import { use } from 'react';
+import { CSPostHogProvider } from './providers';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -20,7 +21,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Metro Crc Cockpit",
+  title: "Metro CRC Cockpit",
   description: "",
 };
 
@@ -33,15 +34,17 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} vsc-initialized`}>
-        <Providers>
-          <TicketTypeProvider iniContext={iniContext}>
-            {children}
-          </TicketTypeProvider>
-          <Toaster />
-          <ToastContainer position="bottom-right" /> {/* Adicionado */}
-        </Providers>        
-      </body>
+      <CSPostHogProvider>
+        <body className={`${geistSans.variable} ${geistMono.variable} vsc-initialized`}>
+          <Providers>
+            <TicketTypeProvider iniContext={iniContext}>
+              {children}
+            </TicketTypeProvider>
+            <Toaster />
+            <ToastContainer position="bottom-right" /> {/* Adicionado */}
+          </Providers>        
+        </body>
+      </CSPostHogProvider>
     </html>
   );
 }

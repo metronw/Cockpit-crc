@@ -239,8 +239,12 @@ export async function GET(request: Request) {
           }
         }
 
-        // Verificar se está pausado
-        const anyPaused = memberEvents.some((e) => e.paused === '1');
+        // Verificar se está pausado e obter a razão da pausa
+        const pausedEvent = memberEvents.find((e) => e.paused === '1');
+        console.log('pausedEvent', pausedEvent);
+        const anyPaused = !!pausedEvent;
+        const pauseReason = pausedEvent?.pausedreason || null;
+
         // Verificar se está em ligação
         const anyInCall = memberEvents.some((e) => isInCall(e.status as string | number | undefined));
 
@@ -295,6 +299,7 @@ export async function GET(request: Request) {
           interface: iface,
           queues: queueInfos,
           paused: anyPaused,
+          pauseReason, // Adiciona a razão da pausa
           inCall: anyInCall,
           // Indica se a extensão em si está online (PJSIPShowContacts -> "Reachable")
           extensionOnline,

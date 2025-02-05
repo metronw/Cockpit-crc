@@ -241,6 +241,7 @@ const agentColumns = [
  *     company_fantasy_name: string;
  *   }[];
  *   paused: boolean;
+ *   pauseReason: string?;
  *   inCall: boolean;
  *   available: boolean;
  *   pausedSince: string | null;
@@ -473,9 +474,9 @@ export function AgentStatus() {
                           {/* Icons for actions */}
                             <div className="flex flex-row space-x-2">
                             {/* Logoff Icon */}
-                            <FaPowerOff className="text-red-500" size={'20px'} onClick={() => handleLogoff(agent.interface)} />
+                            <FaPowerOff className="text-red-500 cursor-click" size={'20px'} onClick={() => handleLogoff(agent.interface)} />
                             {/* Refresh Icon */}
-                            <FaSync className="text-blue-500" size={'20px'} onClick={() => handleRefresh(agent.interface)} />
+                            <FaSync className="text-blue-500 " size={'20px'} onClick={() => handleRefresh(agent.interface)} />
                             </div>
 
                           <div className="flex flex-row space-x-2 mt-2">
@@ -506,7 +507,7 @@ export function AgentStatus() {
                       // Exibe status composto
                       return (
                         <TableCell>
-                          {agent.inCall ? 'Em chamada' : (agent.paused ? "Pausa" : (agent.available ? 'Sim' : 'Não'))}
+                          {agent.inCall ? 'Em chamada' : (agent.paused ? <>Pausa<br />{agent.pauseReason}</> : (agent.available ? 'Sim' : 'Não'))}
                         </TableCell>
                       );
                     case 'queues':
@@ -531,6 +532,12 @@ export function AgentStatus() {
                           {localTime}
                           <br />
                           {duration}
+                          {columnKey === 'pausedSince' && agent.pauseReason && (
+                          <>
+                            <br />
+                            {agent.pauseReason}
+                          </>
+                          )}
                         </TableCell>
                       );
                     default:

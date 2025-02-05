@@ -50,6 +50,11 @@ export interface Agent {
    * Indica se o agente está pausado (ou seja, temporariamente indisponível).
    */
   paused: boolean;
+
+  /**
+   * Indica qual a pausa ativa do agente (se houver). Caso o agente não esteja pausado, será null.
+   */
+  pauseReason: string | null;
   
   /**
    * Indica se o agente está em uma chamada no momento.

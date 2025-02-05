@@ -17,7 +17,7 @@ export function InputPicker(){
   const [company, setCompany] = useState(null)
   const [ticketType, setTicketType] = useState(null)
   const {setSelectedCompany, setSelectedTicketType, companies, setIsLoadingProceds} = useProcedureContext()
-  const {ticketTypeContext} = useTicketTypeContext()
+  const ticketTypeContext = useTicketTypeContext()
   
   useEffect(()=>{
     setSelectedTicketType(ticketType ? parseInt(ticketType) : null)
@@ -45,7 +45,7 @@ export function InputPicker(){
             base: 'flex shrink border-primary border rounded-medium'
           }}
         >
-          {ticketTypeContext.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+          {ticketTypeContext.fatherTypes.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
         </Autocomplete>
 
         <Autocomplete

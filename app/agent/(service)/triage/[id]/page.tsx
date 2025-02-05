@@ -1,6 +1,5 @@
 import { BooleanInput, IssueSelector, NavigateTicket, PhoneInput } from "../../components"
 import { TextInput } from "../../components";
-import { getCrcTicketTypes } from '@/app/actions/api';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { use } from "react";
@@ -32,7 +31,7 @@ export default function Triage({ params: { id } }: { params: { id: string } }) {
         </div>
         <div className="flex flex row pr-4 space-x-4">
           <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">{`Como posso ajudá-lo?`}</span>
-          <IssueSelector id={id} fieldName={'type'} placeholder={'Selecione o seu problema'} dataSource={getCrcTicketTypes} isRequired={true} />
+          <IssueSelector id={id} />
 
           {/* Ticket Pai / Filho */}
         </div>

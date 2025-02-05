@@ -13,7 +13,7 @@ import { Company } from '@prisma/client'
 import { ITicketType } from '../providers';
 
 export async function getCrcTicketTypes() {
-  const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id FROM ticket_type '
+  const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id, ticket_type.id_father FROM ticket_type '
     + 'INNER JOIN ticket_type_product ON ticket_type_product.id_ticket_type=ticket_type.id '
     + 'where ticket_type_product.id_product = 2 '
   );
@@ -135,21 +135,21 @@ export async function createMetroTicket(ticketInfo: TicketWithTime | undefined, 
 
           const message =
             `
-        ${companyName} - Tronco ${trunk_name}
-        Nome do assinante: ${client_name}
-        Documento: ${identity_document}
-        Tipo de atendimento: Telefone
-        Nome do solicitante: ${caller_name}
-        Endereço: ${address?.replace(/'/g, `''`)}
-        Problema alegado: ${subject}
-        Procedimentos realizados: 
-        ${formatProcedures(procedures ?? `[]`)}
-        Data/horários: ${(new Date).toLocaleString()}
-        Telefone: ${caller_number}
-        Protocolo ERP: ${erpProtocol}
-        Rechamada? ${isRecall ? 'Sim' : 'Não'}
-        Nome do atendente: ${session?.user.name}
-        `
+              ${companyName} - Tronco ${trunk_name}
+              Nome do assinante: ${client_name}
+              Documento: ${identity_document}
+              Tipo de atendimento: Telefone
+              Nome do solicitante: ${caller_name}
+              Endereço: ${address?.replace(/'/g, `''`)}
+              Problema alegado: ${subject}
+              Procedimentos realizados: 
+              ${formatProcedures(procedures ?? `[]`)}
+              Data/horários: ${(new Date).toLocaleString()}
+              Telefone: ${caller_number}
+              Protocolo ERP: ${erpProtocol}
+              Rechamada? ${isRecall ? 'Sim' : 'Não'}
+              Nome do atendente: ${session?.user.name}
+            `
 
           await connection.query(
             `INSERT INTO ticket_response (id_ticket, response, type, id_user, created_at, updated_at) ` +

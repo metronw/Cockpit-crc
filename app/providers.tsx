@@ -7,16 +7,28 @@ import { SessionProvider } from "next-auth/react";
 export interface ITicketType {
   id: number,
   label: string,
+  id_father: number,
 }
 
+export interface ITicketTypeContext {
+  fatherTypes: ITicketType[]
+  childTypes: ITicketType[]
+}
 
-const TicketTypeContext = createContext({ticketTypeContext: [{id:1, label: 'any'}]});
-export const useTicketTypeContext = () => useContext(TicketTypeContext);
+const TicketTypeContext = createContext<ITicketTypeContext|undefined>(undefined); 
 
-export function TicketTypeProvider({children, iniContext}: { children: React.ReactNode, iniContext:Array<ITicketType> }) { 
+export const useTicketTypeContext = () => {
+  const ctx = useContext(TicketTypeContext)
+  if(!ctx){
+    throw new Error("useMyContext must be used within a MyContextProvider");
+  }
+  return ctx
+};
+
+export function TicketTypeProvider({children, iniContext}: { children: React.ReactNode, iniContext:ITicketTypeContext }) { 
 
   return (
-    <TicketTypeContext.Provider value={{ticketTypeContext: iniContext}}>
+    <TicketTypeContext.Provider value={iniContext}>
       {children}
     </TicketTypeContext.Provider>
   );

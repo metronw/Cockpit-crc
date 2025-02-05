@@ -16,6 +16,7 @@ import { JsonValue } from "@prisma/client/runtime/library";
 import { ChevronRightIcon, ChevronLeftIcon, ClipboardIcon } from "@heroicons/react/24/solid"
 import { z } from 'zod'
 import { Ticket, Ticket_status } from "@prisma/client";
+import { useTicketTypeContext } from "@/app/providers";
 
 
 
@@ -71,7 +72,7 @@ export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = 
         !isLarge ?
           <Input
             type="text"
-            maxLength={30}
+            maxLength={60}
             label={label}
             color={'primary'}
             classNames={{
@@ -400,58 +401,84 @@ interface IssueSelectorItem {
   label: string
 }
 
-export const IssueSelector = ({ id, fieldName, placeholder, dataSource, isRequired = true }: { id: string, fieldName: 'type' | 'status', placeholder: string, dataSource: () => Promise<IssueSelectorItem[]>, isRequired: boolean }) => {
+export const IssueSelector = ({ id }: { id: string }) => {
 
-  const [items, setItems] = useState<IssueSelectorItem[]>([])
+  const {fatherTypes, childTypes} = useTicketTypeContext()
+  const [filteredChildTypes, setFilteredChildTypes] = useState<IssueSelectorItem[]>([])
   const { ticketContext, setTicketContext, isMounted } = useTicketContext()
   const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
-  const [value, setValue] = useState<string>(ticket ? ticket[fieldName] + '' : '')
-  const [isCtxLoaded, setIsCtxLoaded] = useState<boolean>(false)
+  const [fatherValue, setFatherValue] = useState<string>('0')
+  const [childValue, setChildValue] = useState<string>(ticket ? ticket['type'] + '' : '0')
 
   useEffect(() => {
-    dataSource().then((data: IssueSelectorItem[]) => {
-      setItems(data)
-    })
-  }, [dataSource])
-
-  useEffect(() => {
-    if (isMounted && !isCtxLoaded) {
+    if (isMounted) {
       const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
       if (ticket) {
-        setIsCtxLoaded(true)
-        setValue(ticket[fieldName] ? ticket[fieldName] + `` : ``)
+        setFatherValue(childTypes?.find(el => el.id == ticket.type)?.id_father+'')
+        setChildValue(ticket.type ? ticket.type + `` : `0`)
       }
     }
-  }, [isMounted, isCtxLoaded, JSON.stringify(ticketContext)])
+  }, [isMounted])
+
+  useEffect(()=>{
+    const childs= childTypes.filter(el => el.id_father == parseInt(fatherValue))
+    setFilteredChildTypes(childs)
+    if(!childs.find(el => el.id+'' == childValue)){
+      setChildValue(fatherValue)    
+    }
+  }, [fatherValue])
 
 
   useEffect(() => {
     if (isMounted) {
-      const newContext = { ...ticketContext, tickets: ticketContext.tickets.map(el => el.id == parseInt(id) ? { ...el, [fieldName]: parseInt(value) } : el) }
+      const newContext = { ...ticketContext, tickets: ticketContext.tickets.map(el => 
+        el.id == parseInt(id) ? { ...el, type: parseInt(childValue) } : el) 
+      }
       setTicketContext(newContext)
     }
-  }, [value])
+  }, [childValue])
 
   return (
-    <Autocomplete
-      variant={'bordered'}
-      aria-label={placeholder}
-      isRequired={isRequired}
-      label=""
-      defaultItems={items}
-      placeholder={placeholder}
-      defaultSelectedKey=""
-      // @ts-expect-error: library has wrong type
-      onSelectionChange={setValue}
-      selectedKey={value}
-      className="flex h-11 max-w-xs my-1"
-      classNames={{
-        popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
-        base: 'flex shrink border-primary border rounded-medium'
-      }}
-    >
-      {items.map((item: { id: number, label: string }) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
-    </Autocomplete>
+    <div className="flex flex-row gap-2">
+      <Autocomplete
+        variant={'bordered'}
+        aria-label={'Selecione o problema'}
+        isRequired
+        label=""
+        // defaultItems={ticketTypeContext[issue]}
+        placeholder={'Selecione o problema genérico'}
+        defaultSelectedKey=""
+        // @ts-expect-error: library has wrong type
+        onSelectionChange={setFatherValue}
+        selectedKey={fatherValue}
+        className="flex h-11 max-w-xs my-1"
+        classNames={{
+          popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
+          base: 'flex shrink border-primary border rounded-medium'
+        }}
+      >
+        {fatherTypes.map((item: { id: number, label: string }) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+      </Autocomplete>
+      <Autocomplete
+        variant={'bordered'}
+        aria-label={'Selecione o sub problema'}
+        isRequired
+        label=""
+        // defaultItems={ticketTypeContext[issue]}
+        placeholder={'Selecione o problema específico'}
+        defaultSelectedKey=""
+        // @ts-expect-error: library has wrong type
+        onSelectionChange={setChildValue}
+        selectedKey={childValue}
+        className="flex h-11 max-w-xs my-1"
+        classNames={{
+          popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
+          base: 'flex shrink border-primary border rounded-medium'
+        }}
+      >
+        {filteredChildTypes.map((item: { id: number, label: string }) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+      </Autocomplete>
+    </div>
   );
 }
 
@@ -465,6 +492,10 @@ export const FinishButton = () => {
   const path = usePathname();
   const { ticket } = parsePageInfo(path, ticketContext);
   const router = useRouter();
+  const [enabled, setEnabled ]= useState(true)
+  const [finishType, setFinishType ]= useState(true)
+  const [isFinished, setIsFinished ]= useState(false)
+
 
   const finishAction = useCallback(async (isSolved: boolean) => {
     try {
@@ -476,24 +507,38 @@ export const FinishButton = () => {
         const newCtx = { ...ticketContext, tickets: ticketContext.tickets.filter(el => el.id !== ticket.id) };
         toast.success('Ticket criado no gestor com sucesso');
         setTicketContext(newCtx);
-
-        // Wait for the context to update before navigating
-        setTimeout(() => {
-          const userId = ticket.user_id; // try to fix the glitch
-          router.push('/agent/' + userId);
-        }, 500);
+        setIsFinished(true)
       } else {
         toast.error(resp.message);
       }
     } catch (err) {
       console.error("Erro ao finalizar o ticket:", err);
+      setEnabled(true)
+    } 
+    
+  }, [JSON.stringify(ticket), enabled]);
+
+  useEffect(()=>{
+    if(isFinished){
+      router.push('/agent/' + ticket?.user_id);
     }
-  }, [JSON.stringify(ticket)]);
+  }, [isFinished])
+
+  useEffect(() => {
+    if(!enabled){
+      finishAction(finishType)
+    }
+  }, [enabled])
+
+  const onFinishClick = (type: boolean) => {
+    setEnabled(false)
+    setFinishType(type)
+  } 
 
   return (
     <div className="flex space-x-4">
-      <Button onPress={() => finishAction(true)} type={"submit"} className="bg-green-500 hover:bg-green-600 text-white font-bold" title="Resolvido">Resolvido</Button>
-      <Button onPress={() => finishAction(false)} type={"submit"} className="bg-red-500 hover:bg-red-600 text-white font-bold" title="Não resolvido">Não Resolvido</Button>
+      <Button onPress={() => onFinishClick(true)} type={"submit"} disabled={!enabled} className="bg-green-500 hover:bg-green-600 text-white font-bold" title="Resolvido">Resolvido</Button>
+      <Button onPress={() => onFinishClick(false)} type={"submit"} disabled={!enabled} className="bg-red-500 hover:bg-red-600 text-white font-bold" title="Não resolvido">Não Resolvido</Button>
     </div>
   );
 };
@@ -564,13 +609,15 @@ const copyToClipboard = () => {
 export const Procedures = () => {
   const { ticketContext } = useTicketContext()
   const [procedures, setProcedures] = useState<Array<IProcedureItem> | null>(null)
+  const {childTypes} = useTicketTypeContext()
 
   const path = usePathname()
   const { ticket } = parsePageInfo(path, ticketContext)
 
   useEffect(() => {
     if (ticket) {
-      getProcedure({ company_id: ticket.company_id, ticket_type_id: ticket.type }).then(response => {
+      const father_type = childTypes.find(el => el.id == ticket.type)?.id_father
+      getProcedure({ company_id: ticket.company_id, ticket_type_id: father_type ?? 0 }).then(response => {
         const parsed = response.items.filter((el: IProcedureItem) => el.checked)
         setProcedures(parsed)
       })

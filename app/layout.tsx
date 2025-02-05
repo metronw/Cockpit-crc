@@ -29,13 +29,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const iniContext = use(getCrcTicketTypes());
+  const ticketTypes = use(getCrcTicketTypes());
+  const fatherTypes = ticketTypes.filter((el) => el.id == el.id_father)
+  const childTypes = ticketTypes
 
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} vsc-initialized`}>
         <Providers>
-          <TicketTypeProvider iniContext={iniContext}>
+          <TicketTypeProvider iniContext={{fatherTypes, childTypes}}>
             {children}
           </TicketTypeProvider>
           <Toaster />

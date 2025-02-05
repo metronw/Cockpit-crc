@@ -65,6 +65,7 @@ export default function PhoneClient() {
             marginTop: "8px",
             cursor: "pointer",
           }}
+          hidden
         >
           Atender
         </button>

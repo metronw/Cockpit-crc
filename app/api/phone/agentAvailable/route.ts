@@ -241,7 +241,7 @@ export async function GET(request: Request) {
 
         // Verificar se está pausado e obter a razão da pausa
         const pausedEvent = memberEvents.find((e) => e.paused === '1');
-        console.log('pausedEvent', pausedEvent);
+        
         const anyPaused = !!pausedEvent;
         const pauseReason = pausedEvent?.pausedreason || null;
 

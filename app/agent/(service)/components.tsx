@@ -499,7 +499,38 @@ export const FinishButton = () => {
 
   const finishAction = useCallback(async (isSolved: boolean) => {
     try {
-      finishSchema.parse(ticket);
+      const validateFinishForm = (ticket: Ticket) => {
+        try {
+          finishSchema.parse(ticket);
+          return true;
+        } catch (err) {
+          if (err instanceof z.ZodError) {
+        err.errors.forEach(error => {
+          if (error.message.includes("Expected")) {
+            console.log(error);
+            toast.error(`Preencha ${translateFinishFieldName(String(error.path[0]))} corretamente`);
+            return;
+          }
+          toast.error(error.message);
+        });
+        console.error(err.errors.map(el => ({ message: el.message, item: el.path[0] })));
+          }
+        }
+        return false;
+      };
+
+      const translateFinishFieldName = (fieldName: string) => {
+        const translations: { [key: string]: string } = {
+          erpProtocol: 'Protocolo ERP',
+          communication_id: 'Protocolo Chat',
+        };
+        return translations[fieldName as string] || fieldName;
+      };
+
+      if (!ticket || !validateFinishForm(ticket)) {
+        setEnabled(true);
+        return;
+      }
 
       const resp = await createMetroTicket(ticket, isSolved);
 
@@ -647,28 +678,45 @@ export const Procedures = () => {
 }
 
 const triageSchema = z.object({
-  type: z.number().positive('Selecione um tipo de ticket'),
-  client_name: z.string().min(3, 'Insira um nome de cliente valido'),
-  // communication_id: z.string().min(3, 'Insira um protocolo de chat valido'),
-  caller_number: z.string().min(3, 'Insira um protocolo de chat valido'),
-  caller_name: z.string().min(3, 'Insira um protocolo de chat valido'),
-  identity_document: z.string().min(3, 'Insira um cpf/cnpj valido'),
-  subject: z.string().min(3, 'Insira um depoimento valido'),
-
-})
+  type: z.number().positive('Selecione um tipo de ticket válido'),
+  client_name: z.string().min(3, 'Insira um nome de cliente válido (min 3 car)'),
+  caller_number: z.string().min(3, 'Insira um número de telefone válido (min 3 car)').max(14, 'Insira um número de telefone válido (max 14 car)'),
+  caller_name: z.string().min(3, 'Insira um nome de solicitante válido (min 3 car)'),
+  identity_document: z.string().min(3, 'Insira um CPF/CNPJ válido (min 3 car)'),
+  subject: z.string().min(3, 'Insira um problema alegado válido (min 3 car)'),
+});
 
 const validateTriageForm = (ticket: Ticket) => {
-
   try {
-    triageSchema.parse(ticket)
-    return true
+    triageSchema.parse(ticket);
+    return true;
   } catch (err) {
     if (err instanceof z.ZodError) {
-      console.error(err.errors.map(el => ({ message: el.message, item: el.path[0] })))
+      err.errors.forEach(error => {
+        if (error.message.includes("Expected")) {
+          console.log(error);
+          toast.error(`Preencha ${translateFieldName(String(error.path[0])).toLowerCase()} corretamente`);
+          return;
+        }
+        toast.error(error.message);
+      });
+      console.error(err.errors.map(el => ({ message: el.message, item: el.path[0] })));
     }
   }
-  return false
-}
+  return false;
+};
+
+const translateFieldName = (fieldName: string) => {
+  const translations: { [key: string]: string } = {
+    type: 'Tipo de ticket',
+    client_name: 'Nome do cliente',
+    caller_number: 'Número de telefone',
+    caller_name: 'Nome do solicitante',
+    identity_document: 'CPF/CNPJ',
+    subject: 'Problema alegado',
+  };
+  return translations[fieldName as string] || fieldName;
+};
 
 export const NavigateTicket = ({ direction, route }: { direction: string, route: string }) => {
   const { ticketContext } = useTicketContext();
@@ -722,7 +770,7 @@ export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: ke
 
   function formatPhone(raw: string) {
     const digits = raw.replace(/\D/g, '');
-    const localDigits = digits.length > 11 ? digits.slice(-11) : digits;
+    const localDigits = digits.length > 11 ? digits.slice(0, 11) : digits;
     if (localDigits.length <= 10) {
       return localDigits.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
     }

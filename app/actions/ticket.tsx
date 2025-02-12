@@ -40,14 +40,14 @@ export async function updateTicket(ticket: TicketWithTime){
 }
 
 
-export const getOpenTickets = async ():Promise<TicketWithTime[]> => {
+export const getOpenTickets = async ():Promise<TicketWithTime[]> => { 
   const session = await getServerSession(authOptions);
 
   if(session){
     const filteredTickets = await prisma.ticket.findMany({
       where: {
         user_id: session.user.id,
-        status: { not: 'closed' },
+        status: { notIn: ['closed', 'deleted']  },
       },
       include:{ticket_time: true}
     });
@@ -96,4 +96,22 @@ export async function saveTicketTime({ticket_id, ticket_status, time}:{ticket_id
   }) 
   return ticketTime
 
+}
+
+export async function getTicketsByDate(date: Date){
+  const session = await getServerSession(authOptions);  
+
+  if(session){
+    const tickets = prisma.ticket.findMany({
+      where:{
+        user_id: session.user.id,
+        status: { notIn: [ 'deleted']  },
+        createdAt: {
+          gt: date
+        }
+      },
+      include:{ticket_time: true}
+    })
+    return tickets
+  }
 }

@@ -31,7 +31,7 @@ export default function RootLayout({
 }>) {
   const ticketTypes = use(getCrcTicketTypes());
   const fatherTypes = ticketTypes.filter((el) => el.id == el.id_father)
-  const childTypes = ticketTypes
+  const childTypes = ticketTypes.filter((el) => el.id != el.id_father)
 
   return (
     <html lang="en">

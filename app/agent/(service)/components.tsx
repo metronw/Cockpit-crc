@@ -459,25 +459,31 @@ export const IssueSelector = ({ id }: { id: string }) => {
       >
         {fatherTypes.map((item: { id: number, label: string }) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
       </Autocomplete>
-      <Autocomplete
-        variant={'bordered'}
-        aria-label={'Selecione o sub problema'}
-        isRequired
-        label=""
-        // defaultItems={ticketTypeContext[issue]}
-        placeholder={'Selecione o problema específico'}
-        defaultSelectedKey=""
-        // @ts-expect-error: library has wrong type
-        onSelectionChange={setChildValue}
-        selectedKey={childValue}
-        className="flex h-11 max-w-xs my-1"
-        classNames={{
-          popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
-          base: 'flex shrink border-primary border rounded-medium'
-        }}
-      >
-        {filteredChildTypes.map((item: { id: number, label: string }) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
-      </Autocomplete>
+      {
+        filteredChildTypes.length > 0 
+          ?
+          <Autocomplete
+            variant={'bordered'}
+            aria-label={'Selecione o sub problema'}
+            isRequired
+            label=""
+            // defaultItems={ticketTypeContext[issue]}
+            placeholder={'Selecione o problema específico'}
+            defaultSelectedKey=""
+            // @ts-expect-error: library has wrong type
+            onSelectionChange={setChildValue}
+            selectedKey={childValue}
+            className="flex h-11 max-w-xs my-1"
+            classNames={{
+              popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
+              base: 'flex shrink border-primary border rounded-medium'
+            }}
+          >
+            {filteredChildTypes.map((item: { id: number, label: string }) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+          </Autocomplete>
+        :
+          null
+      }
     </div>
   );
 }

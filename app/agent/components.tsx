@@ -11,6 +11,7 @@ import { signOut, useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import useSWR from 'swr';
 import { Company } from '@prisma/client'
+import { Modal as SimpleModal } from "@nextui-org/react";
 
 const fetchPauseStatus = async (url: string) => {
   try {
@@ -62,6 +63,14 @@ export const AgentHeader = ({ id }: { id?: number }) => {
   const isLoggedIn = !(pauseData?.error === 'Interface não encontrada em nenhuma fila');
 
   const [currentPauseReason, setCurrentPauseReason] = useState<string | null>(null);
+  const [isSimpleModalOpen, setSimpleModalOpen] = useState(false);
+  const [simpleModalMessage, setSimpleModalMessage] = useState("");
+  const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
+
+  const showSimpleModal = (message: string) => {
+    setSimpleModalMessage(message);
+    setSimpleModalOpen(true);
+  };
 
   let statusColor = 'red';
   if (pauseError) {
@@ -73,6 +82,10 @@ export const AgentHeader = ({ id }: { id?: number }) => {
   }
 
   const handlePause = async (reason: string) => {
+    if (reason === 'Treinamento' || reason === 'Feedback') {
+      showSimpleModal("Solicite ao monitor");
+      return;
+    }
     try {
       const response = await fetch('/api/phone/user', {
         method: 'GET',
@@ -175,6 +188,14 @@ export const AgentHeader = ({ id }: { id?: number }) => {
     }
   };
 
+  const handleSignOut = async () => {
+    if (isLoggedIn) {
+      setLogoutModalOpen(true);
+    } else {
+      signOut();
+    }
+  };
+
   return (
     <div className='grid grid-cols-12'>
       <div className='flex flex-row gap-4 col-span-3 pl-4'>
@@ -213,7 +234,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
             </Button>
         )}
       </div>
-      <Button isIconOnly color="primary" aria-label="logout" onPress={() => signOut()}>
+      <Button isIconOnly color="primary" aria-label="logout" onPress={handleSignOut}>
         <ArrowRightStartOnRectangleIcon className="col-span-1 h-10 " />
       </Button>
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -254,14 +275,14 @@ export const AgentHeader = ({ id }: { id?: number }) => {
                         <Button
                           color="primary"
                           className='text-lg'
-                          onPress={() => handlePause('Treinamento')}
+                          onPress={() => showSimpleModal('Solicite ao monitor')}
                         >
                           Treinamento
                         </Button>
                         <Button
                           color="primary"
                           className='text-lg'
-                          onPress={() => handlePause('Feedback')}
+                          onPress={() => showSimpleModal('Solicite ao monitor')}
                         >
                           Feedback
                         </Button>
@@ -291,6 +312,35 @@ export const AgentHeader = ({ id }: { id?: number }) => {
               </ModalFooter>
             </>
           )}
+        </ModalContent>
+      </Modal>
+      <SimpleModal isOpen={isSimpleModalOpen} onOpenChange={setSimpleModalOpen}>
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1 text-black">Aviso</ModalHeader>
+          <ModalBody>
+            <p className='text-black'>{simpleModalMessage}</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onPress={() => setSimpleModalOpen(false)}>
+              Ok
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </SimpleModal>
+      <Modal isOpen={isLogoutModalOpen} onOpenChange={setLogoutModalOpen}>
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1 text-black">Aviso</ModalHeader>
+          <ModalBody>
+            <p className='text-black'>Você ainda está logado na telefonia. A saída da plataforma não desloga da telefonia, e sua indisponibilidade está sendo monitorada. Deseja continuar?</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" variant="light" onPress={() => setLogoutModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button color="danger" onPress={() => signOut()}>
+              Confirmar
+            </Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </div>

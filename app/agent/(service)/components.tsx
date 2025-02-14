@@ -3,10 +3,10 @@
 import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Textarea } from "@nextui-org/react";
 import Link from 'next/link'
 import { ITicketContextData, IProcedureItemResponse, useTicketContext, parsePageInfo } from "@/app/agent/providers"
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, ChangeEvent } from 'react'
 import { Input } from "@nextui-org/react"
 import { createMetroTicket } from '@/app/actions/api'
-import {  findOrCreateTicketTime, updateTicket } from "@/app/actions/ticket";
+import { findOrCreateTicketTime, updateTicket } from "@/app/actions/ticket";
 import { usePathname, useRouter } from 'next/navigation'
 import { IProcedureItem, getProcedure } from "@/app/actions/procedures";
 import { useSession } from "next-auth/react";
@@ -67,7 +67,7 @@ export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = 
   }, [debouncedValue, id, fieldName])
 
   return (
-    <div className="flex flex-col rounded m-1">
+    <div className="flex flex-col rounded m-1 px-2 my-1 py-1">
       {
         !isLarge ?
           <Input
@@ -76,27 +76,27 @@ export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = 
             label={label}
             color={'primary'}
             classNames={{
-              base: `h-18 w-80 ml-4 `,
-              inputWrapper: `bg-white justify-start w-76 border border-primary rounded-medium`,
+              base: `h-18 w-full ml-4 `,
+              inputWrapper: `bg-white justify-start w-full border border-primary rounded-medium`,
             }}
             value={value}
             onValueChange={setValue}
             isRequired={isRequired}
           />
-        :
-        <Textarea
-          type="text"
-          maxLength={800}
-          label={label}
-          color={'primary'}
-          classNames={{
-            base: `h-18 w-144 ml-4 `,
-            inputWrapper: `bg-white justify-start w-76 border border-primary rounded-medium`,
-          }}
-          value={value}
-          onValueChange={setValue}
-          isRequired={isRequired}
-        />
+          :
+          <Textarea
+            type="text"
+            maxLength={800}
+            label={label}
+            color={'primary'}
+            classNames={{
+              base: `h-18 w-full ml-4 `,
+              inputWrapper: `bg-white justify-start w-full border border-primary rounded-medium`,
+            }}
+            value={value}
+            onValueChange={setValue}
+            isRequired={isRequired}
+          />
       }
     </div>
   )
@@ -149,7 +149,7 @@ export function BooleanInput({ id, fieldName, label }: { id: string, fieldName: 
   )
 }
 
-export const ProcedureTextInput = ({ label, Modal, id = 0, isLarge=false }: { isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number, isLarge?:boolean }) => {
+export const ProcedureTextInput = ({ label, Modal, id = 0, isLarge = false }: { isInteractive?: boolean, label: string, Modal: React.ReactElement, id: number, isLarge?: boolean }) => {
 
   const [value, setValue] = useState<string>('')
   const [response, setResponse] = useState<string>('')
@@ -199,29 +199,30 @@ export const ProcedureTextInput = ({ label, Modal, id = 0, isLarge=false }: { is
         {Modal}
         {
           isLarge ?
-          <Input
-            type="text"
-            label={label}
-            color={'primary'}
-            classNames={{ base: `w-144 h-16 ml-4 border border-primary rounded-medium`, 
-              inputWrapper: `bg-white justify-start w-144 h-16`, input: `w-144 h-16 ` 
-            }}
-            value={value}
-            onValueChange={setValue}
-          />
-          :
-          <Textarea
-            type="text"
-            maxLength={500}
-            label={label}
-            color={'primary'}
-            classNames={{
-              base: `h-18 w-144 ml-4 `,
-              inputWrapper: `bg-white justify-start w-76 border border-primary rounded-medium`,
-            }}
-            value={value}
-            onValueChange={setValue}
-        />
+            <Input
+              type="text"
+              label={label}
+              color={'primary'}
+              classNames={{
+                base: `w-144 h-16 ml-4 border border-primary rounded-medium`,
+                inputWrapper: `bg-white justify-start w-144 h-16`, input: `w-144 h-16 `
+              }}
+              value={value}
+              onValueChange={setValue}
+            />
+            :
+            <Textarea
+              type="text"
+              maxLength={500}
+              label={label}
+              color={'primary'}
+              classNames={{
+                base: `h-18 w-144 ml-4 `,
+                inputWrapper: `bg-white justify-start w-76 border border-primary rounded-medium`,
+              }}
+              value={value}
+              onValueChange={setValue}
+            />
         }
 
       </div>
@@ -397,13 +398,13 @@ export const ServiceNavBar = () => {
 }
 
 interface IssueSelectorItem {
-  id: number, 
+  id: number,
   label: string
 }
 
 export const IssueSelector = ({ id }: { id: string }) => {
 
-  const {fatherTypes, childTypes} = useTicketTypeContext()
+  const { fatherTypes, childTypes } = useTicketTypeContext()
   const [filteredChildTypes, setFilteredChildTypes] = useState<IssueSelectorItem[]>([])
   const { ticketContext, setTicketContext, isMounted } = useTicketContext()
   const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
@@ -414,25 +415,26 @@ export const IssueSelector = ({ id }: { id: string }) => {
     if (isMounted) {
       const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
       if (ticket) {
-        setFatherValue(childTypes?.find(el => el.id == ticket.type)?.id_father+'')
+        setFatherValue(childTypes?.find(el => el.id == ticket.type)?.id_father + '')
         setChildValue(ticket.type ? ticket.type + `` : `0`)
       }
     }
   }, [isMounted])
 
-  useEffect(()=>{
-    const childs= childTypes.filter(el => el.id_father == parseInt(fatherValue))
+  useEffect(() => {
+    const childs = childTypes.filter(el => el.id_father == parseInt(fatherValue))
     setFilteredChildTypes(childs)
-    if(!childs.find(el => el.id+'' == childValue)){
-      setChildValue(fatherValue)    
+    if (!childs.find(el => el.id + '' == childValue)) {
+      setChildValue(fatherValue)
     }
   }, [fatherValue])
 
 
   useEffect(() => {
     if (isMounted) {
-      const newContext = { ...ticketContext, tickets: ticketContext.tickets.map(el => 
-        el.id == parseInt(id) ? { ...el, type: parseInt(childValue) } : el) 
+      const newContext = {
+        ...ticketContext, tickets: ticketContext.tickets.map(el =>
+          el.id == parseInt(id) ? { ...el, type: parseInt(childValue) } : el)
       }
       setTicketContext(newContext)
     }
@@ -492,9 +494,9 @@ export const FinishButton = () => {
   const path = usePathname();
   const { ticket } = parsePageInfo(path, ticketContext);
   const router = useRouter();
-  const [enabled, setEnabled ]= useState(true)
-  const [finishType, setFinishType ]= useState(true)
-  const [isFinished, setIsFinished ]= useState(false)
+  const [enabled, setEnabled] = useState(true)
+  const [finishType, setFinishType] = useState(true)
+  const [isFinished, setIsFinished] = useState(false)
 
 
   const finishAction = useCallback(async (isSolved: boolean) => {
@@ -505,15 +507,15 @@ export const FinishButton = () => {
           return true;
         } catch (err) {
           if (err instanceof z.ZodError) {
-        err.errors.forEach(error => {
-          if (error.message.includes("Expected")) {
-            console.log(error);
-            toast.error(`Preencha ${translateFinishFieldName(String(error.path[0]))} corretamente`);
-            return;
-          }
-          toast.error(error.message);
-        });
-        console.error(err.errors.map(el => ({ message: el.message, item: el.path[0] })));
+            err.errors.forEach(error => {
+              if (error.message.includes("Expected")) {
+                console.log(error);
+                toast.error(`Preencha ${translateFinishFieldName(String(error.path[0]))} corretamente`);
+                return;
+              }
+              toast.error(error.message);
+            });
+            console.error(err.errors.map(el => ({ message: el.message, item: el.path[0] })));
           }
         }
         return false;
@@ -545,18 +547,18 @@ export const FinishButton = () => {
     } catch (err) {
       console.error("Erro ao finalizar o ticket:", err);
       setEnabled(true)
-    } 
-    
+    }
+
   }, [JSON.stringify(ticket), enabled]);
 
-  useEffect(()=>{
-    if(isFinished){
+  useEffect(() => {
+    if (isFinished) {
       router.push('/agent/' + ticket?.user_id);
     }
   }, [isFinished])
 
   useEffect(() => {
-    if(!enabled){
+    if (!enabled) {
       finishAction(finishType)
     }
   }, [enabled])
@@ -564,7 +566,7 @@ export const FinishButton = () => {
   const onFinishClick = (type: boolean) => {
     setEnabled(false)
     setFinishType(type)
-  } 
+  }
 
   return (
     <div className="flex space-x-4">
@@ -605,21 +607,21 @@ export const TicketSummary = () => {
         <ClipboardIcon className="h-6 w-6 text-white" />
       </button>
       <div id="ticket-summary" className="break-words text-wrap w-full flex flex-col">
-      <span>Empresa: {company?.fantasy_name}{ticket?.isRecall == true ? " RECHAMADO" : ""} </span>
-      <span>Nome de Assinante: {ticket?.client_name}</span>
-      <span>Tipo de atendimento: {ticket?.communication_type == `phone` ? 'Telefônico' : 'Chat'}</span>
-      <span>Nome do solicitante: {ticket?.caller_name}</span>
-      <span>Endereço: {ticket?.address}</span>
-      <span>Problema alegado: {ticket?.subject}</span>
-      {ticket?.procedures && <span>Procedimentos realizados:</span>}
-      <div className="flex flex-col">
-        {formatProcedures(ticket?.procedures ?? "")}
-      </div>
-      <span>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</span>
-      <span>Telefone: {ticket?.caller_number ? formatPhoneNumber(ticket.caller_number) : ''}</span>
-      <span>Protocolo ERP: {ticket?.erpProtocol}</span>
-      {ticket?.communication_type === 'chat' && <span>Protocolo Chat: {ticket.communication_id}</span>}
-      <span>Atendente: {session?.data?.user.name}</span>
+        <span>Empresa: {company?.fantasy_name}{ticket?.isRecall == true ? " RECHAMADO" : ""} </span>
+        <span>Nome de Assinante: {ticket?.client_name}</span>
+        <span>Tipo de atendimento: {ticket?.communication_type == `phone` ? 'Telefônico' : 'Chat'}</span>
+        <span>Nome do solicitante: {ticket?.caller_name}</span>
+        <span>Endereço: {ticket?.address}</span>
+        <span>Problema alegado: {ticket?.subject}</span>
+        {ticket?.procedures && <span>Procedimentos realizados:</span>}
+        <div className="flex flex-col">
+          {formatProcedures(ticket?.procedures ?? "")}
+        </div>
+        <span>Data/Horário: {(new Date(ticket?.createdAt ?? '')).toLocaleString()}</span>
+        <span>Telefone: {ticket?.caller_number ? formatPhoneNumber(ticket.caller_number) : ''}</span>
+        <span>Protocolo ERP: {ticket?.erpProtocol}</span>
+        {ticket?.communication_type === 'chat' && <span>Protocolo Chat: {ticket.communication_id}</span>}
+        <span>Atendente: {session?.data?.user.name}</span>
       </div>
     </Card>
   );
@@ -640,7 +642,7 @@ const copyToClipboard = () => {
 export const Procedures = () => {
   const { ticketContext } = useTicketContext()
   const [procedures, setProcedures] = useState<Array<IProcedureItem> | null>(null)
-  const {childTypes} = useTicketTypeContext()
+  const { childTypes } = useTicketTypeContext()
 
   const path = usePathname()
   const { ticket } = parsePageInfo(path, ticketContext)
@@ -725,16 +727,16 @@ export const NavigateTicket = ({ direction, route }: { direction: string, route:
   const { ticket } = parsePageInfo(path, ticketContext)
 
   const onClick = () => {
-    if(ticket){
+    if (ticket) {
       if (direction == `forwards`) {
         const isValid = validateTriageForm(ticket)
         if (!isValid) {
           return
         }
       }
-  
-      const nextStatus:Ticket_status = route.split('/')[2].includes(status as Ticket_status) ? route.split('/')[2] as Ticket_status : 'triage' as Ticket_status
-      updateTicket({...ticket, status: nextStatus})
+
+      const nextStatus: Ticket_status = route.split('/')[2].includes(status as Ticket_status) ? route.split('/')[2] as Ticket_status : 'triage' as Ticket_status
+      updateTicket({ ...ticket, status: nextStatus })
       router.push(route)
     }
   }
@@ -755,7 +757,7 @@ export const NavigateTicket = ({ direction, route }: { direction: string, route:
   )
 }
 
-export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: keyof ITicketContextData['tickets'][0]; label: string }) { 
+export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: keyof ITicketContextData['tickets'][0]; label: string }) {
   const { ticketContext, setTicketContext, isMounted } = useTicketContext();
   const [maskedValue, setMaskedValue] = useState('');
 
@@ -779,7 +781,7 @@ export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: ke
 
   const handleChange = (val: string) => {
     const onlyDigits = val.replace(/\D/g, '');
-    const localDigits = onlyDigits.length > 11 ? onlyDigits.slice(0,11) : onlyDigits;
+    const localDigits = onlyDigits.length > 11 ? onlyDigits.slice(0, 11) : onlyDigits;
     setMaskedValue(formatPhone(localDigits));
     setTicketContext((prev) => {
       const updatedTickets = prev.tickets.map((t) =>
@@ -789,7 +791,7 @@ export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: ke
     });
   };
 
-  
+
   return (
     <div className="flex flex-col m-1 gap-1">
       <Input
@@ -810,46 +812,47 @@ export function PhoneInput({ id, fieldName, label }: { id: string; fieldName: ke
 }
 
 const formatTime = (time: number) => {
-  return `${time/60 < 9 ? '0' + Math.floor(time/60): Math.floor(time/60)}:${time%60 < 10 ? '0'+time%60 : time%60}`
+  return `${time / 60 < 9 ? '0' + Math.floor(time / 60) : Math.floor(time / 60)}:${time % 60 < 10 ? '0' + time % 60 : time % 60}`
 }
 
-const Timer = () =>{ 
-  
+const Timer = () => {
+
   const path = usePathname()
-  const {ticketContext, setTicketContext, isMounted} = useTicketContext()
+  const { ticketContext, setTicketContext, isMounted } = useTicketContext()
   const { ticket } = parsePageInfo(path, ticketContext)
-  const currentStatus:Ticket_status = path.split('/')[2] as Ticket_status  ?? 'triage' as Ticket_status
+  const currentStatus: Ticket_status = path.split('/')[2] as Ticket_status ?? 'triage' as Ticket_status
   const [time, setTime] = useState<number>(0)
   const [tick, setTick] = useState(false)
-  
-  const updateTimerContext = useCallback(() => { 
-    if(ticket){
-      const newTicket = {...ticket, ticket_time: ticket.ticket_time ? ticket.ticket_time : []}
+
+  const updateTimerContext = useCallback(() => {
+    if (ticket) {
+      const newTicket = { ...ticket, ticket_time: ticket.ticket_time ? ticket.ticket_time : [] }
       let isFound = false
-      for(let i=0; i<=ticket.ticket_time?.length; i++){
-        if(!isFound && i == ticket.ticket_time.length ){
-          newTicket.ticket_time.push({ticket_id: ticket.id, ticket_status: currentStatus, time})
+      for (let i = 0; i <= ticket.ticket_time?.length; i++) {
+        if (!isFound && i == ticket.ticket_time.length) {
+          newTicket.ticket_time.push({ ticket_id: ticket.id, ticket_status: currentStatus, time })
           break
         }
-        if(newTicket.ticket_time[i]?.ticket_status == currentStatus){
+        if (newTicket.ticket_time[i]?.ticket_status == currentStatus) {
           isFound = true
-          newTicket.ticket_time[i] = {...newTicket.ticket_time[i], time}
+          newTicket.ticket_time[i] = { ...newTicket.ticket_time[i], time }
         }
       }
-      
-      setTicketContext({...ticketContext, tickets: ticketContext.tickets.map(el => 
+
+      setTicketContext({
+        ...ticketContext, tickets: ticketContext.tickets.map(el =>
           el.id != ticket?.id ? el : newTicket)
       })
-    } 
-  },[time, ticketContext, ticket, currentStatus])
+    }
+  }, [time, ticketContext, ticket, currentStatus])
 
   useEffect(() => {
     const timer = ticket?.ticket_time?.find(el => el.ticket_status == currentStatus)
-    
-    if(timer){
+
+    if (timer) {
       setTime(timer.time)
-    }else{
-      findOrCreateTicketTime(ticket?.id ?? 0, currentStatus).then(el=>{
+    } else {
+      findOrCreateTicketTime(ticket?.id ?? 0, currentStatus).then(el => {
         setTime(el.time)
       })
     }
@@ -861,20 +864,195 @@ const Timer = () =>{
     };
   }, [isMounted, path])
 
-  useEffect(()=>{
-    if(tick){
-      setTime(time+1)
-      updateTimerContext()      
+  useEffect(() => {
+    if (tick) {
+      setTime(time + 1)
+      updateTimerContext()
       setTick(false)
     }
   }, [tick])
 
 
-  return(
-  <div className="flex flex-col">
-    <p className="text-primary text-center">Interação na etapa</p>
-    <p className="text-primary text-center">{formatTime(time)}</p>
-  </div>
+  return (
+    <div className="flex flex-col">
+      <p className="text-primary text-center">Interação na etapa</p>
+      <p className="text-primary text-center">{formatTime(time)}</p>
+    </div>
 
   )
 }
+
+// Funções auxiliares de formatação/validação
+function formatCPF(value: string): string {
+  return value
+    .replace(/\D/g, '')
+    .slice(0, 11)
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+function formatCNPJ(value: string): string {
+  return value
+    .replace(/\D/g, '')
+    .slice(0, 14)
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,4})/, '$1/$2')
+    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
+function isValidCPF(value: string): boolean {
+  const cpf = value.replace(/\D/g, '');
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(cpf[i]) * (10 - i);
+  }
+  let firstCheck = 11 - (sum % 11);
+  if (firstCheck >= 10) firstCheck = 0;
+  if (firstCheck !== parseInt(cpf[9])) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(cpf[i]) * (11 - i);
+  }
+  let secondCheck = 11 - (sum % 11);
+  if (secondCheck >= 10) secondCheck = 0;
+  return secondCheck === parseInt(cpf[10]);
+}
+
+function isValidCNPJ(value: string): boolean {
+  const cnpj = value.replace(/\D/g, '');
+  if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
+
+  const weightFirst = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    sum += parseInt(cnpj[i]) * weightFirst[i];
+  }
+  let firstCheck = sum % 11;
+  firstCheck = firstCheck < 2 ? 0 : 11 - firstCheck;
+  if (firstCheck !== parseInt(cnpj[12])) return false;
+
+  const weightSecond = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  sum = 0;
+  for (let i = 0; i < 13; i++) {
+    sum += parseInt(cnpj[i]) * weightSecond[i];
+  }
+  let secondCheck = sum % 11;
+  secondCheck = secondCheck < 2 ? 0 : 11 - secondCheck;
+  return secondCheck === parseInt(cnpj[13]);
+}
+
+export function DocumentInput({ id, fieldName, label, isRequired }: { id: string; fieldName: string; label: string; isRequired: boolean; }) {
+  const [docType, setDocType] = useState<'cpf' | 'cnpj' | 'customerCode'>('cpf');
+  const [docValue, setDocValue] = useState('');
+  const [error, setError] = useState('');
+  const [isValid, setIsValid] = useState(true);
+  const { ticketContext, setTicketContext, isMounted } = useTicketContext();
+  const [isCtxLoaded, setIsCtxLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isCtxLoaded && isMounted) {
+      const ticket = ticketContext.tickets.find(el => el.id == parseInt(id));
+      const initialValue = ticket ? (ticket as any)[fieldName] ?? '' : '';
+      if (initialValue.length > 11) {
+        setDocType('cnpj');
+        const formattedValue = formatCNPJ(initialValue);
+        setDocValue(formattedValue);
+        setIsValid(isValidCNPJ(formattedValue));
+        if (!isValidCNPJ(formattedValue)) setError('CNPJ inválido');
+      } else {
+        setDocType('cpf');
+        const formattedValue = formatCPF(initialValue);
+        setDocValue(formattedValue);
+        setIsValid(isValidCPF(formattedValue));
+        if (!isValidCPF(formattedValue)) setError('CPF inválido');
+      }
+      setIsCtxLoaded(true);
+    }
+  }, [JSON.stringify(ticketContext.tickets), fieldName, id, isCtxLoaded, isMounted]);
+
+  const onTypeChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const newType = e.target.value as 'cpf' | 'cnpj' | 'customerCode';
+    setError('');
+    setIsValid(true);
+    setDocType(newType);
+  };
+
+  const onValueChange = (val: string) => {
+    let formatted = val;
+    setIsValid(true);
+    setError('');
+
+    if (docType === 'cpf') {
+      formatted = val.replace(/\D/g, '');
+      formatted = formatCPF(formatted);
+      if (formatted.length === 14) {
+        setIsValid(isValidCPF(formatted));
+        if (!isValidCPF(formatted)) setError('CPF inválido');
+      }
+    } else if (docType === 'cnpj') {
+      formatted = val.replace(/\D/g, '');
+      formatted = formatCNPJ(formatted);
+      if (formatted.length === 18) {
+        setIsValid(isValidCNPJ(formatted));
+        if (!isValidCNPJ(formatted)) setError('CNPJ inválido');
+      }
+    }
+
+    setDocValue(formatted);
+    // Atualize o contexto com o valor bruto (apenas números para CPF/CNPJ)
+    setTicketContext((prev) => {
+      const updatedTickets = prev.tickets.map((t) =>
+        t.id === parseInt(id) ? { ...t, [fieldName]: docType === 'customerCode' ? formatted : formatted.replace(/\D/g, '') } : t
+      );
+      return { ...prev, tickets: updatedTickets };
+    });
+  };
+
+  return (
+    <div className="flex flex-col rounded m-1 px-2 my-1 py-1">
+      <div color={'primary'} className={`flex items-center border border-primary rounded-medium focus-within:ring-1 focus-within:ring-primary`}>
+        <select
+          value={docType}
+          onChange={onTypeChange}
+          className={`text-sm h-18 bg-white focus:outline-none w-2/5 px-2 rounded-l-medium whitespace-normal`}
+          title="Selecione o tipo de documento"
+        >
+          <option value="cpf">CPF</option>
+          <option value="cnpj">CNPJ</option>
+          <option value="customerCode">Código do Cliente</option>
+        </select>
+
+        <Input
+          value={docValue}
+          onValueChange={onValueChange}
+          label={label}
+          isRequired={isRequired}
+          color={'primary'}
+          classNames={{
+            base: `w-full h-18`,
+            inputWrapper: "text-sm bg-white border-none rounded-none rounded-r-medium",
+            input: "px-2",
+            label: "text-foreground-700"
+          }}
+          placeholder={'Insira o documento'}
+        />
+      </div>
+      <div className="text-xs mt-1 ml-2 h-18 flex items-center">
+        {docType !== 'customerCode' && docValue.length >= (docType === 'cpf' ? 14 : 18) ? (
+          <span className={isValid ? 'text-success' : 'text-danger'}>
+            {isValid ? 'Documento válido' : 'Documento inválido'}
+          </span>
+        ) : (
+          <span>&nbsp;</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+

@@ -29,11 +29,22 @@ const fetchPauseStatus = async (url: string) => {
   }
 };
 
-export const PerformanceChart = () => {
-  const data = [{ name: 'Dia 1', uv: 400, pv: 2400, amt: 2400 }, { name: 'Dia 2', uv: 200, pv: 3000, amt: 2400 }, { name: 'Dia 3', uv: 700, pv: 3000, amt: 2400 }];
+export const PerformanceChart = ({tickets}:{tickets: TicketWithTime[]}) => {
+
+  const now = new Date()
+
+  const days = Array.from(Array(now.getDate()).keys()).map(() => [] as number[])
+
+  tickets.forEach((el) => {
+    const tickDate = el.createdAt.getDate()
+    days[tickDate-1]?.push(el.id)
+  })
+  const data = days.map((el, index) => ({name: index+1+'', atendimentos:el.length}))
+
+  // const data = [{ name: 'Dia 1', atendimentos: 20}, { name: 'Dia 2', atendimentos: 20, amt: 2000}, { name: 'Dia 3', atendimentos: 20, amt: 2000}];
   return (
-    <BarChart width={600} height={300} data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-      <Bar dataKey="uv" stroke="#8884d8" />
+    <BarChart width={800} height={300} data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+      <Bar dataKey="atendimentos" stroke="#8884d8" fill="#235AB4" />
       <XAxis dataKey="name" />
       <YAxis />
       <Tooltip />
@@ -344,7 +355,7 @@ export const Sidebar = () => {
   }
 
   const closeTicket = async (ticket: TicketWithTime) => {
-    const newTicket: TicketWithTime = { ...ticket, status: `closed` }
+    const newTicket: TicketWithTime = { ...ticket, status: "deleted" }
     try {
       await updateTicket( newTicket )
       toast.success(`ticket id:${ticket.id} foi fechado`)

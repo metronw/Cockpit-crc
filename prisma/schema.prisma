@@ -12,6 +12,7 @@ enum Ticket_status {
   procedure
   finish
   closed
+  deleted
 }
 
 model Ticket {

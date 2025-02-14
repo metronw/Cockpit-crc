@@ -955,7 +955,6 @@ function isValidCNPJ(value: string): boolean {
 export function DocumentInput({ id, fieldName, label, isRequired }: { id: string; fieldName: string; label: string; isRequired: boolean; }) {
   const [docType, setDocType] = useState<'cpf' | 'cnpj' | 'customerCode'>('cpf');
   const [docValue, setDocValue] = useState('');
-  const [error, setError] = useState('');
   const [isValid, setIsValid] = useState(true);
   const { ticketContext, setTicketContext, isMounted } = useTicketContext();
   const [isCtxLoaded, setIsCtxLoaded] = useState<boolean>(false);
@@ -963,19 +962,23 @@ export function DocumentInput({ id, fieldName, label, isRequired }: { id: string
   useEffect(() => {
     if (!isCtxLoaded && isMounted) {
       const ticket = ticketContext.tickets.find(el => el.id == parseInt(id));
-      const initialValue = ticket ? (ticket as any)[fieldName] ?? '' : '';
+      const initialValue = ticket ? (ticket as unknown as Record<string, string>)[fieldName] ?? '' : '';
       if (initialValue.length > 11) {
         setDocType('cnpj');
         const formattedValue = formatCNPJ(initialValue);
         setDocValue(formattedValue);
         setIsValid(isValidCNPJ(formattedValue));
-        if (!isValidCNPJ(formattedValue)) setError('CNPJ inválido');
+        if (!isValidCNPJ(formattedValue)) {
+          // Handle invalid CNPJ case here
+        }
       } else {
         setDocType('cpf');
         const formattedValue = formatCPF(initialValue);
         setDocValue(formattedValue);
         setIsValid(isValidCPF(formattedValue));
-        if (!isValidCPF(formattedValue)) setError('CPF inválido');
+        if (!isValidCPF(formattedValue)) {
+          // Handle invalid CPF case here
+        }
       }
       setIsCtxLoaded(true);
     }
@@ -983,7 +986,6 @@ export function DocumentInput({ id, fieldName, label, isRequired }: { id: string
 
   const onTypeChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const newType = e.target.value as 'cpf' | 'cnpj' | 'customerCode';
-    setError('');
     setIsValid(true);
     setDocType(newType);
   };
@@ -991,21 +993,18 @@ export function DocumentInput({ id, fieldName, label, isRequired }: { id: string
   const onValueChange = (val: string) => {
     let formatted = val;
     setIsValid(true);
-    setError('');
 
     if (docType === 'cpf') {
       formatted = val.replace(/\D/g, '');
       formatted = formatCPF(formatted);
       if (formatted.length === 14) {
         setIsValid(isValidCPF(formatted));
-        if (!isValidCPF(formatted)) setError('CPF inválido');
       }
     } else if (docType === 'cnpj') {
       formatted = val.replace(/\D/g, '');
       formatted = formatCNPJ(formatted);
       if (formatted.length === 18) {
         setIsValid(isValidCNPJ(formatted));
-        if (!isValidCNPJ(formatted)) setError('CNPJ inválido');
       }
     }
 

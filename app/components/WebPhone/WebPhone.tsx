@@ -63,6 +63,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   const [transferNumber, setTransferNumber] = useState('');
   const [showTransferInput, setShowTransferInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [sipStatus, setSipStatus] = useState('Disconnected');
 
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -100,10 +101,27 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
 
     uaRef.current.on('connected', () => {
       console.log('Conectado ao servidor SIP');
+      setSipStatus('Connected');
+    });
+
+    uaRef.current.on('disconnected', () => {
+      console.log('Desconectado do servidor SIP');
+      setSipStatus('Disconnected');
     });
 
     uaRef.current.on('registrationFailed', (e) => {
       console.error('Falha no registro:', e.cause);
+      setSipStatus('Registration Failed');
+    });
+
+    uaRef.current.on('registered', () => {
+      console.log('Registrado no servidor SIP');
+      setSipStatus('Registered');
+    });
+
+    uaRef.current.on('unregistered', () => {
+      console.log('Não registrado no servidor SIP');
+      setSipStatus('Unregistered');
     });
 
     // @ts-expect-error: fix later
@@ -458,6 +476,9 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
           <h3 className="webphone-header">WebPhone
             <span>{userData?.sip_extension}</span>
           </h3>
+          <div className="sip-status">
+            <strong>SIP Status:</strong> {sipStatus}
+          </div>
           {callStatus !== 'Connected' && (
             <div className="webphone-flex">
               <label className="webphone-label" hidden>

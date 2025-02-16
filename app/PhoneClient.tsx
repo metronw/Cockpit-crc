@@ -30,53 +30,53 @@ export default function PhoneClient() {
   return (
     <div
       style={{
-        position: "fixed",
-        bottom: "20px",
-        right: "20px",
-        zIndex: 999,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-end",
+      position: "fixed",
+      bottom: "20px",
+      right: "20px",
+      zIndex: 999,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-end",
       }}
     >
       <button
-        onClick={() => setShowPhone(!showPhone)}
-        style={{
-          backgroundColor: showPhone ? "#f44336" : "#4caf50",
-          color: "white",
-          borderRadius: "50%",
-          width: "50px",
-          height: "50px",
-          border: "none",
-          cursor: "pointer",
-          display: 'block'
-        }}
+      onClick={() => setShowPhone(!showPhone)}
+      style={{
+        backgroundColor: showPhone ? "orange" : "#4caf50",
+        color: "white",
+        borderRadius: "50%",
+        width: "50px",
+        height: "50px",
+        border: "none",
+        cursor: "pointer",
+        display: 'block'
+      }}
       >
-        {showPhone ? "X" : "☎"}
+      {showPhone ? "_" : "☎"}
       </button>
       {callStatus === 'Incoming Call' && (
-        <button
-          onClick={() => webPhoneRef.current?.handleAnswerCall()}
-          style={{
-            backgroundColor: "#4caf50",
-            color: "white",
-            borderRadius: "5px",
-            padding: "5px 10px",
-            marginTop: "8px",
-            cursor: "pointer",
-          }}
-          hidden
-        >
-          Atender
-        </button>
+      <button
+        onClick={() => webPhoneRef.current?.handleAnswerCall()}
+        style={{
+        backgroundColor: "#4caf50",
+        color: "white",
+        borderRadius: "5px",
+        padding: "5px 10px",
+        marginTop: "8px",
+        cursor: "pointer",
+        }}
+        hidden
+      >
+        Atender
+      </button>
       )}
       <div
-        style={{
-          marginTop: "8px",
-          display: showPhone ? "block" : "none",
-        }}
+      style={{
+        marginTop: "8px",
+        display: showPhone ? "block" : "none",
+      }}
       >
-        <WebPhone ref={webPhoneRef} onCallStatusChange={setCallStatus} />
+      <WebPhone ref={webPhoneRef} onCallStatusChange={setCallStatus} />
       </div>
     </div>
   );

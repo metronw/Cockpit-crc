@@ -132,6 +132,7 @@ export async function createMetroTicket(ticketInfo: TicketWithTime | undefined, 
 
         if (result) {
           const res = JSON.parse(JSON.stringify(result))
+          idGestor = res.insertId; // Definir idGestor antes de usá-lo
 
           const message =
             `
@@ -155,10 +156,9 @@ export async function createMetroTicket(ticketInfo: TicketWithTime | undefined, 
             `INSERT INTO ticket_response (id_ticket, response, type, id_user, created_at, updated_at) ` +
             `VALUES (${res.insertId}, '${message}', 'N', ${session?.user.metro_id ?? 312}, NOW(), NOW() )`
           )
-          idGestor = res.insertId;
         }
 
-        await updateTicket({...ticketInfo, status: 'closed' as Ticket_status, idGestor})
+        await updateTicket({...ticketInfo, status: 'closed' as Ticket_status, idGestor}) // Passar idGestor corretamente
 
         return { status: 200, message: 'ticket criado com sucesso' }
 

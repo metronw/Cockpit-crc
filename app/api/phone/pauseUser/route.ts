@@ -68,7 +68,7 @@ export async function POST(request: Request) {
         setTimeout(() => {
           amiClient.off('ami_data', onData);
           reject(new Error('Timeout aguardando QueueStatusComplete'));
-        }, 10000); // 10 segundos
+        }, 30000); // 10 segundos
       });
     };
 
@@ -229,7 +229,7 @@ export async function GET() {
         setTimeout(() => {
           amiClient.off('ami_data', onData);
           reject(new Error('Timeout aguardando QueueStatusComplete'));
-        }, 10000); // 10 segundos
+        }, 30000); // 10 segundos
       });
     };
 

@@ -414,23 +414,28 @@ export const IssueSelector = ({ id }: { id: string }) => {
   useEffect(() => {
     if (isMounted) {
       const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
+      // console.log(ticket?.type)
       if (ticket) {
-        setFatherValue(childTypes?.find(el => el.id == ticket.type)?.id_father + '')
+        setFatherValue([...fatherTypes, ...childTypes]?.find(el => el.id == ticket.type)?.id_father + '')
         setChildValue(ticket.type ? ticket.type + `` : `0`)
       }
     }
   }, [isMounted])
 
   useEffect(() => {
-    const childs = childTypes.filter(el => el.id_father == parseInt(fatherValue))
-    setFilteredChildTypes(childs)
-    if (!childs.find(el => el.id + '' == childValue)) {
-      setChildValue(fatherValue)
+    if(parseInt(fatherValue)){
+      const childs = childTypes.filter(el => el.id_father == parseInt(fatherValue))
+      console.log(childs, childValue, fatherValue)
+      setFilteredChildTypes(childs)
+      
+      if (childs.length == 0) {
+        setChildValue(fatherValue)
+      }
     }
   }, [fatherValue])
 
 
-  useEffect(() => {
+  useEffect(() => { 
     if (isMounted) {
       const newContext = {
         ...ticketContext, tickets: ticketContext.tickets.map(el =>
@@ -542,13 +547,13 @@ export const FinishButton = () => {
 
       const resp = await createMetroTicket(ticket, isSolved);
 
-      if (resp.status === 200 && ticket) {
+      if (resp?.status === 200 && ticket) {
         const newCtx = { ...ticketContext, tickets: ticketContext.tickets.filter(el => el.id !== ticket.id) };
         toast.success('Ticket criado no gestor com sucesso');
         setTicketContext(newCtx);
         setIsFinished(true)
       } else {
-        toast.error(resp.message);
+        toast.error(resp?.message ?? 'erro');
       }
     } catch (err) {
       console.error("Erro ao finalizar o ticket:", err);

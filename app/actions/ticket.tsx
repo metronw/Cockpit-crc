@@ -23,13 +23,13 @@ export async function createTicket({company_id}:{company_id:number}){
 
 export async function updateTicket(ticket: TicketWithTime){
   if(ticket){
-    const {company_id, status, procedures, erpProtocol, address, caller_name, client_name, identity_document, isRecall, communication_id, type, caller_number, ticket_time  } = ticket
+    const {company_id, status, procedures, erpProtocol, address, caller_name, client_name, identity_document, isRecall, communication_id, type, caller_number, ticket_time, idGestor, subject  } = ticket
   
     await prisma.ticket.update({
       where: {
         id: ticket.id
       },
-      data: { company_id, status, procedures, erpProtocol, address, caller_name, client_name, identity_document, isRecall, communication_id, type: type, caller_number  },
+      data: { company_id, status, procedures, erpProtocol, address, caller_name, client_name, identity_document, isRecall, communication_id, type: type, caller_number, idGestor, subject  },
     })
 
     ticket_time.forEach(async (el:Ticket_time) => {

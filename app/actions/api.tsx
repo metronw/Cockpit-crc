@@ -156,9 +156,9 @@ export async function createMetroTicket(ticketInfo: TicketWithTime | undefined, 
             `INSERT INTO ticket_response (id_ticket, response, type, id_user, created_at, updated_at) ` +
             `VALUES (${res.insertId}, '${message}', 'N', ${session?.user.metro_id ?? 312}, NOW(), NOW() )`
           )
-        }
 
-        await updateTicket({...ticketInfo, status: 'closed' as Ticket_status, idGestor}) // Passar idGestor corretamente
+        }
+        await updateTicket({...ticketInfo, status: 'closed' as Ticket_status, idGestor}) 
 
         return { status: 200, message: 'ticket criado com sucesso' }
 

@@ -10,6 +10,7 @@ import { TicketWithTime, getOpenTickets, updateTicket } from './ticket';
 import { IUser } from './userAssign';
 import { Company } from '@prisma/client'
 import { ITicketType } from '../providers';
+import { CompanyWithAssignments } from './company';
 
 export async function getCrcTicketTypes() {
   const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id, ticket_type.id_father FROM ticket_type '
@@ -59,7 +60,7 @@ export async function getCompaniesList() {
 
 
 
-export async function getTicketContext(user_id: number | undefined): Promise<{ companies: Company[], tickets: TicketWithTime[] }> {
+export async function getTicketContext(user_id: number | undefined): Promise<{ companies: CompanyWithAssignments[], tickets: TicketWithTime[] }> {
   if (user_id) {
     
     const companaes = await prisma.company.findMany({

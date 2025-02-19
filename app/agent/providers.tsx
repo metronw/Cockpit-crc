@@ -5,6 +5,7 @@ import { Company } from '@prisma/client'
 import { getTicketContext } from '../actions/api';
 import { useSession } from 'next-auth/react';
 import { TicketWithTime } from '../actions/ticket';
+import { CompanyWithAssignments } from '../actions/company';
 
 // const emptyData= {tickets: [], companies:[]}
 
@@ -27,8 +28,7 @@ export interface IProcedureItemResponse {
 
 export interface ITicketContextData {
   tickets: Array<TicketWithTime>
-  companies: Array<Company>
-  // user_assignments: Array<User_assign>
+  companies: Array<CompanyWithAssignments>
 }
 
 export interface ITicketContext {
@@ -57,7 +57,7 @@ function mergeContext(local:ITicketContextData, server: ITicketContextData){
   return {tickets: mergedTickets, companies:server.companies}
 }
 
-export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext: {companies: Company[], tickets: TicketWithTime[]} }) {
+export function TicketProvider({children, iniContext}: { children: React.ReactNode, iniContext: {companies: CompanyWithAssignments[], tickets: TicketWithTime[]} }) {
 
   const [ticketContext, setTicketContext] = useState<ITicketContextData>(iniContext)
   const [isMounted, setIsMounted] = useState(false)

@@ -371,7 +371,7 @@ export const Sidebar = () => {
   }, [JSON.stringify(ticketContext)])
 
   const refreshList = () => {
-    const list = companies.map<ICompanyList>(el => ({ ...el, tickets: [], User_assign:[] })).sort((a, b) => (a.fantasy_name.toLowerCase() < b.fantasy_name.toLowerCase() ? -1 : 1))
+    const list = companies.map<ICompanyList>(el => ({ ...el, tickets: [] })).sort((a, b) => (a.fantasy_name.toLowerCase() < b.fantasy_name.toLowerCase() ? -1 : 1))
 
     const others: ICompanyList = { id: 0, fantasy_name: 'Outros', threshold_1: null, threshold_2:null, tickets: [],  User_assign:[] }
     list.push(others)
@@ -420,7 +420,7 @@ export const Sidebar = () => {
   const redirectToTicket = (id: number) => {
     router.push('/agent/triage/' + id)
   }
-
+  console.log(ticketList)
   return (
     <div className="bg-primary px-2 py-2 text-primary overflow-auto absolute max-h-full w-full">
       <Accordion isCompact showDivider selectionMode='multiple' itemClasses={{ base: 'bg-zinc-100 my-1' }} >

@@ -111,7 +111,7 @@ export async function GET() {
         setTimeout(() => {
           amiClient.off("ami_data", onData);
           reject(new Error("Timeout aguardando CoreShowChannels"));
-        }, 8000);
+        }, 20000);
       });
     };
 
@@ -269,10 +269,18 @@ export async function GET() {
         .map((log) => log.callid)
     );
 
-    const waitingCalls = interpretedQueueLog.filter((log) =>
-      ["ENTERQUEUE", "RINGNOANSWER"].includes(log.eventType) &&
-      !connectedCallIds.has(log.callid)
+    const ringNoAnswerCallIds = new Set(
+      interpretedQueueLog
+        .filter((log) => log.eventType === "RINGNOANSWER")
+        .map((log) => log.callid)
     );
+
+    const waitingCalls = interpretedQueueLog.filter((log) =>
+      ["ENTERQUEUE"].includes(log.eventType) &&
+      !connectedCallIds.has(log.callid) &&
+      !ringNoAnswerCallIds.has(log.callid)
+    );
+
     const connectedCalls = interpretedQueueLog.filter(
       (log) => log.eventType === "CONNECT"
     );

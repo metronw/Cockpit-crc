@@ -3,6 +3,7 @@ import { TextInput } from "../../components";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { use } from "react";
+import { Snippet } from "@nextui-org/react";
 
 async function nextPage() {
   'use server'
@@ -15,7 +16,8 @@ export default function Triage({ params: { id } }: { params: { id: string } }) {
     <form action={nextPage} className="flex flex-col flex-stretch px-2 pt-2 mt-2 h-full grow justify-around">
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-4 my-1">
-          <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{`Bom dia. Sou ${session?.user.name}, com quem falo?`}</span>
+          <Snippet hideSymbol className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1"><span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{`Bom dia. Sou ${session?.user.name.split(' ')[0]}, com quem falo?`}</span></Snippet>
+          <span className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 ">{`Bom dia. Meu nome é ${session?.user.name.split(' ')[0]}, com quem falo?`}</span>
           <TextInput id={id} fieldName={'caller_name'} label={'Nome do solicitante'} isRequired={true} />
           <TextInput id={id} fieldName={'subject'} label={'Problema alegado'} isLarge={true} isRequired={true} />
 

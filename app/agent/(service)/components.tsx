@@ -72,7 +72,7 @@ export const TextInput = ({ id, fieldName, label, isRequired = false, isLarge = 
         !isLarge ?
           <Input
             type="text"
-            maxLength={60}
+            maxLength={180}
             label={label}
             color={'primary'}
             classNames={{

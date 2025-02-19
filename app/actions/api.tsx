@@ -85,21 +85,27 @@ function formatProcedures(procedures: string) {
 
 export async function getMetroId(email: string): Promise<number> {
 
-  const [result] = await connection.query(
-    `SELECT * FROM users where email='${email}';`
-  )
+  try{
+      const [result] = await connection.query(
+        `SELECT * FROM users where email='${email}';`
+      )
+    
+      if (result) {
+        const res = JSON.parse(JSON.stringify(result))
+        const metro_id = res[0].id
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+          await prisma.user.update({
+            where: { email },
+            data: { metro_id },
+          });
+        }
+        return metro_id
+      }
 
-  if (result) {
-    const res = JSON.parse(JSON.stringify(result))
-    const metro_id = res[0].id
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      await prisma.user.update({
-        where: { email },
-        data: { metro_id },
-      });
-    }
-    return metro_id
+  }catch(err){
+    return 312
+
   }
   return 312
 }

@@ -2,7 +2,7 @@
 
 import prisma from '@/app/lib/localDb'
 import {z} from 'zod'
-import { Company, Company_group } from '@prisma/client'
+import { Company, Company_group, Prisma } from '@prisma/client'
 
 export interface ICompanyGroup {
   id:number;
@@ -53,3 +53,7 @@ export async function upsertCompanyGroup({name='', company_list=[], id=0}:{name:
     return undefined
   }
 }
+
+export type CompanyWithAssignments = Prisma.CompanyGetPayload<{
+  include: { User_assign: true };
+}>;

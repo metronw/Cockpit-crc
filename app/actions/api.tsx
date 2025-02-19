@@ -8,7 +8,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
 import { TicketWithTime, getOpenTickets, updateTicket } from './ticket';
 import { IUser } from './userAssign';
-import { getAllCompanies } from './company';
 import { Company } from '@prisma/client'
 import { ITicketType } from '../providers';
 
@@ -59,15 +58,30 @@ export async function getCompaniesList() {
 
 
 
+
 export async function getTicketContext(user_id: number | undefined): Promise<{ companies: Company[], tickets: TicketWithTime[] }> {
   if (user_id) {
-    const companies: Company[] = await getAllCompanies()
+    
+    const companaes = await prisma.company.findMany({
+      where: {
+        User_assign: {
+          some: {
+            user_id,            
+          }
+        }
+      },
+      include: {
+        User_assign: {
+          where: {
+            user_id
+          }
+        } 
+      },
+    });
 
-    const userAssignments = await prisma.user_assign.findMany({ where: { user_id } })
-    const filteredComp = companies.filter((el: Company) => userAssignments.find(item => item.company_id == el.id))
     const tickets: TicketWithTime[] = await getOpenTickets()
 
-    return { companies: filteredComp, tickets }
+    return { companies: companaes, tickets }
 
   }
   return { companies: [], tickets: [] }

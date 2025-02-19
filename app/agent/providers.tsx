@@ -28,6 +28,7 @@ export interface IProcedureItemResponse {
 export interface ITicketContextData {
   tickets: Array<TicketWithTime>
   companies: Array<Company>
+  // user_assignments: Array<User_assign>
 }
 
 export interface ITicketContext {

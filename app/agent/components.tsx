@@ -10,8 +10,8 @@ import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import useSWR from 'swr';
-import { Company } from '@prisma/client'
 import { Modal as SimpleModal } from "@nextui-org/react";
+import { CompanyWithAssignments } from '../actions/company';
 
 const fetchPauseStatus = async (url: string) => {
   try {
@@ -349,7 +349,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
 
 export const Sidebar = () => {
 
-  interface ICompanyList extends Company {
+  interface ICompanyList extends CompanyWithAssignments {
     tickets: Array<TicketWithTime>
   }
   
@@ -371,9 +371,9 @@ export const Sidebar = () => {
   }, [JSON.stringify(ticketContext)])
 
   const refreshList = () => {
-    const list = companies.map<ICompanyList>(el => ({ ...el, tickets: [] })).sort((a, b) => (a.fantasy_name.toLowerCase() < b.fantasy_name.toLowerCase() ? -1 : 1))
+    const list = companies.map<ICompanyList>(el => ({ ...el, tickets: [], User_assign:[] })).sort((a, b) => (a.fantasy_name.toLowerCase() < b.fantasy_name.toLowerCase() ? -1 : 1))
 
-    const others: ICompanyList = { id: 0, fantasy_name: 'Outros', threshold_1: null, threshold_2:null, tickets: [] }
+    const others: ICompanyList = { id: 0, fantasy_name: 'Outros', threshold_1: null, threshold_2:null, tickets: [],  User_assign:[] }
     list.push(others)
 
     tickets.forEach(el => {
@@ -428,7 +428,7 @@ export const Sidebar = () => {
           ticketList.map(el =>
             <AccordionItem key={el.fantasy_name} aria-label={'Accordion ' + el.fantasy_name} startContent={<CompanyComponent label={el.fantasy_name} mass={false} count={el.tickets.length} />}>
               {
-                el.id != 0 ? <Client name='+ Novo Atendimento' onClick={() => newTicket(el)} /> : null
+                el.id != 0 && el.User_assign.find(item => item.queue_type == 2 ) ? <Client name='+ Novo Atendimento' onClick={() => newTicket(el)} /> : null
               }
               {
                 el.tickets?.map(item => {

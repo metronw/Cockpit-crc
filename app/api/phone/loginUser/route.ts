@@ -572,6 +572,6 @@ const collectQueueStatusEvents = (amiClient: AsteriskAmi): Promise<AmiResponse[]
     setTimeout(() => {
       amiClient.off('ami_data', onData);
       reject(new Error('Timeout aguardando QueueStatusComplete'));
-    }, 10000);
+    }, 30000);
   });
 };

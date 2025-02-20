@@ -4,6 +4,7 @@ import prisma from '@/app/lib/localDb'
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../lib/authOptions';
 import { JsonValue } from '@prisma/client/runtime/library';
+import { Procedure_item } from '@prisma/client';
 
 export interface IProcedure {
   id: number,
@@ -97,8 +98,13 @@ export async function createProcedure({company_id, ticket_type_id, items='[]'}:{
   })
 }
 
-export async function getProcedure({company_id=null, ticket_type_id=null}:{company_id:number | null, ticket_type_id:number | null}): Promise<IProcedure>{
-  const items = await getProcedureItems({company_id, ticket_type_id})
+export async function getProcedure({company_id=null, ticket_type_id=null, father_ticket_type_id=null}:{company_id:number | null, ticket_type_id:number | null, father_ticket_type_id?:number | null}): Promise<IProcedure>{
+  const childItems = await getProcedureItems({company_id, ticket_type_id})
+  const fatherItems = await getProcedureItems({company_id, ticket_type_id:father_ticket_type_id})
+
+  //elimina duplicatas
+  const items = Object.values([...fatherItems, ...childItems].reduce((acc, el) => ({...acc, [el.id]: acc[el.id] ?? el }),{} as {[key:number]:Procedure_item}))
+
   let proc
   
   if(company_id && ticket_type_id ){
@@ -134,6 +140,7 @@ export async function getProcedure({company_id=null, ticket_type_id=null}:{compa
     })
   }
 
+  //separa os itens em alocados e não alocados e seta os alocados como checked
   const procItems = JSON.parse(proc?.items+'')
   const alloc = procItems.map((el:number) => items.find(it => it.id == el)).filter((el:number) => !!el).map((el:IProcedureItem)=>({...el, checked: true}))
   const unalloc = items.filter(el => !procItems.includes(el.id)).map((el:IProcedureItem) => ({...el, checked: false}))  

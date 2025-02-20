@@ -1,7 +1,6 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Company } from '@prisma/client'
 import { getTicketContext } from '../actions/api';
 import { useSession } from 'next-auth/react';
 import { TicketWithTime } from '../actions/ticket';

@@ -7,7 +7,7 @@ const phoneConnection = mysql.createPool({
   password: process.env.PHONEDB_PASSWORD,
   database: process.env.PHONEDB_NAME,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 50,
 });
 
 export default phoneConnection;

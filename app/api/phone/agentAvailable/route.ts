@@ -263,7 +263,7 @@ export async function GET(request: Request) {
         const queueInfos = memberEvents.map((e) => {
           const qb = queueMap[e.queue as string];
           if (!qb) {
-          console.error(`Queue não encontrada para ID: ${e.queue}`);
+          // console.error(`Queue não encontrada para ID: ${e.queue}`);
           return {
             name: e.queue,
             company_id: e.queue,

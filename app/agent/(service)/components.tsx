@@ -414,7 +414,6 @@ export const IssueSelector = ({ id }: { id: string }) => {
   useEffect(() => {
     if (isMounted) {
       const ticket = ticketContext.tickets.find(el => el.id == parseInt(id))
-      // console.log(ticket?.type)
       if (ticket) {
         setFatherValue([...fatherTypes, ...childTypes]?.find(el => el.id == ticket.type)?.id_father + '')
         setChildValue(ticket.type ? ticket.type + `` : `0`)
@@ -425,7 +424,6 @@ export const IssueSelector = ({ id }: { id: string }) => {
   useEffect(() => {
     if(parseInt(fatherValue)){
       const childs = childTypes.filter(el => el.id_father == parseInt(fatherValue))
-      console.log(childs, childValue, fatherValue)
       setFilteredChildTypes(childs)
       
       if (childs.length == 0) {

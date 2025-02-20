@@ -12,8 +12,12 @@ interface IProcedureContext {
   setIsLoadingComps: Dispatch<SetStateAction<boolean>>
   selectedCompany: number | null;
   setSelectedCompany: Dispatch<SetStateAction<number | null>>
+
   selectedTicketType: number | null;
   setSelectedTicketType: Dispatch<SetStateAction<number | null>>
+  selectedFatherTicketType: number | null;
+  setSelectedFatherTicketType: Dispatch<SetStateAction<number | null>>
+
   setEditProcedure: (id:number) => void;
   selectedProcedure: IProcedureItem | null
 }
@@ -42,6 +46,7 @@ export function ProcedureProvider(
 
   const [selectedCompany, setSelectedCompany] = useState<number | null>(null)
   const [selectedTicketType, setSelectedTicketType] = useState<number | null>(null)
+  const [selectedFatherTicketType, setSelectedFatherTicketType] = useState<number | null>(null)
 
   const setEditProcedure = (id: number) => {
     const proc = proceds.items.find(el => el.id == id)
@@ -50,13 +55,14 @@ export function ProcedureProvider(
 
   useEffect(() => {
     if(isLoadingProceds){
-      getProcedure({company_id: selectedCompany ?? null, ticket_type_id: selectedTicketType ?? null}).then(resp => {
+      getProcedure({company_id: selectedCompany ?? null, ticket_type_id: selectedTicketType ?? null, father_ticket_type_id: selectedFatherTicketType ?? null}).then(resp => {
         setProceds(resp)
         setIsLoadingProceds(false)
       })
     }
   }
-  ,[isLoadingProceds, selectedCompany, selectedTicketType])
+  ,[isLoadingProceds, selectedCompany, selectedFatherTicketType, selectedTicketType])
+
 
   useEffect(() => {
     if(isLoadingComps){
@@ -71,7 +77,7 @@ export function ProcedureProvider(
     <ProcedureContext.Provider value={{
       procedures: proceds, setIsLoadingProceds, companies: comps, setIsLoadingComps, 
       selectedCompany, selectedTicketType, setSelectedCompany, setSelectedTicketType, 
-      setEditProcedure, selectedProcedure: selectedProc}}>
+      setEditProcedure, selectedProcedure: selectedProc, selectedFatherTicketType, setSelectedFatherTicketType}}>
       {children}
     </ProcedureContext.Provider>
   );

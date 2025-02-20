@@ -8,22 +8,37 @@ import { useProcedureContext } from "./providers";
 import { RichTextEditor } from "@/app/lib/richTextEditor/richTextEditor";
 import { JsonValue } from "@prisma/client/runtime/library";
 import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
-import { useTicketTypeContext } from "@/app/providers";
+import { ITicketType, useTicketTypeContext } from "@/app/providers";
 
 const ticketTypeOptions = [{id: 1, label: 'Sim/Não'}, {id: 2, label:'Texto'}, /*{id: 3, label:'options'},*/ /*{id:4, label: 'date'}*/ ]
 
 export function InputPicker(){
   
   const [company, setCompany] = useState(null)
-  const [ticketType, setTicketType] = useState(null)
-  const {setSelectedCompany, setSelectedTicketType, companies, setIsLoadingProceds} = useProcedureContext()
+  const [fatherTicketType, setFatherTicketType] = useState(null)
+  const [childTicketType, setChildTicketType] = useState(null)
+  const [filteredChildTypes, setFilteredChildTypes] = useState<Array<ITicketType>>([])
+  const {setSelectedCompany, setSelectedTicketType, companies, setIsLoadingProceds, setSelectedFatherTicketType} = useProcedureContext()
   const ticketTypeContext = useTicketTypeContext()
+
+  useEffect(()=>{
+    const filtered = [...ticketTypeContext.childTypes, ...ticketTypeContext.fatherTypes].filter(el => el.id_father == fatherTicketType )
+    
+    setFilteredChildTypes(filtered)
+    setSelectedFatherTicketType(fatherTicketType ? parseInt(fatherTicketType): null)
+    setSelectedTicketType(fatherTicketType ? parseInt(fatherTicketType) : null)    
+    setIsLoadingProceds(true)
+  }, [fatherTicketType])
   
   useEffect(()=>{
-    setSelectedTicketType(ticketType ? parseInt(ticketType) : null)
+    setSelectedTicketType(childTicketType ? parseInt(childTicketType) : fatherTicketType ? parseInt(fatherTicketType) : null)
+    setIsLoadingProceds(true)
+  }, [childTicketType])
+  
+  useEffect(()=> {
     setSelectedCompany(company ? parseInt(company): null)
     setIsLoadingProceds(true)
-  }, [company, ticketType])
+  }, [company])
 
   return (
     <div className="flex flex-col gap-2">
@@ -37,8 +52,8 @@ export function InputPicker(){
           // defaultItems={types}
           defaultSelectedKey=""
           // @ts-expect-error: library has wrong type
-          onSelectionChange={setTicketType}
-          selectedKey={ticketType}
+          onSelectionChange={setFatherTicketType}
+          selectedKey={fatherTicketType}
           className="flex h-11 max-w-xs my-1"
           classNames={{
             popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
@@ -46,7 +61,31 @@ export function InputPicker(){
           }}
         >
           {ticketTypeContext.fatherTypes.map((item:{id:number, label: string}) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
-        </Autocomplete>
+        </Autocomplete>         
+        
+      {
+        filteredChildTypes.length > 0 
+          ?
+          <Autocomplete
+            variant={'bordered'}
+            aria-label={'Selecione o sub problema'}
+            label=""
+            placeholder={'Selecione o problema específico'}
+            defaultSelectedKey=""
+            // @ts-expect-error: library has wrong type
+            onSelectionChange={setChildTicketType}
+            selectedKey={childTicketType}
+            className="flex h-11 max-w-xs my-1"
+            classNames={{
+              popoverContent: 'bg-zinc-500 border-primary border rounded-medium',
+              base: 'flex shrink border-primary border rounded-medium'
+            }}
+          >
+            {filteredChildTypes.map((item: { id: number, label: string }) => <AutocompleteItem key={item.id}>{item.label}</AutocompleteItem>)}
+          </Autocomplete>
+        :
+          null
+      }
 
         <Autocomplete
           variant={'bordered'}

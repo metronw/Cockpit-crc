@@ -1,4 +1,4 @@
-import { FinishButton, TicketSummary, NavigateTicket, TextInput } from "../../components";
+import { FinishButton, TicketSummary, NavigateTicket, TextInput, CloneTicketButton } from "../../components";
 import { use } from "react";
 import { getTicket } from '@/app/actions/ticket';
 import { Snippet } from "@nextui-org/react";
@@ -21,8 +21,8 @@ export default function Finishing({ params: { id } }: { params: { id: string } }
               <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de chat'} isRequired={true} />
           }
           <TextInput id={id} fieldName={'erpProtocol'} label={'Protocolo ERP'} isRequired={true} />
-          <Snippet hideSymbol className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">
-            <p className='bg-purple-700 text-white rounded content-center '>
+          <Snippet hideSymbol classNames={{base: "bg-purple-700 text-white rounded content-center px-2 my-1 py-1 " }}>
+            <p className='bg-purple-700 text-white rounded content-center text-wrap'>
               <strong>{ticket?.caller_name}</strong>, foi aberto o protocolo <strong>{ticket?.erpProtocol}</strong> para o setor responsável.
             </p>
           </Snippet>
@@ -31,25 +31,27 @@ export default function Finishing({ params: { id } }: { params: { id: string } }
             <p className="text-warning">Prazo técnico: Dois dias úteis para retorno telefônico</p>
           </div> */}
           <Snippet hideSymbol className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">
-            <p className='bg-purple-700 text-white rounded content-center '>
+            <p className='bg-purple-700 text-white rounded content-center text-wrap '>
               {"Poderia te auxiliar em algo mais?"}
             </p>
           </Snippet>
-          <Snippet hideSymbol className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">
-            <p className='bg-purple-700 text-white rounded content-center '>
+          <Snippet hideSymbol classNames={{base: "bg-purple-700 text-white rounded content-center px-2 my-1 py-1 " }}>
+            <p className=' bg-purple-700 text-white rounded content-center text-wrap'>
               {"Agradecemos o seu contato! Tenha uma ótima tarde e boa semana!"}
             </p>
           </Snippet>
         </div>
         <div className="col-span-5 h-full w-70">
-          <div id="ticket-summary">
+          <div id="ticket-summary" className="flex flex-col gap-2">
             {ticket && <TicketSummary />}
+            <CloneTicketButton/>
           </div>
         </div>
       </div>
       <div className="flex flex-row justify-center gap-2 mt-1">
         <NavigateTicket route={'/agent/procedure/' + id} direction={`backwards`} />
         <FinishButton />
+        
       </div>
     </form>
   );

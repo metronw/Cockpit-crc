@@ -6,7 +6,7 @@ import { ITicketContextData, IProcedureItemResponse, useTicketContext, parsePage
 import { useState, useEffect, useCallback, ChangeEvent } from 'react'
 import { Input } from "@nextui-org/react"
 import { createMetroTicket } from '@/app/actions/api'
-import { findOrCreateTicketTime, updateTicket } from "@/app/actions/ticket";
+import { cloneTicket, findOrCreateTicketTime, updateTicket } from "@/app/actions/ticket";
 import { usePathname, useRouter } from 'next/navigation'
 import { IProcedureItem, getProcedure } from "@/app/actions/procedures";
 import { useSession } from "next-auth/react";
@@ -1066,6 +1066,60 @@ export function DocumentInput({ id, fieldName, label, isRequired }: { id: string
       </div>
     </div>
   );
+}
+
+export function CloneTicketButton(){
+  const { ticketContext, setTicketContext } = useTicketContext()
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [scrollBehavior] = useState<"inside" | "normal" | "outside" | undefined>("inside");
+  const path = usePathname()
+  const { ticket } = parsePageInfo(path, ticketContext)
+
+  
+  const clone = async () => {
+    if(ticket){
+      const resp  = await cloneTicket(ticket)
+      if(resp){
+        toast.success('O ticket foi clonado com sucesso')
+        setTicketContext({...ticketContext, tickets:[...ticketContext.tickets, resp]})
+      }
+    }
+  }
+
+  return(
+    <div>
+      <Button onPress={onOpen}>Clonar Ticket</Button>
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        scrollBehavior={scrollBehavior}
+        classNames={{ body: 'text-black', header: 'text-black' }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                {'Clonar Ticket'}
+              </ModalHeader>
+              <ModalBody>
+                {
+                  <RichTextEditor value={'Um novo ticket será criado com todas as mesmas informações de cliente!'} />
+                }
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" variant="light" onPress={() => {clone(); onClose()}}>
+                  Confirmar
+                </Button>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Fechar
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </div>
+  )
 }
 
 

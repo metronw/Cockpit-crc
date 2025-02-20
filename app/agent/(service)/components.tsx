@@ -658,8 +658,8 @@ export const Procedures = () => {
 
   useEffect(() => {
     if (ticket) {
-      const father_type = childTypes.find(el => el.id == ticket.type)?.id_father
-      getProcedure({ company_id: ticket.company_id, ticket_type_id: father_type ?? 0 }).then(response => {
+      const types = childTypes.find(el => el.id == ticket.type)
+      getProcedure({ company_id: ticket.company_id, ticket_type_id: types?.id ?? 0, father_ticket_type_id: types?.id_father ?? 0 }).then(response => {
         const parsed = response.items.filter((el: IProcedureItem) => el.checked)
         setProcedures(parsed)
       })

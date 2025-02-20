@@ -148,6 +148,17 @@ declare module 'asterisk-ami' {
     eventlist?: 'Complete';
   }
 
+  interface QueueLogRow {
+    time: string;
+    callid: string;
+    queuename: string;
+    agent: string;
+    event: string;
+    data1: string;
+    data2: string;
+    data3: string;
+  }
+
   type AmiResponse =
     | QueueMemberResponse
     | QueueStatusCompleteResponse

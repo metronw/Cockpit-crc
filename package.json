@@ -26,6 +26,7 @@
     "mysql2": "^3.11.3",
     "next": "^14.2.21",
     "next-auth": "^4.24.10",
+    "node-cache": "^5.1.2",
     "posthog-js": "^1.215.3",
     "react": "^18",
     "react-dom": "^18",

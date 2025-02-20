@@ -160,12 +160,12 @@ export function ConnectedCallsTable() {
 
 export function RealTimeTables() {
   const { mutate } = useRealTimeContext();
-  const [countdown, setCountdown] = useState(45);
+  const [countdown, setCountdown] = useState(10);
 
   const handleUpdateClick = async () => {
     try {
       await mutate();
-      setCountdown(45);
+      setCountdown(10);
     } catch (error) {
       toast.error('Erro ao atualizar dados: ' + (error as Error).message);
     }
@@ -175,12 +175,12 @@ export function RealTimeTables() {
     const interval = setInterval(async () => {
       try {
         await mutate();
-        setCountdown(45);
+        setCountdown(10);
       } catch (error) { }
-    }, 45000);
+    }, 10000);
 
     const countdownInterval = setInterval(() => {
-      setCountdown(prev => (prev > 0 ? prev - 1 : 45));
+      setCountdown(prev => (prev > 0 ? prev - 1 : 10));
     }, 1000);
 
     return () => {

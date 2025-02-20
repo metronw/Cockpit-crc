@@ -1,24 +1,16 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
-import AsteriskAmi, { AmiResponse } from "asterisk-ami";
+import AsteriskAmi, { AmiResponse, QueueLogRow } from "asterisk-ami"; // Importar QueueLogRow
 import prisma from "@/app/lib/localDb";
 import phoneConnection from "@/app/lib/phoneDb";
+import NodeCache from "node-cache";
+
+const cache = new NodeCache({ stdTTL: 5 }); // TTL de 60 segundos
 
 /**
  * Interpret the raw queue_log row into a more readable event structure.
  */
-interface QueueLogRow {
-  time: string;
-  callid: string;
-  queuename: string;
-  agent: string;
-  event: string;
-  data1: string;
-  data2: string;
-  data3: string;
-}
-
 function interpretQueueLogEvent(row: QueueLogRow) {
   const { time, callid, queuename, agent, event, data1, data2, data3 } = row;
 
@@ -56,6 +48,12 @@ function interpretQueueLogEvent(row: QueueLogRow) {
 
 export async function GET() {
   try {
+    // Verificar se os dados já estão no cache
+    const cachedData = cache.get("queueData");
+    if (cachedData) {
+      return NextResponse.json(cachedData, { status: 200 });
+    }
+
     // 1. Check session
     const session = await getServerSession(authOptions);
     const sessionUser = session?.user?.id;
@@ -79,6 +77,7 @@ export async function GET() {
     const connectAmi = (): Promise<void> => {
       return new Promise((resolve, reject) => {
         amiClient.connect((err) => {
+          console.log('connectAmi', err);
           if (err) {
             reject(new Error("Erro ao conectar ao AMI: " + err.message));
           } else {
@@ -111,7 +110,7 @@ export async function GET() {
         setTimeout(() => {
           amiClient.off("ami_data", onData);
           reject(new Error("Timeout aguardando CoreShowChannels"));
-        }, 8000);
+        }, 20000);
       });
     };
 
@@ -269,26 +268,36 @@ export async function GET() {
         .map((log) => log.callid)
     );
 
-    const waitingCalls = interpretedQueueLog.filter((log) =>
-      ["ENTERQUEUE", "RINGNOANSWER"].includes(log.eventType) &&
-      !connectedCallIds.has(log.callid)
+    const ringNoAnswerCallIds = new Set(
+      interpretedQueueLog
+        .filter((log) => log.eventType === "RINGNOANSWER")
+        .map((log) => log.callid)
     );
+
+    const waitingCalls = interpretedQueueLog.filter((log) =>
+      ["ENTERQUEUE"].includes(log.eventType) &&
+      !connectedCallIds.has(log.callid) &&
+      !ringNoAnswerCallIds.has(log.callid)
+    );
+
     const connectedCalls = interpretedQueueLog.filter(
       (log) => log.eventType === "CONNECT"
     );
 
     // 12. Return the data
-    return NextResponse.json(
-      {
-        activeChannels,
-        queueChannels,
-        queueLog: {
-          waitingCalls,
-          connectedCalls,
-        },
+    const responseData = {
+      activeChannels,
+      queueChannels,
+      queueLog: {
+        waitingCalls,
+        connectedCalls,
       },
-      { status: 200 }
-    );
+    };
+
+    // Armazenar os dados no cache
+    cache.set("queueData", responseData);
+
+    return NextResponse.json(responseData, { status: 200 });
   } catch (error: unknown) {
     if (error instanceof Error) {
       return NextResponse.json(

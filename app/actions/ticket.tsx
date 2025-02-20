@@ -3,7 +3,7 @@
 import prisma from '@/app/lib/localDb'
 import { getServerSession } from "next-auth";
 import { authOptions } from '../lib/authOptions';
-import { Ticket_status, Prisma, Ticket_time, Ticket  } from '@prisma/client';
+import { Ticket_status, Prisma, Ticket_time  } from '@prisma/client';
 
 export async function createTicket({company_id}:{company_id:number}){
   const session = await getServerSession(authOptions);
@@ -24,6 +24,7 @@ export async function createTicket({company_id}:{company_id:number}){
 export async function cloneTicket(ticket:TicketWithTime){
   const session = await getServerSession(authOptions);
   if(session){
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {id, ticket_time, ...clone} = ticket
     
     const newTicket = await prisma.ticket.create({

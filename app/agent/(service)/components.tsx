@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Textarea } from "@nextui-org/react";
+import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Textarea, Snippet } from "@nextui-org/react";
 import Link from 'next/link'
 import { ITicketContextData, IProcedureItemResponse, useTicketContext, parsePageInfo } from "@/app/agent/providers"
 import { useState, useEffect, useCallback, ChangeEvent } from 'react'
@@ -194,7 +194,9 @@ export const ProcedureTextInput = ({ label, Modal, id = 0, isLarge = false }: { 
 
   return (
     <div className="flex flex-col p-1  rounded m-2 gap-2">
-      <span className="bg-purple-700 text-white px-2">{label}</span>
+      <Snippet hideSymbol className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">
+        <span className="bg-purple-700 text-white px-2">{label}</span>
+      </Snippet>
       <div className="flex flex-row">
         {Modal}
         {
@@ -224,9 +226,7 @@ export const ProcedureTextInput = ({ label, Modal, id = 0, isLarge = false }: { 
               onValueChange={setValue}
             />
         }
-
       </div>
-
     </div>
   )
 }
@@ -262,16 +262,21 @@ export const RadioInput = ({ isInteractive = false, label, Modal, id = 0 }: { is
 
 
   return (
-    <RadioGroup
-      label={label} orientation="horizontal"
-      classNames={{ label: 'p-1 m-1 rounded ' + (isInteractive ? 'bg-purple-700 text-white' : 'border border-primary text-primary') }}
-      value={response}
-      onValueChange={setResponse}
-    >
-      {Modal}
-      <Radio value="true" classNames={{ wrapper: 'border-success', control: 'bg-success' }}></Radio>
-      <Radio value="false" classNames={{ wrapper: 'border-danger', control: 'bg-danger' }}></Radio>
-    </RadioGroup>
+    <div>
+      <Snippet hideSymbol className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 rounded">
+        <span>{label}</span>
+      </Snippet>
+      <RadioGroup
+        orientation="horizontal"
+        classNames={{ label: 'p-1 m-1 rounded ' + (isInteractive ? 'bg-purple-700 text-white' : 'border border-primary text-primary') }}
+        value={response}
+        onValueChange={setResponse}
+      >
+        {Modal}
+        <Radio value="true" classNames={{ wrapper: 'border-success', control: 'bg-success' }}></Radio>
+        <Radio value="false" classNames={{ wrapper: 'border-danger', control: 'bg-danger' }}></Radio>
+      </RadioGroup>
+    </div>
   )
 }
 

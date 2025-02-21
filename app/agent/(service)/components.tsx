@@ -1074,7 +1074,6 @@ export function CloneTicketButton(){
   const [scrollBehavior] = useState<"inside" | "normal" | "outside" | undefined>("inside");
   const path = usePathname()
   const { ticket } = parsePageInfo(path, ticketContext)
-
   
   const clone = async () => {
     if(ticket){
@@ -1111,7 +1110,7 @@ export function CloneTicketButton(){
                   Confirmar
                 </Button>
                 <Button color="danger" variant="light" onPress={onClose}>
-                  Fechar
+                  Cancelar
                 </Button>
               </ModalFooter>
             </>
@@ -1121,5 +1120,3 @@ export function CloneTicketButton(){
     </div>
   )
 }
-
-

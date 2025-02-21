@@ -90,7 +90,7 @@ export function InputPicker(){
         <Autocomplete
           variant={'bordered'}
           aria-label={'Empresa'}
-          // isRequired={true}
+          // isRequired={true} 
           label={'Empresa'}
           // defaultItems={companies}
           defaultSelectedKey=""
@@ -103,7 +103,9 @@ export function InputPicker(){
             base: 'flex shrink border-primary border rounded-medium'
           }}
         >
-        {companies.map((item:{id:number, fantasy_name: string}) => <AutocompleteItem key={item.id}>{item.fantasy_name}</AutocompleteItem>)}
+        {companies
+          .sort((a, b) => (a.fantasy_name.toLowerCase() < b.fantasy_name.toLowerCase() ? -1 : 1))
+          .map((item:{id:number, fantasy_name: string}) => <AutocompleteItem key={item.id}>{item.fantasy_name}</AutocompleteItem>)}
       </Autocomplete>
       </div>
     </div>

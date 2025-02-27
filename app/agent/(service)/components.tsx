@@ -861,17 +861,24 @@ const Timer = () => {
   }, [time, ticketContext, ticket, currentStatus])
 
   useEffect(() => {
-    const timer = ticket?.ticket_time?.find(el => el.ticket_status == currentStatus)
-
-    if (timer) {
-      setTime(timer.time)
-    } else {
-      findOrCreateTicketTime(ticket?.id ?? 0, currentStatus).then(el => {
-        setTime(el.time)
-      })
+    if( ['triage', 'procedure','finish'].includes(ticket?.status ?? '')){
+      const timer = ticket?.ticket_time?.find(el => el.ticket_status == currentStatus)
+  
+      if (timer) {
+        setTime(timer.time)
+      } else {
+        findOrCreateTicketTime(ticket?.id ?? 0, currentStatus).then(el => {
+          setTime(el.time)
+        })
+      }
+      updateTimerContext()
     }
-    updateTimerContext()
+    
     const intervalId = setInterval(() => setTick(true), 1000)
+
+    if(ticket?.status == 'closed'){
+      clearInterval(intervalId);
+    }
 
     return () => {
       clearInterval(intervalId);

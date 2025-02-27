@@ -16,11 +16,18 @@ export default function Finishing({ params: { id } }: { params: { id: string } }
       <div className="grid grid-cols-12 h-full">
         <div className="col-span-6 flex flex-col mx-4 gap-4">
           {
-            ticket?.communication_type == `phone` ?
-              null :
-              <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de chat'} isRequired={true} />
+            ['triage', 'procedure','finish'].includes(ticket?.status ?? '') ? 
+              <div>
+                {
+                  (ticket?.communication_type == `phone` ?
+                  null :
+                  <TextInput id={id} fieldName={'communication_id'} label={'Protocolo de chat'} isRequired={true} />)
+                }
+              <TextInput id={id} fieldName={'erpProtocol'} label={'Protocolo ERP'} isRequired={true} />
+
+              </div>
+              : null
           }
-          <TextInput id={id} fieldName={'erpProtocol'} label={'Protocolo ERP'} isRequired={true} />
           <Snippet hideSymbol classNames={{base: "bg-purple-700 text-white rounded content-center px-2 my-1 py-1 " }}>
             <p className='bg-purple-700 text-white rounded content-center text-wrap'>
               <strong>{ticket?.caller_name}</strong>, foi aberto o protocolo <strong>{ticket?.erpProtocol}</strong> para o setor responsável.
@@ -48,11 +55,15 @@ export default function Finishing({ params: { id } }: { params: { id: string } }
           </div>
         </div>
       </div>
-      <div className="flex flex-row justify-center gap-2 mt-1">
-        <NavigateTicket route={'/agent/procedure/' + id} direction={`backwards`} />
-        <FinishButton />
-        
-      </div>
+      {
+        ['triage', 'procedure','finish'].includes(ticket?.status ?? '') ?
+          <div className="flex flex-row justify-center gap-2 mt-1">
+            <NavigateTicket route={'/agent/procedure/' + id} direction={`backwards`} />
+            <FinishButton />
+          </div>
+          :
+          null
+      }
     </form>
   );
 }

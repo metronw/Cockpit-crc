@@ -31,7 +31,6 @@ export const useMonitorContext = () => {
 };
 
 
-
 export function MonitorProvider({children, iniContext}: { children: React.ReactNode, iniContext:IMonitorContextData }) {
 
   const [assignments, setAssignments] = useState(iniContext.assignments)

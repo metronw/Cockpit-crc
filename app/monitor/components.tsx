@@ -159,9 +159,9 @@ export function TeamSummary({data}:{data: {tmat: string, npar: number, nt: numbe
 
 export function TeamPerformanceChart ()  {
 
-  const now = new Date()
+  // const now = new Date()
 
-  const days = Array.from(Array(now.getDate()).keys()).map(() => [] as number[])
+  // const days = Array.from(Array(now.getDate()).keys()).map(() => [] as number[])
 
   // tickets.forEach((el) => {
   //   const tickDate = el.createdAt.getDate()

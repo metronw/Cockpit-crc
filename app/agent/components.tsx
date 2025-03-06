@@ -354,7 +354,7 @@ export const Sidebar = () => {
   }
   
   const router = useRouter();
-  const { ticketContext, setTicketContext, isMounted } = useTicketContext()
+  const { ticketContext, setTicketContext } = useTicketContext()
   const { tickets, companies } = ticketContext
   const [ticketList, setTicketList] = useState<Array<ICompanyList>>([])
   const [lastClosedTickets, setLastClosedTickets] = useState<TicketWithTime[]>([])

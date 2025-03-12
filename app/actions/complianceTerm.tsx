@@ -4,6 +4,7 @@ import prisma from '@/app/lib/localDb'
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../lib/authOptions';
 import { Compliance_term } from '@prisma/client';
+import { sendEmail } from './api';
 
 
 export async function uploadTerm({url}:{url:string}){
@@ -26,6 +27,7 @@ export async function acceptComplianceTerm(id:number){
   if(session){
     try{
       await prisma.user_compliance_term.create({data:{  compliance_term_id: id,user_id: session.user.id}})
+      await sendEmail({to: session.user.email, subject:'Confirmação de termo de consentimento', message: 'I am a message' })
       return ({status: 200, message: "criado com sucesso"})
 
     }catch(err) {

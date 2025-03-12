@@ -11,6 +11,7 @@ import { IUser } from './userAssign';
 import { Company } from '@prisma/client'
 import { ITicketType } from '../providers';
 import { CompanyWithAssignments } from './company';
+import nodemailer from "nodemailer";
 
 export async function getCrcTicketTypes() {
   const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id, ticket_type.id_father FROM ticket_type '
@@ -205,3 +206,32 @@ export async function getUsers() {
   }
   return []
 }
+
+
+export async function sendEmail({to, subject, message}: {to: string, subject: string, message: string}) {
+  const transporter = nodemailer.createTransport({
+    host: process.env.MAIL_HOST,
+    port: Number(process.env.MAIL_PORT),
+    secure: process.env.MAIL_PORT === "465", // Use SSL for port 465
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.MAIL_USER,
+    to,
+    subject,
+    text: message,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return { success: true, message: "Email sent successfully!" };
+  } catch (error) {
+    console.error("Email sending error:", error);
+    return { success: false, message: "Email failed to send." };
+  }
+}
+

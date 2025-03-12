@@ -208,7 +208,14 @@ export async function getUsers() {
 }
 
 
-export async function sendEmail({to, subject, message}: {to: string, subject: string, message: string}) {
+export async function sendEmail({to, subject, message, attachments}: {to: string, subject: string, message: string, attachments: string}) {
+
+  const response = await fetch(attachments);
+    if (!response.ok) throw new Error(`Failed to fetch file: ${response.statusText}`);
+    
+    const fileBuffer = await response.arrayBuffer(); // Convert file to buffer
+
+
   const transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST,
     port: Number(process.env.MAIL_PORT),
@@ -224,6 +231,12 @@ export async function sendEmail({to, subject, message}: {to: string, subject: st
     to,
     subject,
     text: message,
+    attachments: [
+      {
+        filename: attachments,
+        content: Buffer.from(fileBuffer)
+      },
+    ]
   };
 
   try {

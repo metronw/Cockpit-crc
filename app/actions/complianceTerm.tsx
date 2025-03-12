@@ -22,12 +22,12 @@ export async function uploadTerm({url}:{url:string}){
   return({status: 500, message: "deu algo de errado"})
 }
 
-export async function acceptComplianceTerm(id:number){
+export async function acceptComplianceTerm(id:number, file: string){
   const session = await getServerSession(authOptions);
   if(session){
     try{
-      await prisma.user_compliance_term.create({data:{  compliance_term_id: id,user_id: session.user.id}})
-      await sendEmail({to: session.user.email, subject:'Confirmação de termo de consentimento', message: 'I am a message' })
+      // await prisma.user_compliance_term.create({data:{  compliance_term_id: id,user_id: session.user.id}})
+      await sendEmail({to: session.user.email, subject:'Confirmação de termo de consentimento', message: 'Este email confirma que foi aceito o termo de consentimento em anexo', attachments: file })
       return ({status: 200, message: "criado com sucesso"})
 
     }catch(err) {

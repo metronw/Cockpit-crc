@@ -37,7 +37,7 @@ export function ComplianceTerm({term}:{term:Compliance_term}) {
   }, []);
 
   const onAccept = () => {
-    acceptComplianceTerm(term.id)
+    acceptComplianceTerm(term.id, term.file)
     router.push('/agent/' + session.data?.user.id)
   }
 

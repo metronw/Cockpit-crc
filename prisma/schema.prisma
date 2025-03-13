@@ -57,6 +57,7 @@ model User {
   role_id     Int?
   assignments User_assign[]
   compliance  User_compliance_term[]
+  sessionHistory     Session_history[]
 }
 
 model User_phone {
@@ -159,4 +160,12 @@ model User_compliance_term{
   Compliance_term Compliance_term @relation(fields: [compliance_term_id], references: [id])
   @@unique([user_id, compliance_term_id])
   @@id([user_id, compliance_term_id])
+}
+
+model Session_history {
+  id          Int   @id @default(autoincrement())
+  user_id      Int
+  logged_in_at  DateTime @default(now())
+  logged_out_at DateTime?
+  User        User     @relation(fields: [user_id], references: [id])
 }

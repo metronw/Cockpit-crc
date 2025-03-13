@@ -12,7 +12,6 @@ export default withAuth(
       return NextResponse.redirect(url);
     }
 
-    console.log(token)
     if(!token.terms_accepted){
       url.pathname = '/compliance'
       return NextResponse.redirect(url);

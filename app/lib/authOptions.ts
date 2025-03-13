@@ -7,7 +7,6 @@ import prisma  from '@/app/lib/localDb';
 import { getMetroId } from "../actions/api";
 import { checkIfTermsAreAccepted } from "../actions/complianceTerm";
 
-
 // Defining the authOptions with proper types
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -45,7 +44,6 @@ export const authOptions: NextAuthOptions = {
       
       // If user is available, add it to the token
       if (user) {
-
         const metro_id = await getMetroId(user.email ?? ``)
         const localUser = await loginSSO({email:user.email ?? '', name: user.name ?? '', metro_id })
         const areTermsAccepted = await checkIfTermsAreAccepted(localUser.id)
@@ -85,8 +83,28 @@ export const authOptions: NextAuthOptions = {
     },
   },
   session: {
-    strategy: "jwt", // Use JWT for session management
+    strategy: "jwt",
     maxAge: 24 * 60 * 60
+  },
+  // adapter: PrismaAdapter(db),
+  events: {
+    async signIn({ user }) {  
+      const metro_id = await getMetroId(user.email ?? ``)    
+      const localUser = await loginSSO({email:user.email ?? '', name: user.name ?? '', metro_id })
+      
+      await prisma.session_history.create({
+        data: { user_id: localUser.id, logged_in_at: new Date() },
+      });
+    },
+    async signOut({ token }) {
+      await prisma.session_history.updateMany({
+        where: {
+          user_id: token.id,
+          logged_out_at: null, // Find the last open session
+        },
+        data: { logged_out_at: new Date() },
+      });
+    },
   },
   secret: process.env.NEXTAUTH_SECRET! ?? '0dOzK3k2p+NSShP3OZIElctLLPRs6doJ0Jue14pIHoM=',
   pages:{

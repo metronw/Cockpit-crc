@@ -12,6 +12,12 @@ export default withAuth(
       return NextResponse.redirect(url);
     }
 
+    console.log(token)
+    if(!token.terms_accepted){
+      url.pathname = '/compliance'
+      return NextResponse.redirect(url);
+    }
+
     // Authorization logic for specific routes
     if (req.nextUrl.pathname.startsWith("/monitor")) {
       if (!(token.roles?.includes("2") || token.roles?.includes("3"))) {

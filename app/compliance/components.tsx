@@ -7,7 +7,7 @@ import { acceptComplianceTerm } from "../actions/complianceTerm";
 import { Viewer, Worker } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import "@react-pdf-viewer/core/lib/styles/index.css";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { Compliance_term } from "@prisma/client";
 
 
@@ -17,6 +17,8 @@ export function ComplianceTerm({term}:{term:Compliance_term}) {
   const termsRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const session = useSession()
+  const [isTermAccepted, setIsTermAccepted] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -37,8 +39,29 @@ export function ComplianceTerm({term}:{term:Compliance_term}) {
   }, []);
 
   const onAccept = () => {
-    acceptComplianceTerm(term.id, term.file)
-    router.push('/agent/' + session.data?.user.id)
+    acceptComplianceTerm(term.id, term.file).then((resp)=>{
+      if(resp.status == 200){
+        setIsTermAccepted(true)
+      }      
+    })
+  }
+
+  useEffect(()=>{
+    if(isTermAccepted){
+      signIn("azure-ad").then(()=> setIsRedirecting(true))
+    }
+  }, [isTermAccepted])
+
+  useEffect(()=>{
+    if(session.data?.user.terms_accepted){
+      router.push('/')
+    }else{
+      setIsRedirecting(false)
+    }
+  }, [isRedirecting])
+
+  if(session.data?.user.terms_accepted){
+    router.push('/')
   }
 
   return (

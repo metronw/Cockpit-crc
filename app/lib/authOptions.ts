@@ -5,6 +5,7 @@ import { loginSSO } from "@/app/actions/login";
 import bcrypt from 'bcrypt'; // Assuming passwords are hashed in the database
 import prisma  from '@/app/lib/localDb';
 import { getMetroId } from "../actions/api";
+import { checkIfTermsAreAccepted } from "../actions/complianceTerm";
 
 
 // Defining the authOptions with proper types
@@ -40,18 +41,21 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     // Handling the JWT callback
-    async jwt({ token, user, account }){      
+    async jwt({ token, user, account }){
       
       // If user is available, add it to the token
       if (user) {
 
         const metro_id = await getMetroId(user.email ?? ``)
         const localUser = await loginSSO({email:user.email ?? '', name: user.name ?? '', metro_id })
+        const areTermsAccepted = await checkIfTermsAreAccepted(localUser.id)
         
         token.id = localUser.id;
         token.email = localUser.email;
         token.name = localUser.name;
         token.metro_id = localUser.metro_id;
+        token.terms_accepted = true;
+        token.terms_accepted = areTermsAccepted;
 
         if (account?.id_token) {
           // Decode Azure AD token to extract roles
@@ -68,14 +72,14 @@ export const authOptions: NextAuthOptions = {
     },
     // Handling session callback
     async session({ session, token }) {
-      const newSession: Session = {...session, user: {id:token.id, email:token.email ?? '', name: token.name ?? '', roles: token.roles ?? [], metro_id: token.metro_id}}
+      const newSession: Session = {...session, user: {id:token.id, email:token.email ?? '', name: token.name ?? '', roles: token.roles ?? [], metro_id: token.metro_id, terms_accepted: token.terms_accepted}}
       if(token.exp*1000 < Date.now()){
         newSession.user.id = 0
         newSession.user.email = ''
         newSession.user.name = ''
         newSession.user.metro_id = 0
         newSession.user.roles = []
-        
+        newSession.user.terms_accepted = false;
       }
       return newSession;
     },

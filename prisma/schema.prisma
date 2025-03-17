@@ -55,9 +55,13 @@ model User {
   password    String
   createdAt   DateTime      @default(now())
   role_id     Int?
+  team_id     Int?
   assignments User_assign[]
   compliance  User_compliance_term[]
   sessionHistory     Session_history[]
+  team        Team? @relation(fields: [team_id], references: [id])
+  user_schedule User_schedule[]
+  user_pause    User_pause[]
 }
 
 model User_phone {
@@ -168,4 +172,33 @@ model Session_history {
   logged_in_at  DateTime @default(now())
   logged_out_at DateTime?
   User        User     @relation(fields: [user_id], references: [id])
+}
+
+model Team {
+  id        Int @id @default(autoincrement())
+  leader_id Int?
+  User      User[]
+}
+
+model User_schedule {
+  id        Int @id @default(autoincrement())
+  user_id   Int 
+  User        User     @relation(fields: [user_id], references: [id])
+  is_active   Boolean
+  monday    String
+  tuesday    String
+  wednesday    String
+  thursday    String
+  friday    String
+  saturday    String
+  sunday    String
+}
+
+model User_pause {
+  id        Int @id @default(autoincrement())
+  user_id   Int 
+  User        User     @relation(fields: [user_id], references: [id])
+  pause_type  String
+  started_at  DateTime
+  finished_at  DateTime
 }

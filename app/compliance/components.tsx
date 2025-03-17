@@ -7,8 +7,11 @@ import { acceptComplianceTerm } from "../actions/complianceTerm";
 import { Viewer, Worker } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import "@react-pdf-viewer/core/lib/styles/index.css";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { Compliance_term } from "@prisma/client";
+import { ArrowRightStartOnRectangleIcon, HomeIcon } from "@heroicons/react/24/solid";
+import useSWR from 'swr';
+import { toast } from "react-toastify";
 
 
 export function ComplianceTerm({term}:{term:Compliance_term}) {
@@ -84,4 +87,91 @@ export function ComplianceTerm({term}:{term:Compliance_term}) {
     </div>
   );
 
+}
+
+
+const fetchPauseStatus = async (url: string) => {
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error === 'Interface não encontrada em nenhuma fila') {
+      return { error: 'Interface não encontrada em nenhuma fila' };
+    }
+    if (!res.ok) {
+      return { error: data.error || 'Erro desconhecido' };
+    }
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar status de pausa:", error);
+    return { error: 'Erro ao buscar status de pausa' };
+  }
+};
+
+export function Header(){
+
+  const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
+  const { data: pauseData, error: pauseError, mutate } = useSWR('/api/phone/pauseUser', fetchPauseStatus);
+  const router = useRouter()
+
+  const isLoggedIn = !(pauseData?.error === 'Interface não encontrada em nenhuma fila');
+
+  const handleSignOut = async () => {
+    if (isLoggedIn) {
+      setLogoutModalOpen(true);
+    } else {
+      signOut();
+    }
+  };
+
+  // const handleLogout = async () => {
+  //   try {
+  //     // Obter dados do usuário
+  //     const userDataResponse = await fetch('/api/phone/user', {
+  //       method: 'GET',
+  //       headers: { 'Content-Type': 'application/json' },
+  //     });
+  //     const userData = await userDataResponse.json();
+
+  //     // Requisição DELETE para deslogar a interface das filas
+  //     const logoutResponse = await fetch('/api/phone/loginUser', {
+  //       method: 'DELETE',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       credentials: 'include',
+  //       body: JSON.stringify({
+  //         interfaceName: `PJSIP/${userData.sip_extension}`,
+  //       }),
+  //     });
+
+  //     const data = await logoutResponse.json();
+
+  //     if (logoutResponse.ok) {
+  //       toast.success(data.message || 'Deslogado das filas com sucesso.');
+  //       setTimeout(() => {
+  //         mutate('/api/phone/pauseUser');
+  //       }, 2000);
+  //     } else {
+  //       toast.error(data.error || 'Erro ao deslogar das filas.');
+  //     }
+  //   } catch (error) {
+  //     toast.error('Erro ao executar deslogout.');
+  //   }
+  // };
+
+
+  return (
+    <div className='grid grid-cols-12'>
+      <div className='flex flex-row gap-4 col-span-3 pl-4'>
+        <Button isIconOnly color="primary" aria-label="home" onPress={() => router.push('/')}>
+          <HomeIcon />
+        </Button>
+      </div>
+      <div className="flex flex-row col-span-8 space-x-4 items-center ">
+        
+      </div>
+      <Button isIconOnly color="primary" aria-label="logout" onPress={handleSignOut}>
+        <ArrowRightStartOnRectangleIcon className="col-span-1 h-10 " />
+      </Button>
+      
+    </div>
+  )
 }

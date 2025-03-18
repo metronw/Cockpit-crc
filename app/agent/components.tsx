@@ -12,6 +12,7 @@ import { toast } from 'react-hot-toast';
 import useSWR from 'swr';
 import { Modal as SimpleModal } from "@nextui-org/react";
 import { CompanyWithAssignments } from '../actions/company';
+import { pauseSession } from '../actions/pause';
 
 const fetchPauseStatus = async (url: string) => {
   try {
@@ -106,6 +107,9 @@ export const AgentHeader = ({ id }: { id?: number }) => {
       const data = await pauseResponse.json();
 
       if (pauseResponse.ok) {
+        pauseSession({pause_type: currentPauseReason ?? ''}).then(resp => {
+          console.log(resp, currentPauseReason)
+        })
         toast.success(data.message || 'Estado da interface atualizado com sucesso.');
         setTimeout(() => {
           mutate('/api/phone/pauseUser');

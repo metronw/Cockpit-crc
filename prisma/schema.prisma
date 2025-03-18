@@ -58,7 +58,7 @@ model User {
   team_id     Int?
   assignments User_assign[]
   compliance  User_compliance_term[]
-  sessionHistory     Session_history[]
+  session_history     Session_history[]
   team        Team? @relation(fields: [team_id], references: [id])
   user_schedule User_schedule[]
   user_pause    User_pause[]
@@ -185,13 +185,13 @@ model User_schedule {
   user_id   Int 
   User        User     @relation(fields: [user_id], references: [id])
   is_active   Boolean
-  monday    String
-  tuesday    String
-  wednesday    String
-  thursday    String
-  friday    String
-  saturday    String
-  sunday    String
+  monday    String  @default("")
+  tuesday    String @default("")
+  wednesday    String @default("")
+  thursday    String  @default("")
+  friday    String  @default("")
+  saturday    String  @default("")
+  sunday    String  @default("")
 }
 
 model User_pause {
@@ -199,6 +199,6 @@ model User_pause {
   user_id   Int 
   User        User     @relation(fields: [user_id], references: [id])
   pause_type  String
-  started_at  DateTime
-  finished_at  DateTime
+  started_at  DateTime @default(now())
+  finished_at  DateTime?
 }

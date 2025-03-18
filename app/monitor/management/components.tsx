@@ -1,13 +1,15 @@
 'use client'
 
-import {  Autocomplete, AutocompleteItem, Button, Checkbox, Chip, Divider, Input, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react"
+import {  Autocomplete, AutocompleteItem, Button, Checkbox, Chip, Divider, Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react"
 import { useMonitorContext } from "../providers"
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useMemo} from 'react'
 import { useManagementContext } from "./providers"
 import { ICompanyGroup, upsertCompanyGroup } from "@/app/actions/company"
-import { Company, Compliance_term } from "@prisma/client"
+import { Company, Compliance_term, User_schedule } from "@prisma/client"
 import { toast } from "react-toastify"
 import { deleteComplianceTerm, getAllComplianceTerm, updateComplianceTerm, uploadTerm } from "@/app/actions/complianceTerm"
+import { UserWithSession, getAllUsers } from "@/app/actions/session"
+import { createUserSchedule, deleteUserSchedule, getUserSchedule, updateUserSchedule } from "@/app/actions/schedule"
 
 export function CompanySelector({addCompany}:{addCompany:(comp:Company)=>void}){
   const {companies} = useMonitorContext()
@@ -49,7 +51,7 @@ export function CompanySelector({addCompany}:{addCompany:(comp:Company)=>void}){
 export function CompanyGroupSelector(){
   const {companyGroups} = useMonitorContext()
   const {setSelectedCompanyGroup, selectedCompanyGroup} = useManagementContext()
-  const [item, setItem] = useState<string | undefined>()
+  const [item, setItem] = useState<string>('')
 
   useEffect(()=>{
     const group: ICompanyGroup | undefined = companyGroups.find(el => el.id == parseInt(item ?? '0'))
@@ -75,6 +77,7 @@ export function CompanyGroupSelector(){
         // @ts-expect-error: library has wrong type
         onSelectionChange={setItem}
         selectedKey={item}
+        
         className="flex h-11 max-w-xs my-1"
         classNames={{
           popoverContent: 'bg-zinc-500 ',
@@ -278,3 +281,174 @@ export function TermTable (){
     </Table>
   )
 }
+
+export function UsersTable(){
+
+  const [items, setItems ] = useState<UserWithSession[] | []>([])  
+  const [filteredItems, setFilteredItems ] = useState<UserWithSession[] | []>([])  
+  const [filter, setFilter] = useState('')
+  const [pages, setPages] = useState(1)
+  const [page, setPage] = useState(1)
+  const [currentUser, setCurrentUser] = useState<undefined | UserWithSession>(undefined)
+  const rowsPerPage = 5
+
+  const getItems = () => {
+    getAllUsers().then(resp => {
+      setItems(resp)
+      setFilteredItems(resp)
+      setPages(Math.floor(resp.length/rowsPerPage))
+    })
+  }
+
+  useEffect(() => {
+    const filtered = items.filter(el => el.name.toLowerCase().startsWith(filter.toLowerCase()))
+    setFilteredItems(filtered)
+    setPage(1)
+  }, [filter])
+
+  useEffect(() =>{
+    getItems()
+  }, [])
+
+  const paginatedItems = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return filteredItems.slice(start, end);
+  }, [page, filteredItems]);
+
+  return(
+    <div className="mx-2">
+      <p>Tabela de usuários</p>      
+      <Table 
+        aria-label="users"
+        classNames={{wrapper:'overflow-auto h-120 h-max-2/3'}}
+        topContent={<Input type='text' value={filter} onValueChange={setFilter}  className={'w-80'} label={'Filtro'} />}
+        bottomContent={
+          <div className="flex w-full justify-center">
+            <Pagination
+              isCompact
+              showControls
+              showShadow
+              color="secondary"
+              page={page}
+              total={pages}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+        }
+      >
+        <TableHeader >
+          <TableColumn key={'nome'}>{'Usuário'}</TableColumn>
+          <TableColumn key={'team'}>{'Equipe'}</TableColumn>
+          <TableColumn key={'isOnline'}>{'Online'}</TableColumn>
+          <TableColumn key={'edit'}>{'Editar'}</TableColumn>
+        </TableHeader>
+        <TableBody items={paginatedItems}>
+          {(item) => (            
+            <TableRow key={item.id}>
+              <TableCell key={item.id +'nome'}>{item.name}</TableCell>
+              <TableCell key={item.id +'team'}>{item.team_id}</TableCell>
+              <TableCell key={item.id +'isOnline'}>{item.session_history.length > 0 ? 'Sim' : 'Não'}</TableCell>
+              <TableCell key={item.id +'edit'}><Button onPress={()=>setCurrentUser(item)} >Editar</Button></TableCell>
+            </TableRow>            
+          )}
+        </TableBody>
+      </Table>
+
+      {
+        currentUser ?
+          <SchedulerTable user={currentUser} handleClose={()=>setCurrentUser(undefined)}/> :
+          null
+      }
+    </div>
+  )  
+}
+
+
+export function SchedulerTable({user, handleClose}:{user:UserWithSession, handleClose: ()=>void}){
+
+  const [schedule, setSchedule] = useState<User_schedule[]>([])
+  const [loading, setloading] = useState(true)
+
+  useEffect(()=>{
+    if(loading){
+      getUserSchedule(user.id).then(resp => {
+        setSchedule(resp)
+        setloading(false)
+      })
+    }
+  }, [loading])
+
+  const setScheduleItem = (value: string, id: number, item: string) => {
+    const sched: User_schedule | undefined = schedule.find(el => el.id == id)
+    if(sched){
+      const newSched: User_schedule = {...sched, [item]: value}
+      setSchedule(schedule.map(el => el.id != newSched.id ? el : newSched))
+    }
+  }
+
+  const addSchedule = async () => {    
+    createUserSchedule(user.id).then(()=> {
+      setloading(true)
+    })
+  }
+
+  const updateSchedule = async (item: User_schedule) => {    
+    updateUserSchedule(item).then(()=> {
+      setloading(true)
+    })
+  }
+
+  const deleteSchedule = async (item: number) => {
+    deleteUserSchedule(item).then(()=> {
+      setloading(true)
+    })
+  }
+
+  return(
+    <div >
+      <p>Editar Horários de {user.name}</p>
+      <Table 
+        aria-label="users"
+        classNames={{wrapper:'overflow-auto h-120 h-max-2/3'}}
+      >
+        <TableHeader >
+          <TableColumn key={'is_active'}>{'Ativo?'}</TableColumn>
+          <TableColumn key={'monday'}>{'Segunda'}</TableColumn>
+          <TableColumn key={'tuesday'}>{'Terça'}</TableColumn>
+          <TableColumn key={'wednesday'}>{'Quarta'}</TableColumn>
+          <TableColumn key={'thursday'}>{'Quinta'}</TableColumn>
+          <TableColumn key={'friday'}>{'Sexta'}</TableColumn>
+          <TableColumn key={'saturday'}>{'Sábado'}</TableColumn>
+          <TableColumn key={'sunday'}>{'Domingo'}</TableColumn>
+          <TableColumn key={'save'}>{'Salvar'}</TableColumn>
+          <TableColumn key={'delete'}>{'Deletar'}</TableColumn>
+        </TableHeader>
+        <TableBody items={schedule}>
+          {(item) => (
+            <TableRow key={item.id}>
+              <TableCell key={item.id +'ativo'}>{item.is_active}</TableCell>
+              <TableCell key={item.id +'monday'}><Input value={item.monday} onValueChange={(value)=> setScheduleItem(value, item.id, 'monday')}/></TableCell>
+              <TableCell key={item.id +'tuesday'}><Input value={item.tuesday} onValueChange={(value)=> setScheduleItem(value, item.id, 'tuesday')}/></TableCell>
+              <TableCell key={item.id +'wednesday'}><Input value={item.wednesday} onValueChange={(value)=> setScheduleItem(value, item.id, 'wednesday')}/></TableCell>
+              <TableCell key={item.id +'thursday'}><Input value={item.thursday} onValueChange={(value)=> setScheduleItem(value, item.id, 'thursday')}/></TableCell>
+              <TableCell key={item.id +'friday'}><Input value={item.friday} onValueChange={(value)=> setScheduleItem(value, item.id, 'friday')}/></TableCell>
+              <TableCell key={item.id +'saturday'}><Input value={item.saturday} onValueChange={(value)=> setScheduleItem(value, item.id, 'saturday')}/></TableCell>
+              <TableCell key={item.id +'sunday'}><Input value={item.sunday} onValueChange={(value)=> setScheduleItem(value, item.id, 'sunday')}/></TableCell>
+              <TableCell key={item.id +'save'}><Button onPress={()=> updateSchedule(item)}>Salvar</Button></TableCell>
+              <TableCell key={item.id +'delete'}><Button onPress={()=> deleteSchedule(item.id)}>Deletar</Button></TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      <div className="flex flex-row gap-2 p-2">
+        <Button color="secondary" onPress={addSchedule}>Novo</Button>
+        <Button color="danger" onPress={handleClose}>Fechar</Button>
+      </div>
+    </div>
+  )
+}
+
+
+

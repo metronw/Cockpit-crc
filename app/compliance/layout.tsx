@@ -1,16 +1,10 @@
 import { Header} from './components'
-import {use} from 'react'
-import {getTicketContext} from '@/app/actions/api'
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../lib/authOptions';
 
 export default function AgentLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = use(getServerSession(authOptions));
-  const iniContext = use(getTicketContext(session?.user.id))
 
   return (
       <div className='flex flex-col h-screen'>
@@ -21,7 +15,7 @@ export default function AgentLayout({
           <div className='col-span-3 bg-primary border-r-1 border-b-1 border-black relative'>
           </div>
           <div className='col-span-9 bg-white'>
-            {children}      
+            {children}
           </div>
         </main>
         <footer className="flex gap-6 flex-wrap items-center justify-center bg-primary py-3">

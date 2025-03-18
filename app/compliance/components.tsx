@@ -10,8 +10,6 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { Compliance_term } from "@prisma/client";
 import { ArrowRightStartOnRectangleIcon, HomeIcon } from "@heroicons/react/24/solid";
-import useSWR from 'swr';
-import { toast } from "react-toastify";
 
 
 export function ComplianceTerm({term}:{term:Compliance_term}) {
@@ -90,37 +88,36 @@ export function ComplianceTerm({term}:{term:Compliance_term}) {
 }
 
 
-const fetchPauseStatus = async (url: string) => {
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.error === 'Interface não encontrada em nenhuma fila') {
-      return { error: 'Interface não encontrada em nenhuma fila' };
-    }
-    if (!res.ok) {
-      return { error: data.error || 'Erro desconhecido' };
-    }
-    return data;
-  } catch (error) {
-    console.error("Erro ao buscar status de pausa:", error);
-    return { error: 'Erro ao buscar status de pausa' };
-  }
-};
+// const fetchPauseStatus = async (url: string) => {
+//   try {
+//     const res = await fetch(url);
+//     const data = await res.json();
+//     if (data.error === 'Interface não encontrada em nenhuma fila') {
+//       return { error: 'Interface não encontrada em nenhuma fila' };
+//     }
+//     if (!res.ok) {
+//       return { error: data.error || 'Erro desconhecido' };
+//     }
+//     return data;
+//   } catch (error) {
+//     console.error("Erro ao buscar status de pausa:", error);
+//     return { error: 'Erro ao buscar status de pausa' };
+//   }
+// };
 
 export function Header(){
 
-  const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
-  const { data: pauseData, error: pauseError, mutate } = useSWR('/api/phone/pauseUser', fetchPauseStatus);
+  // const { data: pauseData, error: pauseError, mutate } = useSWR('/api/phone/pauseUser', fetchPauseStatus);
   const router = useRouter()
 
-  const isLoggedIn = !(pauseData?.error === 'Interface não encontrada em nenhuma fila');
+  // const isLoggedIn = !(pauseData?.error === 'Interface não encontrada em nenhuma fila');
 
   const handleSignOut = async () => {
-    if (isLoggedIn) {
-      setLogoutModalOpen(true);
-    } else {
+    // if (isLoggedIn) {
+    //   setLogoutModalOpen(true);
+    // } else {
       signOut();
-    }
+    // }
   };
 
   // const handleLogout = async () => {

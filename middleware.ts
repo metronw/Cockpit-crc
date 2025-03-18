@@ -12,10 +12,10 @@ export default withAuth(
       return NextResponse.redirect(url);
     }
 
-    if(!token.terms_accepted){
-      url.pathname = '/compliance'
-      return NextResponse.redirect(url);
-    }
+    // if(!token.terms_accepted){
+    //   url.pathname = '/compliance'
+    //   return NextResponse.redirect(url);
+    // }
 
     // Authorization logic for specific routes
     if (req.nextUrl.pathname.startsWith("/monitor")) {

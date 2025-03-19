@@ -1,12 +1,12 @@
 "use client"
 
-import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Textarea } from "@nextui-org/react";
+import { Card, CardBody, Autocomplete, AutocompleteItem, RadioGroup, Radio, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Checkbox, Textarea, Snippet } from "@nextui-org/react";
 import Link from 'next/link'
 import { ITicketContextData, IProcedureItemResponse, useTicketContext, parsePageInfo } from "@/app/agent/providers"
 import { useState, useEffect, useCallback, ChangeEvent } from 'react'
 import { Input } from "@nextui-org/react"
 import { createMetroTicket } from '@/app/actions/api'
-import { findOrCreateTicketTime, updateTicket } from "@/app/actions/ticket";
+import { cloneTicket, findOrCreateTicketTime, updateTicket } from "@/app/actions/ticket";
 import { usePathname, useRouter } from 'next/navigation'
 import { IProcedureItem, getProcedure } from "@/app/actions/procedures";
 import { useSession } from "next-auth/react";
@@ -194,7 +194,9 @@ export const ProcedureTextInput = ({ label, Modal, id = 0, isLarge = false }: { 
 
   return (
     <div className="flex flex-col p-1  rounded m-2 gap-2">
-      <span className="bg-purple-700 text-white px-2">{label}</span>
+      <Snippet hideSymbol className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1">
+        <span className="bg-purple-700 text-white px-2">{label}</span>
+      </Snippet>
       <div className="flex flex-row">
         {Modal}
         {
@@ -224,9 +226,7 @@ export const ProcedureTextInput = ({ label, Modal, id = 0, isLarge = false }: { 
               onValueChange={setValue}
             />
         }
-
       </div>
-
     </div>
   )
 }
@@ -262,16 +262,21 @@ export const RadioInput = ({ isInteractive = false, label, Modal, id = 0 }: { is
 
 
   return (
-    <RadioGroup
-      label={label} orientation="horizontal"
-      classNames={{ label: 'p-1 m-1 rounded ' + (isInteractive ? 'bg-purple-700 text-white' : 'border border-primary text-primary') }}
-      value={response}
-      onValueChange={setResponse}
-    >
-      {Modal}
-      <Radio value="true" classNames={{ wrapper: 'border-success', control: 'bg-success' }}></Radio>
-      <Radio value="false" classNames={{ wrapper: 'border-danger', control: 'bg-danger' }}></Radio>
-    </RadioGroup>
+    <div>
+      <Snippet hideSymbol className="bg-purple-700 text-white rounded content-center px-2 my-1 py-1 rounded">
+        <span>{label}</span>
+      </Snippet>
+      <RadioGroup
+        orientation="horizontal"
+        classNames={{ label: 'p-1 m-1 rounded ' + (isInteractive ? 'bg-purple-700 text-white' : 'border border-primary text-primary') }}
+        value={response}
+        onValueChange={setResponse}
+      >
+        {Modal}
+        <Radio value="true" classNames={{ wrapper: 'border-success', control: 'bg-success' }}></Radio>
+        <Radio value="false" classNames={{ wrapper: 'border-danger', control: 'bg-danger' }}></Radio>
+      </RadioGroup>
+    </div>
   )
 }
 
@@ -856,17 +861,24 @@ const Timer = () => {
   }, [time, ticketContext, ticket, currentStatus])
 
   useEffect(() => {
-    const timer = ticket?.ticket_time?.find(el => el.ticket_status == currentStatus)
-
-    if (timer) {
-      setTime(timer.time)
-    } else {
-      findOrCreateTicketTime(ticket?.id ?? 0, currentStatus).then(el => {
-        setTime(el.time)
-      })
+    if( ['triage', 'procedure','finish'].includes(ticket?.status ?? '')){
+      const timer = ticket?.ticket_time?.find(el => el.ticket_status == currentStatus)
+  
+      if (timer) {
+        setTime(timer.time)
+      } else {
+        findOrCreateTicketTime(ticket?.id ?? 0, currentStatus).then(el => {
+          setTime(el.time)
+        })
+      }
+      updateTimerContext()
     }
-    updateTimerContext()
+    
     const intervalId = setInterval(() => setTick(true), 1000)
+
+    if(ticket?.status == 'closed'){
+      clearInterval(intervalId);
+    }
 
     return () => {
       clearInterval(intervalId);
@@ -1063,4 +1075,55 @@ export function DocumentInput({ id, fieldName, label, isRequired }: { id: string
   );
 }
 
+export function CloneTicketButton(){
+  const { ticketContext, setTicketContext } = useTicketContext()
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [scrollBehavior] = useState<"inside" | "normal" | "outside" | undefined>("inside");
+  const path = usePathname()
+  const { ticket } = parsePageInfo(path, ticketContext)
+  
+  const clone = async () => {
+    if(ticket){
+      const resp  = await cloneTicket(ticket)
+      if(resp){
+        toast.success('O ticket foi clonado com sucesso')
+        setTicketContext({...ticketContext, tickets:[...ticketContext.tickets, resp]})
+      }
+    }
+  }
 
+  return(
+    <div>
+      <Button onPress={onOpen}>Clonar Ticket</Button>
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        scrollBehavior={scrollBehavior}
+        classNames={{ body: 'text-black', header: 'text-black' }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                {'Clonar Ticket'}
+              </ModalHeader>
+              <ModalBody>
+                {
+                  <RichTextEditor value={'Um novo ticket será criado com todas as mesmas informações de cliente!'} />
+                }
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" variant="light" onPress={() => {clone(); onClose()}}>
+                  Confirmar
+                </Button>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Cancelar
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </div>
+  )
+}

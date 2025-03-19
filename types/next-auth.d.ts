@@ -8,6 +8,7 @@ declare module "next-auth" {
       name: string;
       roles: string[];
       metro_id?: number;
+      terms_accepted: boolean
     };
   }
 
@@ -26,6 +27,6 @@ declare module "next-auth/jwt" {
     metro_id?:number;
     exp: number;
     email: string;
-    
+    terms_accepted: boolean    
   }
 }

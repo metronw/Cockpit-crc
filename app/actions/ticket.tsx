@@ -12,26 +12,33 @@ export async function createTicket({company_id}:{company_id:number}){
     const ticket = await prisma.ticket.create({
       data: { company_id, status: 'triage', user_id: session.user.id, procedures: JSON.stringify([]), communication_type: `chat`  },
     }) 
-    // if(ticket){
-    //   ticketStatus.forEach(async el => {
-    //     await saveTicketTime(ticket.id, el, 0)
-    //   })
-    // }
     return JSON.stringify(ticket)
+  }
+}
+
+export async function cloneTicket(ticket:TicketWithTime){
+  const session = await getServerSession(authOptions);
+  if(session){
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {id, ticket_time, ...clone} = ticket
+    
+    const newTicket = await prisma.ticket.create({
+      data: {...clone,  status: 'triage', user_id: session.user.id, procedures: JSON.stringify([]), type: undefined},
+    }) 
+    return {...newTicket, ticket_time: []}
   }
 }
 
 export async function updateTicket(ticket: TicketWithTime){
   if(ticket){
     const {company_id, status, procedures, erpProtocol, address, caller_name, client_name, identity_document, isRecall, communication_id, type, caller_number, ticket_time, idGestor, subject  } = ticket
-  
     await prisma.ticket.update({
       where: {
         id: ticket.id
       },
       data: { company_id, status, procedures, erpProtocol, address, caller_name, client_name, identity_document, isRecall, communication_id, type: type, caller_number, idGestor, subject  },
     })
-
+    
     ticket_time.forEach(async (el:Ticket_time) => {
       await saveTicketTime({...el})
     })
@@ -48,13 +55,37 @@ export const getOpenTickets = async ():Promise<TicketWithTime[]> => {
       where: {
         user_id: session.user.id,
         status: { notIn: ['closed', 'deleted']  },
-      },
+      },      
       include:{ticket_time: true}
     });
     return filteredTickets
   }
   return []
 }
+
+export const getLastClosedTickets = async ():Promise<TicketWithTime[]> => { 
+  const session = await getServerSession(authOptions);
+
+  if(session){
+    const filteredTickets = await prisma.ticket.findMany({
+      take:5,
+      where: {
+        user_id: session.user.id,
+        status: 'closed' ,
+      },
+      orderBy: [
+        {
+          createdAt: 'desc'
+        }
+      ],
+      include:{ticket_time: true}
+    });
+    return filteredTickets
+  }
+  return []
+}
+
+
 
 export async function getTicket(id:number) :Promise<TicketWithTime | null >{
   const ticket = prisma.ticket.findFirst({

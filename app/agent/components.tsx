@@ -5,13 +5,14 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDi
 import { ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon, MinusIcon, PhoneIcon } from "@heroicons/react/24/solid"
 import { useRouter } from "next/navigation"
 import { useTicketContext } from '@/app/agent/providers'
-import { TicketWithTime, createTicket, updateTicket } from '../actions/ticket';
+import { TicketWithTime, createTicket, getLastClosedTickets, updateTicket } from '../actions/ticket';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import useSWR from 'swr';
 import { Modal as SimpleModal } from "@nextui-org/react";
 import { CompanyWithAssignments } from '../actions/company';
+import { pauseSession } from '../actions/pause';
 
 const fetchPauseStatus = async (url: string) => {
   try {
@@ -106,6 +107,9 @@ export const AgentHeader = ({ id }: { id?: number }) => {
       const data = await pauseResponse.json();
 
       if (pauseResponse.ok) {
+        pauseSession({pause_type: currentPauseReason ?? ''}).then(resp => {
+          console.log(resp, currentPauseReason)
+        })
         toast.success(data.message || 'Estado da interface atualizado com sucesso.');
         setTimeout(() => {
           mutate('/api/phone/pauseUser');
@@ -354,17 +358,23 @@ export const Sidebar = () => {
   }
   
   const router = useRouter();
-  const { ticketContext, setTicketContext, isMounted } = useTicketContext()
+  const { ticketContext, setTicketContext } = useTicketContext()
   const { tickets, companies } = ticketContext
   const [ticketList, setTicketList] = useState<Array<ICompanyList>>([])
+  const [lastClosedTickets, setLastClosedTickets] = useState<TicketWithTime[]>([])
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [modalTick, setModalTick] = useState<TicketWithTime | null>(null)
 
-  const len = tickets.length
   useEffect(() => {
+    getLastClosedTickets().then(resp=>{
+      setLastClosedTickets(resp)
+    })
+  }, [ tickets.length])
+
+  useEffect(()=>{
     refreshList()
-  }, [isMounted, len])
+  }, [JSON.stringify(lastClosedTickets)])
 
   useEffect(() => {
     refreshList()
@@ -375,6 +385,9 @@ export const Sidebar = () => {
 
     const others: ICompanyList = { id: 0, fantasy_name: 'Outros', threshold_1: null, threshold_2:null, tickets: [],  User_assign:[] }
     list.push(others)
+    
+    const last: ICompanyList = { id: -1, fantasy_name: 'Últimos fechados', threshold_1: null, threshold_2:null, tickets: lastClosedTickets,  User_assign:[] }
+    list.push(last)
 
     tickets.forEach(el => {
       const comp = list.find(item => item.id == el.company_id)
@@ -417,8 +430,9 @@ export const Sidebar = () => {
     }
   }
 
-  const redirectToTicket = (id: number) => {
-    router.push('/agent/triage/' + id)
+  const redirectToTicket = (id: number, status: string) => {
+    const redirectStatus = status == 'closed' ? 'finish' : status
+    router.push(`/agent/${redirectStatus}/${id}`)
   }
   
   return (
@@ -434,7 +448,7 @@ export const Sidebar = () => {
                 el.tickets?.map(item => {
                   return (
                     <div key={item.id} className='flex flex-row items-center justify-between mx-2'>
-                      <Client name={'#' + item.id + `, ` + (item.client_name ? item.client_name.substring(0, 12) : `sem nome`)} timer={'0:00'} onClick={() => redirectToTicket(item.id)} />
+                      <Client name={'#' + item.id + `, ` + (item.client_name ? item.client_name.substring(0, 12) : `sem nome`)} timer={'0:00'} onClick={() => redirectToTicket(item.id, item.status)} />
                       <Button isIconOnly className='bg-danger content-center' size='sm' radius='md' onPress={() => { onOpen(); setModalTick(item) }}><MinusIcon className='bg-danger w-4' /></Button>
                     </div>
                   )

@@ -55,7 +55,13 @@ model User {
   password    String
   createdAt   DateTime      @default(now())
   role_id     Int?
+  team_id     Int?
   assignments User_assign[]
+  compliance  User_compliance_term[]
+  session_history     Session_history[]
+  team        Team? @relation(fields: [team_id], references: [id])
+  user_schedule User_schedule[]
+  user_pause    User_pause[]
 }
 
 model User_phone {
@@ -139,4 +145,60 @@ model User_assign {
 
   @@unique([company_id, user_id, queue_type])
   @@index([user_id], map: "User_assign_user_id_fkey")
+}
+
+model Compliance_term {
+  id          Int   @id @default(autoincrement())
+  created_by           Int
+  createdAt     DateTime @default(now())
+  file          String
+  is_active     Boolean @default(false)
+  User_compliance_term User_compliance_term[]
+}
+
+model User_compliance_term{
+  compliance_term_id Int
+  createdAt     DateTime @default(now())
+  user_id       Int
+  User          User @relation(fields: [user_id], references: [id])
+  Compliance_term Compliance_term @relation(fields: [compliance_term_id], references: [id])
+  @@unique([user_id, compliance_term_id])
+  @@id([user_id, compliance_term_id])
+}
+
+model Session_history {
+  id          Int   @id @default(autoincrement())
+  user_id      Int
+  logged_in_at  DateTime @default(now())
+  logged_out_at DateTime?
+  User        User     @relation(fields: [user_id], references: [id])
+}
+
+model Team {
+  id        Int @id @default(autoincrement())
+  leader_id Int?
+  User      User[]
+}
+
+model User_schedule {
+  id        Int @id @default(autoincrement())
+  user_id   Int 
+  User        User     @relation(fields: [user_id], references: [id])
+  is_active   Boolean
+  monday    String  @default("")
+  tuesday    String @default("")
+  wednesday    String @default("")
+  thursday    String  @default("")
+  friday    String  @default("")
+  saturday    String  @default("")
+  sunday    String  @default("")
+}
+
+model User_pause {
+  id        Int @id @default(autoincrement())
+  user_id   Int 
+  User        User     @relation(fields: [user_id], references: [id])
+  pause_type  String
+  started_at  DateTime @default(now())
+  finished_at  DateTime?
 }

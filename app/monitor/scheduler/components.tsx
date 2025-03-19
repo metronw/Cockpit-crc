@@ -78,7 +78,11 @@ export function Scheduler(){
                 base: 'flex shrink '
               }}
             >
-              {companies.map((item:{id:number, fantasy_name: string}) => <AutocompleteItem key={item.id} textValue={item.fantasy_name}>{item.fantasy_name}</AutocompleteItem>)}
+              {
+                companies
+                  .sort((a, b) => (a.fantasy_name.toLowerCase() < b.fantasy_name.toLowerCase() ? -1 : 1))
+                  .map((item:{id:number, fantasy_name: string}) => <AutocompleteItem key={item.id} textValue={item.fantasy_name}>{item.fantasy_name}</AutocompleteItem>)
+              }
             </Autocomplete>
           }
 

@@ -1,4 +1,4 @@
-import { CompanyGroupCreator, CompanyGroupSelector } from "./components";
+import { CompanyGroupCreator, CompanyGroupSelector, TermTable, UploadTerm, UsersTable } from "./components";
 import { ManagementProvider } from "./providers";
 
 export default function ManagerDashboard() {
@@ -9,6 +9,11 @@ export default function ManagerDashboard() {
         Dashboard do Gerente        
         <CompanyGroupSelector />
         <CompanyGroupCreator />
+      </div>
+      <div>
+        <UploadTerm/>
+        <TermTable/>
+        <UsersTable/>
       </div>
     </ManagementProvider>
   );

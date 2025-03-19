@@ -443,26 +443,33 @@ export const Sidebar = () => {
             </AccordionItem>
           )}
       </Accordion>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 text-black">Fechar Ticket {modalTick?.id}</ModalHeader>
-              <ModalBody>
-                <p className='text-black'>Todas as informações serão perdidas, tem certeza que deseja continuar?</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="primary" variant="light" onPress={() => { onClose(); setModalTick(null) }}>
-                  Cancelar
-                </Button>
-                <Button color="danger" onPress={() => { onClose(); modalTick ? closeTicket(modalTick) : null }} >
-                  Confirmar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 text-black">Fechar Ticket {modalTick?.id}</ModalHeader>
+                <ModalBody>
+                  {/* <p className='text-black'>Todas as informações serão perdidas, tem certeza que deseja continuar?</p> */}
+                  <p className='text-black'>Esta opção está desativada, tabule e preencha o ticket até o final.</p>
+                  <p className='text-black'>Em caso de dúvidas, consulte a monitoria ou supervisão.</p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="primary" variant="light" onPress={() => { onClose(); setModalTick(null) }}>
+                    Cancelar
+                  </Button>
+  
+                  <Button color="success" onPress={() => { onClose(); setModalTick(null) }}>
+                    Entendido
+                  </Button>
+                  
+  {/*                 <Button color="danger" onPress={() => { onClose(); modalTick ? closeTicket(modalTick) : null }} disabled>
+                    Confirmar
+                  </Button> */}
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
     </div>
   )
 }

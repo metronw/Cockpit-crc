@@ -208,7 +208,7 @@ export async function getUsers() {
 }
 
 
-export async function sendEmail({to, subject, message, attachments}: {to: string, subject: string, message: string, attachments?: string}) {
+export async function sendEmail({to, subject, message, attachments, cc, priority}: {to: string, subject: string, message: string, attachments?: string, cc?: string, priority?: 'high' | 'normal' | 'low'}) {
 
   let attachmentOptions: { filename: string; content: Buffer }[] = [];
 
@@ -245,6 +245,8 @@ export async function sendEmail({to, subject, message, attachments}: {to: string
     subject,
     text: message,
     attachments: attachmentOptions,
+    cc,
+    priority,
   };
 
   try {

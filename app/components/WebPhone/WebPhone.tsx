@@ -515,7 +515,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
         const emailData = {
           to: sessionUser.email,
           subject: 'Permissão de áudio negada',
-          priority: 'high',
+          priority: 'high' as 'high',
           message: `Prezado(a) ${sessionUser.name},
 
           A permissão de áudio foi negada em sua sessão no Cockpit. É absolutamente necessário que você permita o acesso ao áudio imediatamente para evitar sérios problemas no funcionamento do sistema.

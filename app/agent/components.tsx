@@ -241,7 +241,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
       <Button isIconOnly color="primary" aria-label="logout" onPress={handleSignOut}>
         <ArrowRightStartOnRectangleIcon className="col-span-1 h-10 " />
       </Button>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal isOpen={isOpen || pauseData?.paused} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>
@@ -310,9 +310,11 @@ export const AgentHeader = ({ id }: { id?: number }) => {
                 )}
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Fechar
-                </Button>
+                {!pauseData?.paused && (
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Fechar
+                  </Button>
+                )}
               </ModalFooter>
             </>
           )}

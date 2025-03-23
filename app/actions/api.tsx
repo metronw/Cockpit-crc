@@ -208,13 +208,26 @@ export async function getUsers() {
 }
 
 
-export async function sendEmail({to, subject, message, attachments}: {to: string, subject: string, message: string, attachments: string}) {
+export async function sendEmail({to, subject, message, attachments}: {to: string, subject: string, message: string, attachments?: string}) {
 
-  const response = await fetch(attachments);
-    if (!response.ok) throw new Error(`Failed to fetch file: ${response.statusText}`);
-    
-    const fileBuffer = await response.arrayBuffer(); // Convert file to buffer
+  let attachmentOptions: { filename: string; content: Buffer }[] = [];
 
+  if (attachments) {
+    try {
+      const response = await fetch(attachments);
+      if (!response.ok) throw new Error(`Failed to fetch file: ${response.statusText}`);
+      
+      const fileBuffer = await response.arrayBuffer(); // Convert file to buffer
+      attachmentOptions = [
+        {
+          filename: attachments,
+          content: Buffer.from(fileBuffer)
+        },
+      ];
+    } catch (error) {
+      console.error("Attachment fetching error:", error);
+    }
+  }
 
   const transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST,
@@ -231,12 +244,7 @@ export async function sendEmail({to, subject, message, attachments}: {to: string
     to,
     subject,
     text: message,
-    attachments: [
-      {
-        filename: attachments,
-        content: Buffer.from(fileBuffer)
-      },
-    ]
+    attachments: attachmentOptions,
   };
 
   try {
@@ -245,6 +253,42 @@ export async function sendEmail({to, subject, message, attachments}: {to: string
   } catch (error) {
     console.error("Email sending error:", error);
     return { success: false, message: "Email failed to send." };
+  }
+}
+
+export async function postToTeams({ title, text }: { title: string, text: string }) {
+  const webhookUrl = process.env.TEAMS_WEBHOOK_URL;
+
+  const payload = {
+    "@type": "MessageCard",
+    "@context": "http://schema.org/extensions",
+    "summary": title,
+    "themeColor": "0076D7",
+    "title": title,
+    "text": text
+  };
+
+  try {
+    if (!webhookUrl) {
+      throw new Error('TEAMS_WEBHOOK_URL is not defined');
+    }
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to post to Teams: ${response.statusText}`);
+    }
+
+    return { success: true, message: "Message posted to Teams successfully!" };
+  } catch (error) {
+    console.error("Teams posting error:", error);
+    return { success: false, message: "Failed to post message to Teams." };
   }
 }
 

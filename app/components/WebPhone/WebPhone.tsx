@@ -88,7 +88,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
       setAudioPermissionDenied(false);
     } catch (error) {
       console.log('Erro ao obter permissão de áudio:', error);
-      if ((error as any).name === 'NotAllowedError') {
+      if (error instanceof DOMException && error.name === 'NotAllowedError') {
         setAudioPermissionDenied(true);
       }
     }

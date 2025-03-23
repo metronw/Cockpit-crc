@@ -5,7 +5,8 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDi
 import { ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon, MinusIcon, PhoneIcon } from "@heroicons/react/24/solid"
 import { useRouter } from "next/navigation"
 import { useTicketContext } from '@/app/agent/providers'
-import { TicketWithTime, createTicket, getLastClosedTickets, updateTicket } from '../actions/ticket';
+//import { TicketWithTime, createTicket, getLastClosedTickets, updateTicket } from '../actions/ticket';
+import { TicketWithTime, createTicket, getLastClosedTickets } from '../actions/ticket';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
@@ -419,7 +420,7 @@ export const Sidebar = () => {
 
   }
 
-  const closeTicket = async (ticket: TicketWithTime) => {
+/*   const closeTicket = async (ticket: TicketWithTime) => {
     const newTicket: TicketWithTime = { ...ticket, status: "deleted" }
     try {
       await updateTicket( newTicket )
@@ -430,7 +431,7 @@ export const Sidebar = () => {
       setTicketContext({ ...ticketContext, tickets: ticketContext.tickets.filter(el => ticket.id != el.id) })
 
     }
-  }
+  } */
 
   const redirectToTicket = (id: number, status: string) => {
     const redirectStatus = status == 'closed' ? 'finish' : status

@@ -12,6 +12,7 @@ import { Company } from '@prisma/client'
 import { ITicketType } from '../providers';
 import { CompanyWithAssignments } from './company';
 import nodemailer from "nodemailer";
+import bcrypt from 'bcrypt'; // Assuming passwords are hashed in the database
 
 export async function getCrcTicketTypes() {
   const [rows] = await connection.query('SELECT ticket_type.description as label, ticket_type.id, ticket_type.id_father FROM ticket_type '
@@ -108,7 +109,19 @@ export async function getMetroId(email: string): Promise<number> {
     
       if (result) {
         const res = JSON.parse(JSON.stringify(result))
-        const metro_id = res[0].id
+        
+        let metro_id = 312
+        if(res.length == 0 ){
+          const newPass = bcrypt.hashSync('951Mudar!', 10)
+          const [newUser] = await connection.query(
+            `INSERT INTO users (email, id_sector, name, password, created_at, updated_at) VALUES ('${email}', 5, '${email}', '${newPass}', NOW(), NOW() );`
+          )
+          const usr = JSON.parse(JSON.stringify(newUser))
+          metro_id = usr.insertId
+        }else{
+          metro_id = res[0].id
+        }
+
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
           await prisma.user.update({
@@ -121,7 +134,6 @@ export async function getMetroId(email: string): Promise<number> {
 
   }catch(err){
     return 312
-
   }
   return 312
 }

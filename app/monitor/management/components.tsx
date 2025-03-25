@@ -10,6 +10,7 @@ import { toast } from "react-toastify"
 import { deleteComplianceTerm, getAllComplianceTerm, updateComplianceTerm, uploadTerm } from "@/app/actions/complianceTerm"
 import { UserWithSession, getAllUsers } from "@/app/actions/session"
 import { createUserSchedule, deleteUserSchedule, getUserSchedule, updateUserSchedule } from "@/app/actions/schedule"
+import { getMetroId } from "@/app/actions/api"
 
 export function CompanySelector({addCompany}:{addCompany:(comp:Company)=>void}){
   const {companies} = useMonitorContext()
@@ -355,7 +356,6 @@ export function UsersTable(){
           )}
         </TableBody>
       </Table>
-
       {
         currentUser ?
           <SchedulerTable user={currentUser} handleClose={()=>setCurrentUser(undefined)}/> :
@@ -364,7 +364,6 @@ export function UsersTable(){
     </div>
   )  
 }
-
 
 export function SchedulerTable({user, handleClose}:{user:UserWithSession, handleClose: ()=>void}){
 

@@ -9,8 +9,7 @@ import { Company, Compliance_term, User_schedule } from "@prisma/client"
 import { toast } from "react-toastify"
 import { deleteComplianceTerm, getAllComplianceTerm, updateComplianceTerm, uploadTerm } from "@/app/actions/complianceTerm"
 import { UserWithSession, getAllUsers } from "@/app/actions/session"
-import { createUserSchedule, deleteUserSchedule, getUserSchedule, updateUserSchedule } from "@/app/actions/schedule"
-import { getMetroId } from "@/app/actions/api"
+import { createUserSchedule, deleteUserSchedule, getUser, getUserSchedule, updateUserGoal, updateUserSchedule } from "@/app/actions/schedule"
 
 export function CompanySelector({addCompany}:{addCompany:(comp:Company)=>void}){
   const {companies} = useMonitorContext()
@@ -369,6 +368,7 @@ export function SchedulerTable({user, handleClose}:{user:UserWithSession, handle
 
   const [schedule, setSchedule] = useState<User_schedule[]>([])
   const [loading, setloading] = useState(true)
+  const [goal, setGoal] = useState(user?.goal ?? 0)
 
   useEffect(()=>{
     if(loading){
@@ -376,8 +376,15 @@ export function SchedulerTable({user, handleClose}:{user:UserWithSession, handle
         setSchedule(resp)
         setloading(false)
       })
+      
     }
   }, [loading])
+
+  useEffect(()=> {
+    getUser(user.id).then(usr => {
+      setGoal(usr?.goal ?? 0)
+    })
+  }, [user])
 
   const setScheduleItem = (value: string, id: number, item: string) => {
     const sched: User_schedule | undefined = schedule.find(el => el.id == id)
@@ -387,7 +394,7 @@ export function SchedulerTable({user, handleClose}:{user:UserWithSession, handle
     }
   }
 
-  const addSchedule = async () => {    
+  const addSchedule = async () => {
     createUserSchedule(user.id).then(()=> {
       setloading(true)
     })
@@ -405,12 +412,21 @@ export function SchedulerTable({user, handleClose}:{user:UserWithSession, handle
     })
   }
 
+  const handleUpdateGoal = (value:string) => {
+    setGoal(parseInt(value))
+    updateUserGoal(user.id, parseInt(value))
+  }
+
+
   return(
     <div >
-      <p>Editar Horários de {user.name}</p>
+      <div>
+        <p>Editar Horários de {user.name}</p>
+        <Input type="number" value={goal+''} onValueChange={handleUpdateGoal} label={'Meta diária'} classNames={{base: 'w-48'}} />
+      </div>
       <Table 
         aria-label="users"
-        classNames={{wrapper:'overflow-auto h-120 h-max-2/3'}}
+        classNames={{wrapper:'overflow-auto h-120 h-max-2/3'}} 
       >
         <TableHeader >
           <TableColumn key={'is_active'}>{'Ativo?'}</TableColumn>
@@ -448,6 +464,4 @@ export function SchedulerTable({user, handleClose}:{user:UserWithSession, handle
     </div>
   )
 }
-
-
 

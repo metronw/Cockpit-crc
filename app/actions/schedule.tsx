@@ -36,3 +36,20 @@ export async function deleteUserSchedule(id: number){
   })
   return resp  
 }
+
+export async function updateUserGoal(user_id: number, goal: number){
+
+  const resp = prisma.user.update({
+    where:{ id: user_id},
+    data:{goal},
+  })
+  return resp
+}
+
+export async function getUser ( id: number){
+  const resp = prisma.user.findFirst({
+    where:{ id},
+    include: {user_schedule: true}
+  })
+  return resp
+}

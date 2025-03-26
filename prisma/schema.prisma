@@ -62,6 +62,7 @@ model User {
   team        Team? @relation(fields: [team_id], references: [id])
   user_schedule User_schedule[]
   user_pause    User_pause[]
+  goal        Int?
 }
 
 model User_phone {

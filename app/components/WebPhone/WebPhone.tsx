@@ -8,6 +8,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { FiPhoneCall, FiPhoneOff, FiMicOff, FiMic, FiPhoneForwarded } from 'react-icons/fi';
 import { useRouter } from "next/navigation";
 import './WebPhone.css';
+import { sendEmail, postToTeams } from '@/app/actions/api';
+import { useSession } from 'next-auth/react'
 
 JsSIP.debug.enable('');
 
@@ -48,7 +50,7 @@ interface RTCSessionEndedEvent {
 }
 
 const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange }, ref) => {
-  const [session, setSession] = useState<RTCSession | null>(null);
+  const [rtcSession, setRtcSession] = useState<RTCSession | null>(null);
   const uaRef = useRef<JsSIP.UA | null>(null);
   const [callStatus, setCallStatus] = useState('Idle');
   const [numberToCall, setNumberToCall] = useState('');
@@ -64,6 +66,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   const [showTransferInput, setShowTransferInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [sipStatus, setSipStatus] = useState('Disconnected');
+  const [audioPermissionDenied, setAudioPermissionDenied] = useState(false);
 
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -76,6 +79,25 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   const { data: prefixesData, error: prefixesError } = useSWR('/api/phone/prefix', fetcher);
 
   const router = useRouter();
+
+  const { data: session, status } = useSession();
+
+  const checkAudioPermission = async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      setAudioPermissionDenied(false);
+    } catch (error) {
+      console.log('Erro ao obter permissão de áudio:', error);
+      if (error instanceof DOMException && error.name === 'NotAllowedError') {
+        setAudioPermissionDenied(true);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(checkAudioPermission, 5000); // Verifica a cada 5 segundos
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!userData) return;
@@ -127,7 +149,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
     // @ts-expect-error: fix later
     uaRef.current.on('newRTCSession', ({ session }: { RTCSession }) => {
       const newSession: RTCSession = session;
-      setSession(newSession);
+      setRtcSession(newSession);
 
       if (newSession.direction === 'incoming') {
         setCallerName(newSession.remote_identity.display_name || 'Desconhecido');
@@ -158,7 +180,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
               // @ts-expect-error: fix later
               newSession.answer({ mediaStream: localStreamRef.current });
               setupPeerConnection(newSession);
-            }, 3000);
+            }, 1000);
           }
         }
       }
@@ -171,7 +193,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
       // @ts-expect-error: fix later
       newSession.on('ended', (e: RTCSessionEndedEvent) => {
         setCallStatus('Call Ended');
-        setSession(null);
+        setRtcSession(null);
         setIncomingCall(null);
         setCallerName('');
         setCallerNumber('');
@@ -182,7 +204,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
 
       newSession.on('failed', () => {
         setCallStatus('Call Failed');
-        setSession(null);
+        setRtcSession(null);
         setIncomingCall(null);
         setCallerName('');
         setCallerNumber('');
@@ -424,9 +446,9 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   };
 
   const sendDTMF = (digit: string) => {
-    if (session && session.isEstablished()) {
+    if (rtcSession && rtcSession.isEstablished()) {
       dialtoneAudioRef.current?.play();
-      session.sendDTMF(digit);
+      rtcSession.sendDTMF(digit);
       toast.info(`DTMF ${digit} enviado.`);
     } else {
       toast.error('Nenhuma chamada ativa para enviar DTMF.');
@@ -443,10 +465,10 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   };
 
   const handleTransferCall = () => {
-    if (session && session.isEstablished() && transferNumber) {
+    if (rtcSession && rtcSession.isEstablished() && transferNumber) {
       const dtmfSequence = `*1${transferNumber}`;
       for (const digit of dtmfSequence) {
-        session.sendDTMF(digit);
+        rtcSession.sendDTMF(digit);
       }
       toast.info(`Transferência iniciada para ${transferNumber}`);
     } else {
@@ -465,6 +487,79 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
   useEffect(() => {
     onCallStatusChange(callStatus);
   }, [callStatus, onCallStatusChange]);
+
+  const checkLastNotificationTime = () => {
+    const lastNotificationTime = localStorage.getItem('lastNotificationTime');
+    if (!lastNotificationTime) return true;
+
+    const currentTime = new Date().getTime();
+    const timeDifference = currentTime - parseInt(lastNotificationTime, 10);
+    return timeDifference > 30 * 60 * 1000; // 30 minutes
+  };
+
+  const updateLastNotificationTime = () => {
+    const currentTime = new Date().getTime();
+    localStorage.setItem('lastNotificationTime', currentTime.toString());
+  };
+
+  useEffect(() => {
+    const handleAudioPermissionDenied = async () => {
+      if (audioPermissionDenied && checkLastNotificationTime()) {
+        if (status !== "authenticated") {
+          console.error("Usuário não autenticado.");
+          return;
+        }
+        const sessionUser = session?.user;
+
+        console.log("Session User:", sessionUser); // Adicionado log
+        const emailData = {
+          to: sessionUser.email,
+          subject: 'Permissão de áudio negada',
+          priority: 'high' as const, // Corrigido para corresponder ao tipo esperado sem usar uma asserção de tipo
+          message: `Prezado(a) ${sessionUser.name},
+
+          A permissão de áudio foi negada em sua sessão no Cockpit. É absolutamente necessário que você permita o acesso ao áudio imediatamente para evitar sérios problemas no funcionamento do sistema.
+
+          Esta notificação foi encaminhada à Gestão para conhecimento e está passível de sanções conforme o Manual do Colaborador.`,
+          attachments: ''
+        };
+
+        const emailDataGestao = {
+          to: 'GestoCRC@metronetwork.com.br',
+          cc: 'ti@metronetwork.com.br,dev@metronetwork.com.br',
+          subject: 'Permissão de áudio negada',
+          message: `O usuário ${sessionUser.name} teve a permissão de áudio negada.`,
+          attachments: ''
+        };
+
+        sendEmail(emailData);
+        sendEmail(emailDataGestao);
+
+        const teamsMessage = {
+          title: 'Permissão de áudio negada',
+          text: `Um usuário negou a permissão de áudio. Mais detalhes encaminhados à Gestão e ao usuário.`,
+        };
+
+        postToTeams(teamsMessage);
+        updateLastNotificationTime();
+      }
+    };
+
+    handleAudioPermissionDenied();
+  }, [audioPermissionDenied, userData, status, session]);
+
+  if (audioPermissionDenied) {
+    return (
+      <>
+        <div className="audio-permission-denied-background"></div>
+        <div className="audio-permission-denied">
+          <h1>Permissão de áudio negada</h1>
+          <p>Por favor, permita o acesso ao áudio para continuar usando a aplicação.</p>
+          {/* TODO: Adicionar mais funcionalidades conforme necessário */}
+        </div>
+      </>
+    );
+  }
 
   if (userError || prefixesError) return <div>Error loading data.</div>;
   if (!userData || !prefixesData) return <div>Loading...</div>;
@@ -534,12 +629,12 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
             >
               <FiPhoneCall size={20} />
             </button>
-            {callStatus === 'Connected' && session && (
+            {callStatus === 'Connected' && rtcSession && (
               <>
                 <button
                   onClick={() => {
-                    session.terminate();
-                    setSession(null);
+                    rtcSession.terminate();
+                    setRtcSession(null);
                     setCallStatus('Call Ended');
                   }}
                   className="hangup-button"
@@ -553,6 +648,7 @@ const WebPhone = forwardRef<WebPhoneHandle, WebPhoneProps>(({ onCallStatusChange
                     borderRadius: '5px',
                     cursor: 'pointer',
                   }}
+                  disabled
                 >
                   <FiPhoneOff size={20} />
                 </button>

@@ -5,7 +5,8 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDi
 import { ClockIcon, PlayPauseIcon, ArrowRightStartOnRectangleIcon, HomeIcon, AdjustmentsHorizontalIcon, MinusIcon, PhoneIcon } from "@heroicons/react/24/solid"
 import { useRouter } from "next/navigation"
 import { useTicketContext } from '@/app/agent/providers'
-import { TicketWithTime, createTicket, getLastClosedTickets, updateTicket } from '../actions/ticket';
+//import { TicketWithTime, createTicket, getLastClosedTickets, updateTicket } from '../actions/ticket';
+import { TicketWithTime, createTicket, getLastClosedTickets } from '../actions/ticket';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
@@ -241,7 +242,7 @@ export const AgentHeader = ({ id }: { id?: number }) => {
       <Button isIconOnly color="primary" aria-label="logout" onPress={handleSignOut}>
         <ArrowRightStartOnRectangleIcon className="col-span-1 h-10 " />
       </Button>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal isOpen={isOpen || pauseData?.paused} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>
@@ -310,9 +311,11 @@ export const AgentHeader = ({ id }: { id?: number }) => {
                 )}
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Fechar
-                </Button>
+                {!pauseData?.paused && (
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Fechar
+                  </Button>
+                )}
               </ModalFooter>
             </>
           )}
@@ -417,7 +420,7 @@ export const Sidebar = () => {
 
   }
 
-  const closeTicket = async (ticket: TicketWithTime) => {
+/*   const closeTicket = async (ticket: TicketWithTime) => {
     const newTicket: TicketWithTime = { ...ticket, status: "deleted" }
     try {
       await updateTicket( newTicket )
@@ -428,7 +431,7 @@ export const Sidebar = () => {
       setTicketContext({ ...ticketContext, tickets: ticketContext.tickets.filter(el => ticket.id != el.id) })
 
     }
-  }
+  } */
 
   const redirectToTicket = (id: number, status: string) => {
     const redirectStatus = status == 'closed' ? 'finish' : status
@@ -457,26 +460,33 @@ export const Sidebar = () => {
             </AccordionItem>
           )}
       </Accordion>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 text-black">Fechar Ticket {modalTick?.id}</ModalHeader>
-              <ModalBody>
-                <p className='text-black'>Todas as informações serão perdidas, tem certeza que deseja continuar?</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="primary" variant="light" onPress={() => { onClose(); setModalTick(null) }}>
-                  Cancelar
-                </Button>
-                <Button color="danger" onPress={() => { onClose(); modalTick ? closeTicket(modalTick) : null }} >
-                  Confirmar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 text-black">Fechar Ticket {modalTick?.id}</ModalHeader>
+                <ModalBody>
+                  {/* <p className='text-black'>Todas as informações serão perdidas, tem certeza que deseja continuar?</p> */}
+                  <p className='text-black'>Esta opção está desativada, tabule e preencha o ticket até o final.</p>
+                  <p className='text-black'>Em caso de dúvidas, consulte a monitoria ou supervisão.</p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="primary" variant="light" onPress={() => { onClose(); setModalTick(null) }}>
+                    Cancelar
+                  </Button>
+  
+                  <Button color="success" onPress={() => { onClose(); setModalTick(null) }}>
+                    Entendido
+                  </Button>
+                  
+  {/*                 <Button color="danger" onPress={() => { onClose(); modalTick ? closeTicket(modalTick) : null }} disabled>
+                    Confirmar
+                  </Button> */}
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
     </div>
   )
 }

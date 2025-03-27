@@ -1,15 +1,16 @@
 'use client'
 
-import {  Autocomplete, AutocompleteItem, Button, Checkbox, Chip, Divider, Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react"
+import {  Autocomplete, AutocompleteItem, Button, Checkbox, Chip, Divider, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, useDisclosure } from "@nextui-org/react"
 import { useMonitorContext } from "../providers"
 import {useState, useEffect, useMemo} from 'react'
 import { useManagementContext } from "./providers"
 import { ICompanyGroup, upsertCompanyGroup } from "@/app/actions/company"
-import { Company, Compliance_term, User_schedule } from "@prisma/client"
+import { Company, Compliance_term, Team, User_schedule } from "@prisma/client"
 import { toast } from "react-toastify"
 import { deleteComplianceTerm, getAllComplianceTerm, updateComplianceTerm, uploadTerm } from "@/app/actions/complianceTerm"
 import { UserWithSession, getAllUsers } from "@/app/actions/session"
 import { createUserSchedule, deleteUserSchedule, getUser, getUserSchedule, updateUserGoal, updateUserSchedule } from "@/app/actions/schedule"
+import { assignUserToTeam, getAllTeams, upsertTeam } from "@/app/actions/team"
 
 export function CompanySelector({addCompany}:{addCompany:(comp:Company)=>void}){
   const {companies} = useMonitorContext()
@@ -282,6 +283,48 @@ export function TermTable (){
   )
 }
 
+export function TeamModal({team, users, setTeamLeader}:{team: Team | undefined, users: UserWithSession[], setTeamLeader: (user_id: number) => void} ) {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  return(
+    <div>
+      <Button onPress={onOpen} >Trocar Líder</Button>
+      <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          classNames={{ body: 'text-black', header: 'text-black' }}
+        >
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1">
+                  Escolher líder
+                </ModalHeader>
+                <ModalBody>
+                  {
+                    users.map(el => {
+                      return(
+                        <div className="flex flex-row gap-2">
+                            <p>{el.name}</p>
+                            <Checkbox isSelected={team?.leader_id == el.id} onChange={() => setTeamLeader(el.id)} />
+                        </div>
+
+                      )
+                    })
+                  }
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Fechar
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+    </div>
+  )
+}
+
 export function UsersTable(){
 
   const [items, setItems ] = useState<UserWithSession[] | []>([])  
@@ -289,6 +332,8 @@ export function UsersTable(){
   const [filter, setFilter] = useState('')
   const [pages, setPages] = useState(1)
   const [page, setPage] = useState(1)
+  const [teams, setTeams] = useState<Team[]>([])
+  const [selectedTeam, setSelectedTeam ] = useState<number>(0)
   const [currentUser, setCurrentUser] = useState<undefined | UserWithSession>(undefined)
   const rowsPerPage = 5
 
@@ -300,30 +345,78 @@ export function UsersTable(){
     })
   }
 
+  const getTeams = () => {
+    getAllTeams().then(resp => {
+      setTeams(resp)
+    })
+  }
+
   useEffect(() => {
     const filtered = items.filter(el => el.name.toLowerCase().startsWith(filter.toLowerCase()))
     setFilteredItems(filtered)
     setPage(1)
-  }, [filter])
+  }, [filter, selectedTeam])
 
   useEffect(() =>{
     getItems()
+    getTeams()
   }, [])
+
+  const handleCreateNewTeam = async () => {
+    await upsertTeam({})
+    getTeams()
+  }
+
+  const handleAssignTeam = async (user: UserWithSession) => {
+    if(selectedTeam){
+      await assignUserToTeam(user.id, user.team_id == selectedTeam ? null : selectedTeam)
+      getItems()
+    }
+  }
 
   const paginatedItems = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    return filteredItems.slice(start, end);
-  }, [page, filteredItems]);
+    return filteredItems.slice(start, end).sort((a, b) => (a.team_id == selectedTeam) ? -1 : (b.team_id == selectedTeam) ? 1 : 0 );
+  }, [page, filteredItems, selectedTeam]);
 
+  const setTeamLeader = (user_id: number) => {
+    upsertTeam({id: selectedTeam ?? 0, leader_id: user_id} )
+    getTeams()
+  }
+  
   return(
     <div className="mx-2">
       <p>Tabela de usuários</p>      
+      <div  className="flex flex-row gap-2">
+        <Input type='text' value={filter} onValueChange={setFilter}  className={'w-80'} label={'Filtro'} />
+        <Button onPress={handleCreateNewTeam}>Nova equipe</Button>
+        <Autocomplete
+          variant={'bordered'}
+          aria-label={'Equipes'}
+          label={'Equipes'}
+          className="flex h-11 max-w-xs my-1"
+          // @ts-expect-error: library has wrong type
+          onSelectionChange={(val) => setSelectedTeam(parseInt(val))}
+          selectedKey={selectedTeam+''}
+          classNames={{
+            popoverContent: 'bg-zinc-500 ',
+            base: 'flex shrink '
+          }}
+        >
+          {teams.map((el) => <AutocompleteItem key={el.id} textValue={el.id+''}>{el.id}</AutocompleteItem>)}
+        </Autocomplete>
+        {
+          selectedTeam ?
+            <TeamModal team={teams.find(el => selectedTeam == el.id)} users={items.filter(el => el.team_id == selectedTeam)} setTeamLeader={setTeamLeader} /> :
+            null
+        }
+      </div>
       <Table 
         aria-label="users"
         classNames={{wrapper:'overflow-auto h-120 h-max-2/3'}}
-        topContent={<Input type='text' value={filter} onValueChange={setFilter}  className={'w-80'} label={'Filtro'} />}
+        // topContent={}
         bottomContent={
           <div className="flex w-full justify-center">
             <Pagination
@@ -344,15 +437,22 @@ export function UsersTable(){
           <TableColumn key={'isOnline'}>{'Online'}</TableColumn>
           <TableColumn key={'edit'}>{'Editar'}</TableColumn>
         </TableHeader>
-        <TableBody items={paginatedItems}>
-          {(item) => (            
-            <TableRow key={item.id}>
-              <TableCell key={item.id +'nome'}>{item.name}</TableCell>
-              <TableCell key={item.id +'team'}>{item.team_id}</TableCell>
-              <TableCell key={item.id +'isOnline'}>{item.session_history.length > 0 ? 'Sim' : 'Não'}</TableCell>
-              <TableCell key={item.id +'edit'}><Button onPress={()=>setCurrentUser(item)} >Editar</Button></TableCell>
-            </TableRow>            
-          )}
+        <TableBody>
+          {
+            paginatedItems.map(
+              (item) => (
+                <TableRow key={item.id}>              
+                  <TableCell key={item.id +'nome'}>{item.name}</TableCell>
+                  <TableCell key={item.id +'team'}>
+                    <Checkbox isSelected={selectedTeam == item.team_id} onChange={() => handleAssignTeam(item)}  />
+                  </TableCell>
+                  <TableCell key={item.id +'isOnline'}>{item.session_history.length > 0 ? 'Sim' : 'Não'}</TableCell>
+                  <TableCell key={item.id +'edit'}><Button onPress={()=>setCurrentUser(item)} >Editar</Button></TableCell>
+                </TableRow>            
+              )
+            )
+
+          }
         </TableBody>
       </Table>
       {
@@ -464,4 +564,5 @@ export function SchedulerTable({user, handleClose}:{user:UserWithSession, handle
     </div>
   )
 }
+
 

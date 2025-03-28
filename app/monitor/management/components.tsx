@@ -2,14 +2,14 @@
 
 import {  Autocomplete, AutocompleteItem, Button, Checkbox, Chip, Divider, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Pagination, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, useDisclosure } from "@nextui-org/react"
 import { useMonitorContext } from "../providers"
-import {useState, useEffect, useMemo, Dispatch} from 'react'
+import {useState, useEffect, useMemo} from 'react'
 import { useManagementContext } from "./providers"
 import { ICompanyGroup, upsertCompanyGroup } from "@/app/actions/company"
 import { Company, Compliance_term, Team, Schedule } from "@prisma/client"
 import { toast } from "react-toastify"
 import { deleteComplianceTerm, getAllComplianceTerm, updateComplianceTerm, uploadTerm } from "@/app/actions/complianceTerm"
 import { UserWithSession, getAllUsers } from "@/app/actions/session"
-import { createSchedule, deleteSchedule, getUser, getSchedule, updateUserGoal, updateSchedule, updateUserSchedule } from "@/app/actions/schedule"
+import { createSchedule, getUser, getSchedule, updateUserGoal, updateSchedule, updateUserSchedule } from "@/app/actions/schedule"
 import { assignUserToTeam, getAllTeams, upsertTeam } from "@/app/actions/team"
 
 export function CompanySelector({addCompany}:{addCompany:(comp:Company)=>void}){
@@ -303,7 +303,7 @@ export function TeamModal({team, users, setTeamLeader}:{team: Team | undefined, 
                   {
                     users.map(el => {
                       return(
-                        <div className="flex flex-row gap-2">
+                        <div className="flex flex-row gap-2" key={el.id}>
                             <p>{el.name}</p>
                             <Checkbox isSelected={team?.leader_id == el.id} onChange={() => setTeamLeader(el.id)} />
                         </div>
@@ -477,7 +477,7 @@ export function SchedulerTable({user_prop, handleClose}:{user_prop:UserWithSessi
 
   useEffect(()=>{
     if(loading){
-      getSchedule(user.id).then(resp => {
+      getSchedule().then(resp => {
         setSchedule(resp)
         setloading(false)
       })
@@ -498,7 +498,7 @@ export function SchedulerTable({user_prop, handleClose}:{user_prop:UserWithSessi
   const setScheduleItem = (value: string, id: number, item: 'monday' | 'tuesday' | 'wednesday' | 'thursday'| 'friday' | 'saturday' | 'sunday', period: string) => {
     const sched: Schedule | undefined = schedule.find(el => el.id == id)
     if(sched){
-      let newItem = sched[item].split('-')
+      const newItem = sched[item].split('-')
       newItem[period == 'start' ? 0 : 1] = value
       const newSched: Schedule = {...sched, [item]: newItem.join(' - ')}
       setSchedule(schedule.map(el => el.id != newSched.id ? el : newSched))
@@ -519,11 +519,11 @@ export function SchedulerTable({user_prop, handleClose}:{user_prop:UserWithSessi
     })
   }
 
-  const handleDeleteSchedule = async (item: number) => {
-    deleteSchedule(item).then(()=> {
-      setloading(true)
-    })
-  }
+  // const handleDeleteSchedule = async (item: number) => {
+  //   deleteSchedule(item).then(()=> {
+  //     setloading(true)
+  //   })
+  // }
 
   const handleUpdateGoal = (value:string) => {
     setGoal(parseInt(value))

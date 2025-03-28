@@ -3,7 +3,7 @@
 import prisma from '@/app/lib/localDb';
 import { Schedule } from '@prisma/client';
 
-export async function getSchedule(id:number){
+export async function getSchedule(){
 
     const schedules = prisma.schedule.findMany()
     return schedules

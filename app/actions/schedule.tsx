@@ -1,37 +1,37 @@
 'use server'
 
 import prisma from '@/app/lib/localDb';
-import { User_schedule } from '@prisma/client';
+import { Schedule } from '@prisma/client';
 
-export async function getUserSchedule(id:number){
+export async function getSchedule(id:number){
 
-    const schedules = prisma.user_schedule.findMany({
-      where:{user_id: id,}
-    })
+    const schedules = prisma.schedule.findMany()
     return schedules
 }
 
-export async function updateUserSchedule(schedule: User_schedule){
+export async function updateSchedule(schedule: Schedule){
 
-  const resp = prisma.user_schedule.upsert({
+  const resp = prisma.schedule.update({
     where:{ id: schedule.id},
-    update:{...schedule},
-    create:{...schedule}
+    data:{...schedule},
   })
   return resp
 }
 
-export async function createUserSchedule(user_id:number){
-
-  const resp = prisma.user_schedule.create({
-    data:{user_id, is_active:false}
-  })
-  return resp
+export async function createSchedule(){
+  try{
+    const resp = prisma.schedule.create({
+      data:{}
+    })
+    return resp
+  }catch(err){
+    console.log(err)
+  }
 }
 
-export async function deleteUserSchedule(id: number){
+export async function deleteSchedule(id: number){
 
-  const resp = prisma.user_schedule.delete({
+  const resp = prisma.schedule.delete({
     where:{id}
   })
   return resp  
@@ -46,10 +46,19 @@ export async function updateUserGoal(user_id: number, goal: number){
   return resp
 }
 
+export async function updateUserSchedule(user_id: number, schedule_id: number){
+
+  const resp = prisma.user.update({
+    where:{ id: user_id},
+    data:{schedule_id},
+  })
+  return resp
+}
+
 export async function getUser ( id: number){
   const resp = prisma.user.findFirst({
     where:{ id},
-    include: {user_schedule: true}
+    include: {schedule: true, session_history: true}
   })
   return resp
 }

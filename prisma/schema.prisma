@@ -60,7 +60,8 @@ model User {
   compliance  User_compliance_term[]
   session_history     Session_history[]
   team        Team? @relation(fields: [team_id], references: [id])
-  user_schedule User_schedule[]
+  schedule_id Int? 
+  schedule    Schedule? @relation(fields: [schedule_id], references: [id])
   user_pause    User_pause[]
   goal        Int?
 }
@@ -181,18 +182,16 @@ model Team {
   User      User[]
 }
 
-model User_schedule {
+model Schedule {
   id        Int @id @default(autoincrement())
-  user_id   Int 
-  User        User     @relation(fields: [user_id], references: [id])
-  is_active   Boolean
-  monday    String  @default("")
-  tuesday    String @default("")
-  wednesday    String @default("")
-  thursday    String  @default("")
-  friday    String  @default("")
-  saturday    String  @default("")
-  sunday    String  @default("")
+  monday    String  @default("00:00 - 00:00")
+  tuesday    String @default("00:00 - 00:00")
+  wednesday    String @default("00:00 - 00:00")
+  thursday    String  @default("00:00 - 00:00")
+  friday    String  @default("00:00 - 00:00")
+  saturday    String  @default("00:00 - 00:00")
+  sunday    String  @default("00:00 - 00:00")
+  user    User[]
 }
 
 model User_pause {

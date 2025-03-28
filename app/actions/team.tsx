@@ -3,12 +3,15 @@
 import prisma from '@/app/lib/localDb';
 
 export async function upsertTeam({id, leader_id}:{id?:number | undefined, leader_id?: number | undefined}){
+  const teams = await getAllTeams()
+  if(teams.length < 20){
     const team = prisma.team.upsert({
       where:{ id: id ?? 0},
       update: {leader_id},
       create: {leader_id},
     })
     return team
+  }
 }
 
 

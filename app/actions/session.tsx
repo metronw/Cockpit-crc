@@ -21,7 +21,7 @@ export async function getActiveSessions(){
 }
 
 export type UserWithSession = Prisma.UserGetPayload<{
-  include: { session_history: true, user_schedule: true };
+  include: { session_history: true, schedule: true };
 }>;
 
 
@@ -33,7 +33,7 @@ export async function getAllUsers(){
         logged_out_at: null, // Only include sessions that are still open
       },
     },
-    user_schedule:true
+    schedule:true
   }
   })
   return users

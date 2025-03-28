@@ -1,15 +1,15 @@
 'use client'
 
-import {  Autocomplete, AutocompleteItem, Button, Checkbox, Chip, Divider, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, useDisclosure } from "@nextui-org/react"
+import {  Autocomplete, AutocompleteItem, Button, Checkbox, Chip, Divider, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Pagination, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, useDisclosure } from "@nextui-org/react"
 import { useMonitorContext } from "../providers"
-import {useState, useEffect, useMemo} from 'react'
+import {useState, useEffect, useMemo, Dispatch} from 'react'
 import { useManagementContext } from "./providers"
 import { ICompanyGroup, upsertCompanyGroup } from "@/app/actions/company"
-import { Company, Compliance_term, Team, User_schedule } from "@prisma/client"
+import { Company, Compliance_term, Team, Schedule } from "@prisma/client"
 import { toast } from "react-toastify"
 import { deleteComplianceTerm, getAllComplianceTerm, updateComplianceTerm, uploadTerm } from "@/app/actions/complianceTerm"
 import { UserWithSession, getAllUsers } from "@/app/actions/session"
-import { createUserSchedule, deleteUserSchedule, getUser, getUserSchedule, updateUserGoal, updateUserSchedule } from "@/app/actions/schedule"
+import { createSchedule, deleteSchedule, getUser, getSchedule, updateUserGoal, updateSchedule, updateUserSchedule } from "@/app/actions/schedule"
 import { assignUserToTeam, getAllTeams, upsertTeam } from "@/app/actions/team"
 
 export function CompanySelector({addCompany}:{addCompany:(comp:Company)=>void}){
@@ -451,28 +451,33 @@ export function UsersTable(){
                 </TableRow>            
               )
             )
-
           }
         </TableBody>
       </Table>
       {
         currentUser ?
-          <SchedulerTable user={currentUser} handleClose={()=>setCurrentUser(undefined)}/> :
+          <SchedulerTable user_prop={currentUser} handleClose={()=>setCurrentUser(undefined)}/> :
           null
       }
     </div>
   )  
 }
 
-export function SchedulerTable({user, handleClose}:{user:UserWithSession, handleClose: ()=>void}){
+const hours = Array.from({ length: 48 }, (_, i) => 
+  `${String(Math.floor(i / 2)).padStart(2, "0")}:${i % 2 === 0 ? "00" : "30"}`
+);
 
-  const [schedule, setSchedule] = useState<User_schedule[]>([])
+export function SchedulerTable({user_prop, handleClose}:{user_prop:UserWithSession, handleClose: ()=>void}){
+
+  const [schedule, setSchedule] = useState<Schedule[]>([])
   const [loading, setloading] = useState(true)
+  const [loadingUser, setloadingUser] = useState(true)
+  const [user, setUser] = useState<UserWithSession>(user_prop)
   const [goal, setGoal] = useState(user?.goal ?? 0)
 
   useEffect(()=>{
     if(loading){
-      getUserSchedule(user.id).then(resp => {
+      getSchedule(user.id).then(resp => {
         setSchedule(resp)
         setloading(false)
       })
@@ -482,32 +487,40 @@ export function SchedulerTable({user, handleClose}:{user:UserWithSession, handle
 
   useEffect(()=> {
     getUser(user.id).then(usr => {
-      setGoal(usr?.goal ?? 0)
+      if(usr){
+        setGoal(usr?.goal ?? 0)
+        setUser(usr)
+        setloadingUser(false)
+      }
     })
-  }, [user])
+  }, [JSON.stringify(user), loadingUser])
 
-  const setScheduleItem = (value: string, id: number, item: string) => {
-    const sched: User_schedule | undefined = schedule.find(el => el.id == id)
+  const setScheduleItem = (value: string, id: number, item: 'monday' | 'tuesday' | 'wednesday' | 'thursday'| 'friday' | 'saturday' | 'sunday', period: string) => {
+    const sched: Schedule | undefined = schedule.find(el => el.id == id)
     if(sched){
-      const newSched: User_schedule = {...sched, [item]: value}
+      let newItem = sched[item].split('-')
+      newItem[period == 'start' ? 0 : 1] = value
+      const newSched: Schedule = {...sched, [item]: newItem.join(' - ')}
       setSchedule(schedule.map(el => el.id != newSched.id ? el : newSched))
     }
   }
 
   const addSchedule = async () => {
-    createUserSchedule(user.id).then(()=> {
+    if(schedule.length < 5){
+      createSchedule().then(()=> {
+        setloading(true)
+      })
+    }
+  }
+
+  const handleUpdateSchedule = async (item: Schedule) => {    
+    updateSchedule(item).then(()=> {
       setloading(true)
     })
   }
 
-  const updateSchedule = async (item: User_schedule) => {    
-    updateUserSchedule(item).then(()=> {
-      setloading(true)
-    })
-  }
-
-  const deleteSchedule = async (item: number) => {
-    deleteUserSchedule(item).then(()=> {
+  const handleDeleteSchedule = async (item: number) => {
+    deleteSchedule(item).then(()=> {
       setloading(true)
     })
   }
@@ -515,6 +528,12 @@ export function SchedulerTable({user, handleClose}:{user:UserWithSession, handle
   const handleUpdateGoal = (value:string) => {
     setGoal(parseInt(value))
     updateUserGoal(user.id, parseInt(value))
+  }
+
+  const handleAssignSchedule = (schedule_id:number) => {
+    updateUserSchedule(user.id, schedule_id).then( () => {
+      setloadingUser(true)
+    } )
   }
 
 
@@ -538,23 +557,28 @@ export function SchedulerTable({user, handleClose}:{user:UserWithSession, handle
           <TableColumn key={'saturday'}>{'Sábado'}</TableColumn>
           <TableColumn key={'sunday'}>{'Domingo'}</TableColumn>
           <TableColumn key={'save'}>{'Salvar'}</TableColumn>
-          <TableColumn key={'delete'}>{'Deletar'}</TableColumn>
+          {/* <TableColumn key={'delete'}>{'Deletar'}</TableColumn> */}
         </TableHeader>
         <TableBody items={schedule}>
-          {(item) => (
-            <TableRow key={item.id}>
-              <TableCell key={item.id +'ativo'}>{item.is_active}</TableCell>
-              <TableCell key={item.id +'monday'}><Input value={item.monday} onValueChange={(value)=> setScheduleItem(value, item.id, 'monday')}/></TableCell>
-              <TableCell key={item.id +'tuesday'}><Input value={item.tuesday} onValueChange={(value)=> setScheduleItem(value, item.id, 'tuesday')}/></TableCell>
-              <TableCell key={item.id +'wednesday'}><Input value={item.wednesday} onValueChange={(value)=> setScheduleItem(value, item.id, 'wednesday')}/></TableCell>
-              <TableCell key={item.id +'thursday'}><Input value={item.thursday} onValueChange={(value)=> setScheduleItem(value, item.id, 'thursday')}/></TableCell>
-              <TableCell key={item.id +'friday'}><Input value={item.friday} onValueChange={(value)=> setScheduleItem(value, item.id, 'friday')}/></TableCell>
-              <TableCell key={item.id +'saturday'}><Input value={item.saturday} onValueChange={(value)=> setScheduleItem(value, item.id, 'saturday')}/></TableCell>
-              <TableCell key={item.id +'sunday'}><Input value={item.sunday} onValueChange={(value)=> setScheduleItem(value, item.id, 'sunday')}/></TableCell>
-              <TableCell key={item.id +'save'}><Button onPress={()=> updateSchedule(item)}>Salvar</Button></TableCell>
-              <TableCell key={item.id +'delete'}><Button onPress={()=> deleteSchedule(item.id)}>Deletar</Button></TableCell>
-            </TableRow>
-          )}
+          {
+            schedule.map(
+              (item) => (
+                <TableRow key={item.id}>
+                  <TableCell key={item.id +'ativo'}><Checkbox isSelected={user.schedule_id == item.id} onChange={() => handleAssignSchedule(item.id)} /></TableCell>
+                  <TableCell  key={item.id +'monday'}><HourDropdown value={item.monday.split('-')[0].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'monday', 'start')}/> <HourDropdown value={item.monday.split('-')[1].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'monday', 'end')}/> </TableCell>
+                  <TableCell  key={item.id +'tuesday'}><HourDropdown value={item.tuesday.split('-')[0].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'start')}/> <HourDropdown value={item.tuesday.split('-')[1].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'end')}/> </TableCell>
+                  <TableCell  key={item.id +'wednesday'}><HourDropdown value={item.wednesday.split('-')[0].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'start')}/> <HourDropdown value={item.tuesday.split('-')[1].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'end')}/> </TableCell>
+                  <TableCell  key={item.id +'thursday'}><HourDropdown value={item.thursday.split('-')[0].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'start')}/> <HourDropdown value={item.tuesday.split('-')[1].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'end')}/> </TableCell>
+                  <TableCell  key={item.id +'friday'}><HourDropdown value={item.friday.split('-')[0].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'start')}/> <HourDropdown value={item.tuesday.split('-')[1].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'end')}/> </TableCell>
+                  <TableCell  key={item.id +'saturday'}><HourDropdown value={item.saturday.split('-')[0].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'start')}/> <HourDropdown value={item.tuesday.split('-')[1].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'end')}/> </TableCell>
+                  <TableCell  key={item.id +'sunday'}><HourDropdown value={item.sunday.split('-')[0].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'start')}/> <HourDropdown value={item.tuesday.split('-')[1].trim()} onChange={(value)=> setScheduleItem(value, item.id, 'tuesday', 'end')}/> </TableCell>
+                  
+                  <TableCell key={item.id +'save'}><Button onPress={()=> handleUpdateSchedule(item)}>Salvar Escala</Button></TableCell>
+                  {/* <TableCell key={item.id +'delete'}><Button onPress={()=> handleDeleteSchedule(item.id)}>Deletar</Button></TableCell> */}
+                </TableRow>
+              )
+            )
+          }
         </TableBody>
       </Table>
       <div className="flex flex-row gap-2 p-2">
@@ -565,4 +589,22 @@ export function SchedulerTable({user, handleClose}:{user:UserWithSession, handle
   )
 }
 
+export default function HourDropdown({ value, onChange }: {value: string, onChange: (value: string) => void}) {
+  return (
+    <Select
+      aria-label="Select hour"
+      selectedKeys={[value]} // Ensure it's a string
+      onChange={(e) => onChange(e.target.value)}
+      classNames={{base: 'w-24', listbox: 'text-primary'}}
+    >
+      {
+        hours.map(el => (
+          <SelectItem key={el} value={el} >
+            {el}
+          </SelectItem>
+        ))
+      }
+    </Select>
+  );
+}
 

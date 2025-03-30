@@ -55,6 +55,13 @@ declare module 'asterisk-ami' {
     // Adicione quaisquer outros parâmetros necessários aqui
   }
 
+  interface HangupAction extends BaseAmiAction {
+    action: 'Hangup';
+    Channel: string;
+    Cause?: number;
+    ActionID?: string;
+  }
+
   type AmiAction =
     | QueuePauseAction
     | QueueStatusAction
@@ -63,7 +70,8 @@ declare module 'asterisk-ami' {
     | QueueSummaryAction
     | AgentsAction
     | CoreShowChannelsAction
-    | PJSIPShowContactsAction;
+    | PJSIPShowContactsAction
+    | HangupAction;
 
   interface BaseAmiResponse {
     response: string;

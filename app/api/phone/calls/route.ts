@@ -77,7 +77,6 @@ export async function GET() {
     const connectAmi = (): Promise<void> => {
       return new Promise((resolve, reject) => {
         amiClient.connect((err) => {
-          console.log('connectAmi', err);
           if (err) {
             reject(new Error("Erro ao conectar ao AMI: " + err.message));
           } else {
@@ -307,6 +306,105 @@ export async function GET() {
     }
     return NextResponse.json(
       { error: "Erro interno no servidor", message: "Erro desconhecido" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Usuário não está logado" },
+        { status: 401 }
+      );
+    }
+
+    const { channel, cause } = await request.json();
+
+    if (!channel || typeof channel !== 'string') {
+      return NextResponse.json(
+        { error: "Parâmetro 'channel' é obrigatório e deve ser uma string." },
+        { status: 400 }
+      );
+    }
+
+    const amiClient = new AsteriskAmi({
+      host: process.env.ASTERISK_AMI_HOST!,
+      port: parseInt(process.env.ASTERISK_AMI_PORT!, 10),
+      username: process.env.ASTERISK_AMI_USER!,
+      password: process.env.ASTERISK_AMI_PASS!,
+      reconnect: false,
+      events: false,
+    });
+
+    const connectAmi = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        amiClient.connect((err) => {
+          if (err) {
+            reject(new Error("Erro ao conectar ao AMI: " + err.message));
+          } else {
+            resolve();
+          }
+        });
+      });
+    };
+
+    const sendHangupAction = (actionId: string): Promise<AmiResponse> => {
+      return new Promise((resolve, reject) => {
+        function onResponse(data: AmiResponse) {
+          if (data.actionid === actionId) {
+            amiClient.off("ami_data", onResponse);
+            if (data.response === 'Success') {
+              resolve(data);
+            } else {
+              reject(new Error(data.message as string || 'Falha ao desligar o canal'));
+            }
+          }
+        }
+
+        amiClient.on("ami_data", onResponse);
+
+        const hangupPayload: { action: 'Hangup', Channel: string, ActionID: string, Cause?: number } = {
+          action: "Hangup",
+          Channel: channel,
+          ActionID: actionId,
+        };
+        if (cause !== undefined) {
+          hangupPayload.Cause = cause;
+        }
+
+        amiClient.send(hangupPayload, (err) => {
+          if (err) {
+            amiClient.off("ami_data", onResponse);
+            reject(err);
+          }
+        });
+
+        setTimeout(() => {
+          amiClient.off("ami_data", onResponse);
+          reject(new Error("Timeout aguardando resposta da ação Hangup"));
+        }, 5000);
+      });
+    };
+
+    try {
+      await connectAmi();
+      const actionId = `Hangup-${Date.now()}`;
+      const response = await sendHangupAction(actionId);
+      return NextResponse.json({ success: true, message: "Canal desligado com sucesso.", details: response }, { status: 200 });
+    } finally {
+      amiClient.disconnect();
+    }
+  } catch (error: unknown) {
+    let errorMessage = "Erro desconhecido";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    console.error("Erro na API Hangup:", error);
+    return NextResponse.json(
+      { error: "Erro interno no servidor", message: errorMessage },
       { status: 500 }
     );
   }

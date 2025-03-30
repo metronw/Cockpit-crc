@@ -5,7 +5,7 @@ import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button
 import { useRealTimeContext, Channel, Call, Agent } from "./provider";
 import { toast } from 'react-hot-toast';
 import useSWR from 'swr';
-import { FaSync, FaPowerOff, FaBinoculars, FaCommentDots, FaArrowsAltH, FaUser } from 'react-icons/fa';
+import { FaSync, FaPowerOff, FaBinoculars, FaCommentDots, FaArrowsAltH, FaUser, FaPhoneSlash } from 'react-icons/fa';
 
 /* ==========================================================
    -- COMEÇO: CÓDIGO DAS TABELAS DE CHAMADAS (SEM ALTERAÇÕES) --
@@ -321,6 +321,26 @@ export function AgentStatus() {
     }
   };
 
+  const handleHangup = async (interfaceName: string) => {
+    try {
+      const response = await fetch('/api/phone/calls', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ channel: `/^${interfaceName}-.*/` }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao desligar o canal');
+      }
+
+      toast.success('Canal desligado com sucesso');
+    } catch (error) {
+      toast.error('Erro ao desligar o canal: ' + (error as Error).message);
+    }
+  };
+
   // Função utilitária para extrair o valor de cada coluna:
   const getAgentValue = useCallback((agent: Agent, key: string): string | number => {
     switch (key) {
@@ -460,7 +480,7 @@ export function AgentStatus() {
                   : ''));
 
             return (
-              <TableRow key={agent.interface} className={rowClass}>
+              <TableRow key={agent.interface} className={`${rowClass} border-b`}>
                 {(columnKey) => {
                   // Se o usuário optou por não mostrar filas, exibe traço
                   if (columnKey === 'queues' && !showQueues) {
@@ -472,25 +492,81 @@ export function AgentStatus() {
                       return (
                         <TableCell>
                           {/* Icons for actions */}
-                            <div className="flex flex-row space-x-2">
-                            {/* Logoff Icon */}
-                            <FaPowerOff className="text-red-500 cursor-click" size={'20px'} onClick={() => handleLogoff(agent.interface)} />
-                            {/* Refresh Icon */}
-                            <FaSync className="text-blue-500 " size={'20px'} onClick={() => handleRefresh(agent.interface)} />
+                          <div className="flex flex-row space-x-2 items-center justify-center">
+                            <div className="flex flex-col items-center">
+                            <FaPowerOff
+                              className="text-red-500 cursor-click"
+                              size={'20px'}
+                              onClick={() => handleLogoff(agent.interface)}
+                              title="Deslogar agente de todas as filas"
+                            />
+                            {/* <span className="text-xs text-gray-500">Deslogar</span> */}
                             </div>
+                          {/* Refresh Icon */}
+                            <div className="flex flex-col items-center">
+                            <FaSync
+                              className="text-blue-500"
+                              size={'20px'}
+                              onClick={() => handleRefresh(agent.interface)}
+                              title="Recarregar a atribuição de filas do agente"
+                            />
+                            {/* <span className="text-xs text-gray-500">Recarregar</span> */}
+                            </div>
+                          </div>
 
                           <div className="flex flex-row space-x-2 mt-2">
-                            <FaBinoculars className="text-gray-400 cursor-not-allowed" size={'20px'} />
-                            {/* Whisper Icon */}
-                            <FaCommentDots className="text-gray-400 cursor-not-allowed" size={'20px'} />
+                            <div className="flex flex-col items-center">
+                            <FaBinoculars
+                              className="text-gray-400 cursor-not-allowed"
+                              size={'20px'}
+                              title="Espionar a chamada do agente"
+                            />
+                            {/* <span className="text-xs text-gray-500">Espionar</span> */}
                             </div>
+                          {/* Whisper Icon */}
+                            <div className="flex flex-col items-center">
+                            <FaCommentDots
+                              className="text-gray-400 cursor-not-allowed"
+                              size={'20px'}
+                              title="Sussurrar na chamada do agente"
+                            />
+                            {/* <span className="text-xs text-gray-500">Sussurrar</span> */}
+                            </div>
+                          </div>
 
-                            <div className="flex flex-row space-x-2 mt-2">
-                            {/* Transfer Icon */}
-                            <FaArrowsAltH className="text-gray-400 cursor-not-allowed" size={'20px'} />
-                            {/* Assume Icon */}
-                            <FaUser className="text-gray-400 cursor-not-allowed" size={'20px'} />
+                          <div className="flex flex-row space-x-2 mt-2">
+                          {/* Transfer Icon */}
+                            <div className="flex flex-col items-center">
+                            <FaArrowsAltH
+                              className="text-gray-400 cursor-not-allowed"
+                              size={'20px'}
+                              title="Transferir a chamada"
+                            />
+                            {/* <span className="text-xs text-gray-500">Transferir</span> */}
                             </div>
+                          {/* Assume Icon */}
+                            <div className="flex flex-col items-center">
+                            <FaUser
+                              className="text-gray-400 cursor-not-allowed"
+                              size={'20px'}
+                              title="Assumir a ligação do agente"
+                            />
+                            {/* <span className="text-xs text-gray-500">Assumir</span> */}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-row space-x-2 mt-2">
+                          {/* Hangup Icon */}
+                          <div className="flex flex-col items-center">
+                            <FaPhoneSlash
+                            className={`text-red-500 cursor-pointer ${agent.inCall ? '' : 'hidden'}`}
+                            size={'20px'}
+                            title="Desligar chamada do agente"
+                            onClick={() => handleHangup(agent.interface)}
+                            />
+                            {/* <span className={`text-xs text-gray-500 ${agent.inCall ? '' : 'hidden'}`}>Encerrar</span> */}
+                          </div>
+                          </div>
                         </TableCell>
                       );
 
